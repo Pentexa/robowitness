@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "id": "RW-REG-003",
+  "kind": "static_obstacle",
+  "seed": 103,
+  "world": {
+    "type": "warehouse",
+    "width_m": 12.0,
+    "height_m": 8.0,
+    "duration_limit_s": 25.0,
+    "fixed_timestep_s": 0.016666666666666666
+  },
+  "robot": {
+    "kind": "differential_drive",
+    "start": {
+      "x_m": 1.0,
+      "y_m": 4.0,
+      "yaw_rad": 0.0
+    },
+    "goal": {
+      "x_m": 10.0,
+      "y_m": 4.0
+    },
+    "goal_radius_m": 0.35,
+    "body_radius_m": 0.25,
+    "wheel_base_m": 0.42,
+    "wheel_radius_m": 0.09,
+    "sensor_range_m": 4.0,
+    "sensor_latency_ms": 50,
+    "sensor_noise_std_m": 0.0
+  },
+  "obstacles": [
+    {
+      "id": "STAT2",
+      "shape": "circle",
+      "radius_m": 0.35,
+      "motion": "static",
+      "start": {
+        "x_m": 6.0,
+        "y_m": 5.8
+      },
+      "end": {
+        "x_m": 6.0,
+        "y_m": 5.8
+      },
+      "speed_mps": 0.0
+    }
+  ],
+  "oracle": {
+    "collision_free": true,
+    "min_clearance_m": 0.25,
+    "must_reach_goal": true,
+    "max_duration_s": 25.0,
+    "max_stuck_duration_s": 3.0
+  }
+}

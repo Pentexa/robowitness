@@ -1,0 +1,188 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-27T18:00:00Z",
+  "recipe": "frozen_holdout_v1",
+  "total_scenarios": 20,
+  "scenarios": [
+    {
+      "id": "RW-HLD-001",
+      "seed": 2001,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 200, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.35, "motion": "ping_pong", "start": {"x_m": 5.5, "y_m": 1.5}, "end": {"x_m": 5.5, "y_m": 6.5}, "speed_mps": 0.40}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-002",
+      "seed": 2002,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 250, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.30, "motion": "ping_pong", "start": {"x_m": 6.0, "y_m": 1.0}, "end": {"x_m": 6.0, "y_m": 7.0}, "speed_mps": 0.42}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-003",
+      "seed": 2003,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 300, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.35, "motion": "ping_pong", "start": {"x_m": 6.5, "y_m": 1.2}, "end": {"x_m": 6.5, "y_m": 6.8}, "speed_mps": 0.45}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-004",
+      "seed": 2004,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 150, "sensor_noise_std_m": 0.0},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.32, "motion": "ping_pong", "start": {"x_m": 5.8, "y_m": 1.0}, "end": {"x_m": 5.8, "y_m": 7.0}, "speed_mps": 0.38}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-005",
+      "seed": 2005,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 350, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.35, "motion": "ping_pong", "start": {"x_m": 6.2, "y_m": 1.5}, "end": {"x_m": 6.2, "y_m": 6.5}, "speed_mps": 0.48}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-006",
+      "seed": 2006,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 200, "sensor_noise_std_m": 0.02},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.35, "motion": "ping_pong", "start": {"x_m": 5.2, "y_m": 1.0}, "end": {"x_m": 5.2, "y_m": 7.0}, "speed_mps": 0.44}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-007",
+      "seed": 2007,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 400, "sensor_noise_std_m": 0.0},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.38, "motion": "ping_pong", "start": {"x_m": 6.8, "y_m": 1.5}, "end": {"x_m": 6.8, "y_m": 6.5}, "speed_mps": 0.40}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-008",
+      "seed": 2008,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 100, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.30, "motion": "ping_pong", "start": {"x_m": 6.0, "y_m": 1.2}, "end": {"x_m": 6.0, "y_m": 6.8}, "speed_mps": 0.46}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-009",
+      "seed": 2009,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 300, "sensor_noise_std_m": 0.02},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.35, "motion": "ping_pong", "start": {"x_m": 5.6, "y_m": 1.0}, "end": {"x_m": 5.6, "y_m": 7.0}, "speed_mps": 0.50}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-010",
+      "seed": 2010,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 250, "sensor_noise_std_m": 0.0},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.32, "motion": "ping_pong", "start": {"x_m": 6.4, "y_m": 1.5}, "end": {"x_m": 6.4, "y_m": 6.5}, "speed_mps": 0.36}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-011",
+      "seed": 2011,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 150, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.36, "motion": "ping_pong", "start": {"x_m": 5.4, "y_m": 1.2}, "end": {"x_m": 5.4, "y_m": 6.8}, "speed_mps": 0.42}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-012",
+      "seed": 2012,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 350, "sensor_noise_std_m": 0.02},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.34, "motion": "ping_pong", "start": {"x_m": 6.6, "y_m": 1.0}, "end": {"x_m": 6.6, "y_m": 7.0}, "speed_mps": 0.48}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-013",
+      "seed": 2013,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 200, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.30, "motion": "ping_pong", "start": {"x_m": 5.0, "y_m": 1.5}, "end": {"x_m": 5.0, "y_m": 6.5}, "speed_mps": 0.40}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-014",
+      "seed": 2014,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 400, "sensor_noise_std_m": 0.0},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.35, "motion": "ping_pong", "start": {"x_m": 7.0, "y_m": 1.2}, "end": {"x_m": 7.0, "y_m": 6.8}, "speed_mps": 0.44}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-015",
+      "seed": 2015,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 100, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.33, "motion": "ping_pong", "start": {"x_m": 6.0, "y_m": 1.0}, "end": {"x_m": 6.0, "y_m": 7.0}, "speed_mps": 0.38}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-016",
+      "seed": 2016,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 300, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.37, "motion": "ping_pong", "start": {"x_m": 5.8, "y_m": 1.5}, "end": {"x_m": 5.8, "y_m": 6.5}, "speed_mps": 0.46}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-017",
+      "seed": 2017,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 200, "sensor_noise_std_m": 0.02},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.32, "motion": "ping_pong", "start": {"x_m": 6.2, "y_m": 1.2}, "end": {"x_m": 6.2, "y_m": 6.8}, "speed_mps": 0.42}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-018",
+      "seed": 2018,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 250, "sensor_noise_std_m": 0.0},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.35, "motion": "ping_pong", "start": {"x_m": 5.4, "y_m": 1.0}, "end": {"x_m": 5.4, "y_m": 7.0}, "speed_mps": 0.40}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-019",
+      "seed": 2019,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 350, "sensor_noise_std_m": 0.01},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.36, "motion": "ping_pong", "start": {"x_m": 6.6, "y_m": 1.5}, "end": {"x_m": 6.6, "y_m": 6.5}, "speed_mps": 0.48}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    },
+    {
+      "id": "RW-HLD-020",
+      "seed": 2020,
+      "kind": "dynamic_obstacle",
+      "world": {"type": "warehouse", "width_m": 12.0, "height_m": 8.0, "duration_limit_s": 30.0, "fixed_timestep_s": 0.016666666666666666},
+      "robot": {"kind": "differential_drive", "start": {"x_m": 1.0, "y_m": 4.0, "yaw_rad": 0.0}, "goal": {"x_m": 11.0, "y_m": 4.0}, "goal_radius_m": 0.35, "body_radius_m": 0.25, "wheel_base_m": 0.42, "wheel_radius_m": 0.09, "sensor_range_m": 4.0, "sensor_latency_ms": 150, "sensor_noise_std_m": 0.0},
+      "obstacles": [{"id": "O1", "shape": "circle", "radius_m": 0.32, "motion": "ping_pong", "start": {"x_m": 6.0, "y_m": 1.2}, "end": {"x_m": 6.0, "y_m": 6.8}, "speed_mps": 0.44}],
+      "oracle": {"collision_free": true, "min_clearance_m": 0.25, "must_reach_goal": true, "max_duration_s": 30.0, "max_stuck_duration_s": 3.0}
+    }
+  ]
+}
