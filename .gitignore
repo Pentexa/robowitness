@@ -1,0 +1,48 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+.env
+.env.local
+.env.*.local
+
+# Node.js & Next.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+apps/web/.next/
+apps/web/out/
+apps/web/build/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tsbuildinfo
+
+# Database & Artifacts
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+artifacts/runs/*
+!artifacts/runs/.gitkeep
+artifacts/verifications/*
+!artifacts/verifications/.gitkeep
+
+# IDEs & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
