@@ -19,6 +19,8 @@ if (-not (Test-Path "backend\.venv")) {
 
 Write-Host "Activating venv and installing backend requirements..."
 & backend\.venv\Scripts\python.exe -m pip install --upgrade pip
+# wheel/setuptools first: pybullet 3.2.5 has no Windows wheel and builds from source (needs MSVC 2019+)
+& backend\.venv\Scripts\python.exe -m pip install wheel setuptools
 & backend\.venv\Scripts\python.exe -m pip install -e backend/.[dev]
 
 # Setup artifacts directories

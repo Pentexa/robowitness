@@ -46,6 +46,17 @@ class RelativeObstacleObservation(BaseModel):
     radius_m: float
     distance_m: float
 
+class ObstacleTrack(BaseModel):
+    """Deterministic velocity estimate derived SOLELY from previously delivered
+    sensor observations (never ground truth). Attached by trusted sensor
+    infrastructure for the policy to use when its prediction horizon > 0."""
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    vx_mps: float
+    vy_mps: float
+    samples: int
+    confident: bool
+
 class SensorObservation(BaseModel):
     """Immutable sensor observation presented to controller."""
     model_config = ConfigDict(extra="forbid")
@@ -58,6 +69,7 @@ class SensorObservation(BaseModel):
     goal_rel_y_m: float
     goal_distance_m: float
     obstacles: List[RelativeObstacleObservation] = Field(default_factory=list)
+    tracks: List[ObstacleTrack] = Field(default_factory=list)
 
 class ControlCommand(BaseModel):
     model_config = ConfigDict(extra="forbid")

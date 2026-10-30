@@ -1,14 +1,40 @@
 """Dedicated worker process polling SQLite jobs queue."""
+import json
 import os
 import signal
 import sys
+import tempfile
 import time
 import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+from app.config import settings
 from app.db import init_db
 from app.jobs.repository import claim_next_job, update_job_progress, update_job_status
 from app.jobs.service import JobExecutionService
 
 RUNNING = True
+_HEARTBEAT_PATH = settings.artifacts_path / "worker_heartbeat.json"
+_LAST_BEAT = 0.0
+
+
+def write_heartbeat(worker_id: str, force: bool = False) -> None:
+    """Record worker liveness for /api/health (throttled, atomic, best-effort)."""
+    global _LAST_BEAT
+    now = time.time()
+    if not force and (now - _LAST_BEAT) < 5.0:
+        return
+    _LAST_BEAT = now
+    try:
+        _HEARTBEAT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        payload = {"worker_id": worker_id, "ts": datetime.now(timezone.utc).isoformat()}
+        with tempfile.NamedTemporaryFile("w", dir=str(_HEARTBEAT_PATH.parent),
+                                         delete=False, encoding="utf-8") as tf:
+            json.dump(payload, tf)
+            tmp_name = tf.name
+        os.replace(tmp_name, _HEARTBEAT_PATH)
+    except Exception as e:
+        print(f"[Worker] heartbeat write failed: {e}")
 
 def signal_handler(signum, frame):
     global RUNNING
@@ -30,12 +56,14 @@ def run_worker_loop(poll_interval_s: float = 0.5):
 
     while RUNNING:
         try:
+            write_heartbeat(worker_id)
             job = claim_next_job(worker_id)
             if not job:
                 time.sleep(poll_interval_s)
                 continue
 
             print(f"[Worker] Claimed job {job.job_id} (kind={job.kind}, result_id={job.result_id})")
+            write_heartbeat(worker_id, force=True)
 
             if job.kind == "simulation_run":
                 service.execute_simulation_run(job)

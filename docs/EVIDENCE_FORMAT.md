@@ -23,7 +23,9 @@ artifacts/
         ├── holdout_results.json
         ├── regression_results.json
         ├── report.md
-        └── hashes.json
+        ├── telemetry_candidate.jsonl   # optional: sealed paired-candidate frames
+        └── hashes.json                 # (for verifications sealed after candidate replay;
+                                        #  older packages verify without it — required list unchanged)
 ```
 
 ## 2. Integrity & Cryptographic Sealing

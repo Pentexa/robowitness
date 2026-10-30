@@ -61,6 +61,26 @@ Only 5 AI-adjustable numeric parameters:
 - `brake_gain`: `0.10..10.00`
 - `obstacle_prediction_horizon_s`: `0.00..2.00`
 
+### Shared navigation law (baseline and candidate run the SAME algorithm)
+Proportional heading to goal + braking on delayed sensor distance + horizon-gated
+lateral avoidance. Only the five numeric fields above may differ between runs.
+
+### Deterministic obstacle-velocity estimator (sensor infrastructure, not policy)
+- `SensorSystem` keeps, per obstacle ID, a bounded deque of the last 8 DELIVERED
+  world-frame position estimates (`observed robot pose + relative vector`, noisy/stale
+  as delivered — never ground truth).
+- Velocity = least-squares slope over the window; `confident` only with >= 3 samples
+  spanning >= 2 ticks. Otherwise velocity is 0/unknown and the policy treats the
+  obstacle as static (conservative fallback).
+- `SensorObservation.tracks[]` carries `{id, vx_mps, vy_mps, samples, confident}`.
+- Avoidance steering activates ONLY when `obstacle_prediction_horizon_s > 0` and the
+  track is confident; predicted robot-frame position `horizon` seconds ahead pushes
+  the desired heading laterally inside the influence radius
+  (`safe + reaction + 0.5*speed*horizon + obstacle radius`, fixed blend gain 2.0).
+- With horizon `0.0` the block is skipped entirely: baseline behavior is
+  bit-identical to the brake-only law (verified: reference run repeats
+  tick-for-tick).
+
 ## 4. Telemetry Frame (`TelemetryFrame`)
 Recorded per simulation tick:
 - `schema_version`: Literal `"1.0"`

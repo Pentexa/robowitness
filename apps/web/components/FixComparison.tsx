@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { PolicyConfig } from "../lib/types";
 
 interface FixComparisonProps {
@@ -9,8 +9,24 @@ interface FixComparisonProps {
   onUpdateCandidate: (updated: PolicyConfig) => void;
   onVerify: () => void;
   isVerifying: boolean;
+  hasBaseline: boolean;
   provenance: string;
 }
+
+const FIELDS: Array<{
+  key: "max_speed_mps" | "safe_distance_m" | "reaction_margin_m" | "brake_gain" | "obstacle_prediction_horizon_s";
+  label: string;
+  unit: string;
+  min: number;
+  max: number;
+  step: number;
+}> = [
+  { key: "max_speed_mps", label: "Max speed", unit: "m/s", min: 0.05, max: 1.2, step: 0.05 },
+  { key: "safe_distance_m", label: "Safe distance", unit: "m", min: 0.2, max: 2.0, step: 0.05 },
+  { key: "reaction_margin_m", label: "Reaction margin", unit: "m", min: 0.0, max: 1.0, step: 0.05 },
+  { key: "brake_gain", label: "Brake gain", unit: "×", min: 0.1, max: 10.0, step: 0.1 },
+  { key: "obstacle_prediction_horizon_s", label: "Prediction horizon", unit: "s", min: 0.0, max: 2.0, step: 0.1 },
+];
 
 export const FixComparison: React.FC<FixComparisonProps> = ({
   baselinePolicy,
@@ -18,116 +34,67 @@ export const FixComparison: React.FC<FixComparisonProps> = ({
   onUpdateCandidate,
   onVerify,
   isVerifying,
+  hasBaseline,
   provenance,
 }) => {
   const handleChange = (field: keyof PolicyConfig, value: number) => {
-    onUpdateCandidate({
-      ...candidatePolicy,
-      [field]: value,
-    });
+    if (!Number.isFinite(value)) return;
+    onUpdateCandidate({ ...candidatePolicy, [field]: value });
   };
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h3 className="card-title">2. Policy Fix Comparison</h3>
-        <span className="badge badge-info font-mono">{provenance}</span>
+    <div className="rw-card">
+      <div className="rw-card-head">
+        <h3 className="rw-card-title">3. Policy Fix Comparison</h3>
+        <span className="rw-badge mono">
+          <span className="dot" />
+          {provenance}
+        </span>
       </div>
 
-      <div className="card-body">
-        <div className="param-comparison-table">
-          <div className="table-header">
+      <div className="rw-card-body">
+        <div>
+          <div className="rw-table-head">
             <span>Parameter</span>
             <span>Baseline</span>
-            <span>Candidate (AI Proposal)</span>
+            <span>Candidate</span>
           </div>
-
-          <div className="table-row">
-            <span className="param-name">Max Speed (m/s)</span>
-            <span className="font-mono text-muted">{baselinePolicy.max_speed_mps}</span>
-            <input
-              id="input-max-speed"
-              type="number"
-              step="0.05"
-              min="0.05"
-              max="1.20"
-              value={candidatePolicy.max_speed_mps}
-              onChange={(e) => handleChange("max_speed_mps", parseFloat(e.target.value))}
-              className="input-sm font-mono"
-            />
-          </div>
-
-          <div className="table-row">
-            <span className="param-name">Safe Distance (m)</span>
-            <span className="font-mono text-muted">{baselinePolicy.safe_distance_m}</span>
-            <input
-              id="input-safe-distance"
-              type="number"
-              step="0.05"
-              min="0.20"
-              max="2.00"
-              value={candidatePolicy.safe_distance_m}
-              onChange={(e) => handleChange("safe_distance_m", parseFloat(e.target.value))}
-              className="input-sm font-mono"
-            />
-          </div>
-
-          <div className="table-row">
-            <span className="param-name">Reaction Margin (m)</span>
-            <span className="font-mono text-muted">{baselinePolicy.reaction_margin_m}</span>
-            <input
-              id="input-reaction-margin"
-              type="number"
-              step="0.05"
-              min="0.00"
-              max="1.00"
-              value={candidatePolicy.reaction_margin_m}
-              onChange={(e) => handleChange("reaction_margin_m", parseFloat(e.target.value))}
-              className="input-sm font-mono"
-            />
-          </div>
-
-          <div className="table-row">
-            <span className="param-name">Brake Gain</span>
-            <span className="font-mono text-muted">{baselinePolicy.brake_gain}</span>
-            <input
-              id="input-brake-gain"
-              type="number"
-              step="0.1"
-              min="0.1"
-              max="10.0"
-              value={candidatePolicy.brake_gain}
-              onChange={(e) => handleChange("brake_gain", parseFloat(e.target.value))}
-              className="input-sm font-mono"
-            />
-          </div>
-
-          <div className="table-row">
-            <span className="param-name">Prediction Horizon (s)</span>
-            <span className="font-mono text-muted">{baselinePolicy.obstacle_prediction_horizon_s}</span>
-            <input
-              id="input-prediction-horizon"
-              type="number"
-              step="0.1"
-              min="0.0"
-              max="2.0"
-              value={candidatePolicy.obstacle_prediction_horizon_s}
-              onChange={(e) => handleChange("obstacle_prediction_horizon_s", parseFloat(e.target.value))}
-              className="input-sm font-mono"
-            />
-          </div>
+          {FIELDS.map((f) => {
+            const base = baselinePolicy[f.key] as number;
+            const cand = candidatePolicy[f.key] as number;
+            const changed = base !== cand;
+            return (
+              <div className="rw-table-row" key={f.key}>
+                <span>
+                  {f.label} <span className="muted text-xs">({f.unit})</span>
+                </span>
+                <span className="mono muted">{base.toFixed(2)}</span>
+                <input
+                  id={`input-${f.key.replace(/_/g, "-")}`}
+                  type="number"
+                  step={f.step}
+                  min={f.min}
+                  max={f.max}
+                  value={cand}
+                  onChange={(e) => handleChange(f.key, parseFloat(e.target.value))}
+                  className="rw-input"
+                  style={changed ? { borderColor: "var(--accent-line)" } : undefined}
+                  aria-label={`Candidate ${f.label}`}
+                />
+              </div>
+            );
+          })}
         </div>
 
-        <div className="mt-4">
-          <button
-            id="btn-verify-fix"
-            className="btn btn-primary w-full"
-            onClick={onVerify}
-            disabled={isVerifying}
-          >
-            {isVerifying ? "Executing Verification Sequence..." : "Run Independent Verification Protocol"}
-          </button>
-        </div>
+        <button
+          id="btn-verify-fix"
+          className="rw-btn rw-btn-primary rw-btn-block"
+          onClick={onVerify}
+          disabled={isVerifying || !hasBaseline}
+          title={hasBaseline ? undefined : "Run a baseline first"}
+        >
+          {isVerifying ? "Executing verification sequence…" : "Run independent verification protocol"}
+        </button>
       </div>
     </div>
   );

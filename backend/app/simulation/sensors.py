@@ -2,9 +2,14 @@
 import math
 import random
 from collections import deque
-from typing import Dict, List, Optional
-from app.schemas.policy import RelativeObstacleObservation, SensorObservation
+from typing import Dict, List, Optional, Tuple
+from app.schemas.policy import ObstacleTrack, RelativeObstacleObservation, SensorObservation
 from app.schemas.scenario import Pose2D, RobotSpec
+
+# Fixed regression window for velocity estimation (deterministic, documented).
+# 16 delivered samples (~0.27 s at 60 Hz) halves noise-induced velocity error
+# versus 8 samples; lag cost (~7 cm at 0.5 m/s) is acceptable for avoidance.
+_TRACK_WINDOW = 16
 
 class SensorSystem:
     def __init__(self, robot_spec: RobotSpec, dt: float, seed: int):
@@ -13,6 +18,9 @@ class SensorSystem:
         self.rng = random.Random(seed + 1000)
         self.latency_ticks = math.ceil((robot_spec.sensor_latency_ms / 1000.0) / dt)
         self.queue: deque = deque()
+        # Per-obstacle history of DELIVERED world-frame estimates:
+        # id -> deque[(sample_tick, x_m, y_m)], bounded, deterministic.
+        self.history: Dict[str, deque] = {}
 
     def capture_observation(
         self,
@@ -78,6 +86,8 @@ class SensorSystem:
         if latest_ready is not None:
             age_s = (current_tick - latest_ready.sample_tick) * self.dt
             latest_ready.age_s = round(age_s, 6)
+            self._record_history(latest_ready)
+            latest_ready.tracks = self._compute_tracks()
             return latest_ready
 
         # No observation ready yet (startup latency period)
@@ -93,4 +103,51 @@ class SensorSystem:
             goal_rel_y_m=gdy,
             goal_distance_m=math.hypot(gdx, gdy),
             obstacles=[],
+            tracks=[],
         )
+
+    def _record_history(self, obs: SensorObservation) -> None:
+        """Store delivered world-frame position estimates per obstacle ID.
+
+        World-frame estimate = delivered robot pose + delivered relative vector.
+        Uses ONLY delivered (possibly noisy/stale) data — never ground truth.
+        """
+        if not obs.observed_pose:
+            return
+        rx, ry = obs.observed_pose["x_m"], obs.observed_pose["y_m"]
+        for o in obs.obstacles:
+            hist = self.history.setdefault(o.id, deque(maxlen=_TRACK_WINDOW))
+            hist.append((obs.sample_tick, rx + o.rel_x_m, ry + o.rel_y_m))
+
+    def _compute_tracks(self) -> List[ObstacleTrack]:
+        """Least-squares velocity over the bounded sample window.
+
+        Confident only with >= 3 samples spanning >= 2 ticks; otherwise the
+        policy must treat the obstacle as static (conservative fallback).
+        """
+        tracks: List[ObstacleTrack] = []
+        for oid, hist in self.history.items():
+            n = len(hist)
+            if n >= 3 and (hist[-1][0] - hist[0][0]) >= 2:
+                t0 = hist[0][0]
+                xs = [h[1] for h in hist]
+                ys = [h[2] for h in hist]
+                ts = [(h[0] - t0) * self.dt for h in hist]
+                vx = _slope(ts, xs)
+                vy = _slope(ts, ys)
+                tracks.append(ObstacleTrack(id=oid, vx_mps=vx, vy_mps=vy,
+                                            samples=n, confident=True))
+            else:
+                tracks.append(ObstacleTrack(id=oid, vx_mps=0.0, vy_mps=0.0,
+                                            samples=n, confident=False))
+        return tracks
+
+
+def _slope(ts: List[float], vs: List[float]) -> float:
+    n = len(ts)
+    mean_t = sum(ts) / n
+    mean_v = sum(vs) / n
+    denom = sum((t - mean_t) ** 2 for t in ts)
+    if denom <= 0.0:
+        return 0.0
+    return sum((t - mean_t) * (v - mean_v) for t, v in zip(ts, vs)) / denom

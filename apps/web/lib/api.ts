@@ -2,6 +2,8 @@ import { PolicyConfig, ScenarioSpec, TelemetryFrame, VerificationRecord } from "
 
 const API_BASE = process.env.NEXT_PUBLIC_RW_API_URL || "http://localhost:8000";
 
+export const API_BASE_URL = API_BASE;
+
 export async function fetchHealth() {
   const res = await fetch(`${API_BASE}/api/health`);
   if (!res.ok) throw new Error("Health check failed");
@@ -70,4 +72,31 @@ export async function fetchVerification(verificationId: string): Promise<Verific
   const res = await fetch(`${API_BASE}/api/verifications/${verificationId}`);
   if (!res.ok) throw new Error("Failed to load verification record");
   return res.json();
+}
+
+export async function fetchCandidateTelemetry(
+  verificationId: string,
+  offset = 0,
+  limit = 600
+): Promise<{ frames: TelemetryFrame[]; total: number; next_offset: number | null }> {
+  const res = await fetch(
+    `${API_BASE}/api/verifications/${verificationId}/candidate-telemetry?offset=${offset}&limit=${limit}`
+  );
+  if (res.status === 404) throw new Error("CANDIDATE_REPLAY_MISSING");
+  if (!res.ok) throw new Error("Failed to load candidate telemetry");
+  return res.json();
+}
+
+export async function fetchAllFrames(
+  fetchPage: (offset: number, limit: number) => Promise<{ frames: TelemetryFrame[]; total: number; next_offset: number | null }>
+): Promise<TelemetryFrame[]> {
+  const all: TelemetryFrame[] = [];
+  let offset = 0;
+  for (;;) {
+    const page = await fetchPage(offset, 2000);
+    all.push(...page.frames);
+    if (page.next_offset === null || page.frames.length === 0) break;
+    offset = page.next_offset;
+  }
+  return all;
 }

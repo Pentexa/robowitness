@@ -126,3 +126,24 @@ npm run typecheck
 
 ## 5. Offline Reference Mode
 RoboWitness functions fully offline without any paid Meta API keys. When `RW_AI_MODE=offline` is set in `.env`, the system serves validated offline reference scenarios and investigations labeled with `OFFLINE_REFERENCE` provenance.
+
+### Windows note: PyBullet from source
+PyPI ships no `cp311` Windows wheel for `pybullet==3.2.5`, so Windows installs
+compile it with MSVC 2019+ (Build Tools are sufficient):
+```powershell
+& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
+$env:DISTUTILS_USE_SDK=1; $env:MSSdk=1
+python -m pip install wheel setuptools
+python -m pip install --no-build-isolation pybullet==3.2.5
+```
+
+## 6. Measured verification status (2026-10-30, frozen holdout set v4)
+- **Path A (failure detected):** baseline `RW-REF-001` deterministically `FAIL`s
+  (`COLLISION` at tick 358, 3/3+ identical repeats, bit-identical after controller upgrade).
+- **Path C (rejection demonstrated):** over-cautious candidate honestly `REJECTED`
+  (paired `TIMEOUT`/`GOAL_NOT_REACHED`, holdout + regression failures).
+- **Path B (improvement accepted): UNMET.** Four frozen eval sets (v1 dev 20/20 → v2/v3 17/20 → v4 **18/20**),
+  shared-law upgrades (delivered-velocity estimator, direction-space avoidance blending,
+  anti-sitting-duck creep, obstacle-speed influence — baseline bit-identical throughout),
+  60-case dev best 59/60. Verdicts honestly `REJECTED`. See `docs/DEMO_GUIDE.md` and
+  `docs/IMPLEMENTATION_STATUS.md` for exact commands, IDs, and artifacts.

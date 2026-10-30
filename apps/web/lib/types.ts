@@ -115,6 +115,24 @@ export interface RunMetrics {
   timeout_detected: boolean;
 }
 
+export interface PolicyPatch {
+  max_speed_mps?: number;
+  safe_distance_m?: number;
+  reaction_margin_m?: number;
+  brake_gain?: number;
+  obstacle_prediction_horizon_s?: number;
+}
+
+export interface InvestigationResponse {
+  investigation_id: string;
+  run_id: string;
+  failure_tick: number;
+  hypothesis: string;
+  evidence_summary: string;
+  suggested_patch: PolicyPatch;
+  provenance: "LIVE_META" | "OFFLINE_REFERENCE" | "UNAVAILABLE";
+}
+
 export interface GateResult {
   gate_id: string;
   name: string;

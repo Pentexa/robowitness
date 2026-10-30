@@ -1,12 +1,18 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, XCircle, AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Check, Clock, X } from "lucide-react";
 import { VerificationRecord } from "../lib/types";
 
 interface VerificationDecisionProps {
   verification: VerificationRecord | null;
   isVerifying: boolean;
+}
+
+function verdictTone(verdict: string): "ok" | "bad" | "idle" {
+  if (verdict === "VERIFIED_IN_SIMULATION") return "ok";
+  if (verdict === "REJECTED") return "bad";
+  return "idle";
 }
 
 export const VerificationDecision: React.FC<VerificationDecisionProps> = ({
@@ -15,66 +21,65 @@ export const VerificationDecision: React.FC<VerificationDecisionProps> = ({
 }) => {
   if (!verification && !isVerifying) {
     return (
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">3. Independent Verification Outcome</h3>
+      <div className="rw-card">
+        <div className="rw-card-head">
+          <h3 className="rw-card-title">4. Independent Verification</h3>
         </div>
-        <div className="card-body">
-          <p className="text-muted">Awaiting candidate fix submission to begin verification protocol.</p>
+        <div className="rw-card-body">
+          <p className="rw-empty">Awaiting candidate fix submission to begin the verification protocol.</p>
         </div>
       </div>
     );
   }
 
   const verdict = verification?.verdict ?? "INCONCLUSIVE";
-  const badgeClass =
-    verdict === "VERIFIED_IN_SIMULATION"
-      ? "badge-success"
-      : verdict === "REJECTED"
-      ? "badge-danger"
-      : "badge-warning";
+  const tone = verdictTone(verdict);
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h3 className="card-title">3. Independent Verification Protocol</h3>
-        <span className={`badge ${badgeClass} font-mono text-sm`}>
-          {isVerifying ? "RUNNING GATES" : verdict}
+    <div className="rw-card">
+      <div className="rw-card-head">
+        <h3 className="rw-card-title">4. Independent Verification</h3>
+        <span className={`rw-badge mono ${tone === "bad" ? "is-fail" : tone === "ok" ? "is-accent" : ""}`}>
+          <span className="dot" />
+          {isVerifying ? "RUNNING" : verdict}
         </span>
       </div>
 
-      <div className="card-body">
-        <div className="gates-list">
-          {verification?.gates.map((g) => {
-            const isPass = g.status === "PASS";
-            const isFail = g.status === "FAIL";
-            return (
-              <div key={g.gate_id} className="gate-item">
-                <div className="gate-status-icon">
-                  {isPass ? (
-                    <CheckCircle2 className="text-success" size={18} />
-                  ) : isFail ? (
-                    <XCircle className="text-danger" size={18} />
-                  ) : (
-                    <AlertTriangle className="text-warning" size={18} />
-                  )}
+      <div className="rw-card-body">
+        <div className={`rw-verdict ${tone === "bad" ? "is-fail" : ""}`}>
+          <span className="rw-verdict-label">Oracle verdict</span>
+          <span className={`rw-verdict-value ${tone === "bad" ? "bad" : ""}`}>
+            {tone === "ok" ? "✓ " : ""}{verdict}
+          </span>
+        </div>
+
+        <div className="rw-gates">
+          {(verification?.gates ?? []).map((g) => (
+            <div key={g.gate_id} className={`rw-gate ${g.status === "FAIL" ? "is-fail" : ""}`}>
+              <span className="rw-gate-icon">
+                {g.status === "PASS" ? (
+                  <Check size={16} color="#FFFFFF" />
+                ) : g.status === "FAIL" ? (
+                  <X size={16} color="#FF3366" />
+                ) : g.status === "RUNNING" ? (
+                  <Clock size={16} color="#94A3B8" />
+                ) : (
+                  <AlertTriangle size={16} color="#94A3B8" />
+                )}
+              </span>
+              <div className="rw-gate-body">
+                <div className="rw-gate-top">
+                  <span className="rw-gate-name">{g.name}</span>
+                  <span className={`rw-gate-status ${g.status === "FAIL" ? "bad" : "ok"}`}>
+                    {g.status}
+                  </span>
                 </div>
-                <div className="gate-content">
-                  <div className="gate-title-row">
-                    <span className="font-semibold text-sm">{g.name}</span>
-                    <span className={`gate-status-tag ${isPass ? "text-success" : "text-danger"}`}>
-                      {g.status}
-                    </span>
-                  </div>
-                  {g.reason_codes.length > 0 && (
-                    <div className="text-xs text-danger font-mono mt-1">
-                      Reasons: {g.reason_codes.join(", ")}
-                    </div>
-                  )}
-                </div>
+                {g.reason_codes.length > 0 && (
+                  <div className="rw-gate-reasons">{g.reason_codes.join(" · ")}</div>
+                )}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -67,7 +67,7 @@ def create_app() -> FastAPI:
             )
         )
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content=envelope.model_dump(),
         )
 

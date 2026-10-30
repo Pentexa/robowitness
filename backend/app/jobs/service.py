@@ -5,7 +5,12 @@ from pathlib import Path
 from typing import Dict
 from app.config import settings
 from app.db import get_db
-from app.evidence.recorder import save_run_artifacts, save_verification_artifacts
+from app.evidence.integrity import seal_package_hashes, verify_package_integrity
+from app.evidence.recorder import (
+    VERIFICATION_REQUIRED_FILES,
+    save_run_artifacts,
+    save_verification_artifacts,
+)
 from app.evidence.reporter import generate_verification_report
 from app.policies.baseline import baseline_policy
 from app.policies.configurable import configurable_policy
@@ -29,7 +34,8 @@ class JobExecutionService:
         policy = PolicyConfig.model_validate(data["policy"])
         run_id = job.result_id
 
-        runner = SimulationRunner(scenario, policy, baseline_policy)
+        # Single shared navigation law for baseline and candidate; only params differ.
+        runner = SimulationRunner(scenario, policy, configurable_policy)
         frames, metrics, raw_reasons = runner.run()
 
         oracle_status, final_reasons = evaluate_oracle(metrics, scenario.oracle, raw_reasons)
@@ -97,7 +103,7 @@ class JobExecutionService:
         if progress_callback:
             progress_callback(JobProgress(pct=15.0, current_step=1, total_steps=5, message="Reproducing baseline failure"))
 
-        b_runner = SimulationRunner(scenario, PolicyConfig(), baseline_policy)
+        b_runner = SimulationRunner(scenario, PolicyConfig(), configurable_policy)
         b_frames, b_metrics, b_raw_reasons = b_runner.run()
         b_status, b_reasons = evaluate_oracle(b_metrics, scenario.oracle, b_raw_reasons)
 
@@ -148,14 +154,17 @@ class JobExecutionService:
         else:
             provisional_verdict = "INCONCLUSIVE"
 
-        # Gate 5: Evidence Sealing
+        # Gate 5: Evidence Sealing — provisional first, seal, then independently
+        # re-verify the sealed bytes BEFORE publishing a VERIFIED verdict.
         if progress_callback:
             progress_callback(JobProgress(pct=95.0, current_step=5, total_steps=5, message="Sealing evidence package"))
 
         manifest = {
+            "schema_version": "1.0",
             "verification_id": verification_id,
             "baseline_run_id": baseline_run_id,
             "verdict": provisional_verdict,
+            "gates_provisional": [g["gate_id"] for g in gates],
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -178,15 +187,46 @@ class JobExecutionService:
             holdout_results=gate3_res.details,
             regression_results=gate4_res.details,
             report_content=report_md,
+            candidate_frames=c_frames,
         )
 
-        gates.append({
-            "gate_id": "GATE_5_INTEGRITY",
-            "name": "Evidence Integrity and Sealing",
-            "status": "PASS",
-            "reason_codes": [],
-            "details": {"sealed_directory": str(art_dir)}
-        })
+        integrity_ok, integrity_errors = verify_package_integrity(art_dir, VERIFICATION_REQUIRED_FILES)
+        if integrity_ok:
+            final_verdict = provisional_verdict
+            gates.append({
+                "gate_id": "GATE_5_INTEGRITY",
+                "name": "Evidence Integrity and Sealing",
+                "status": "PASS",
+                "reason_codes": [],
+                "details": {"sealed_directory": str(art_dir)}
+            })
+        else:
+            # Sealed package is incomplete/tampered: never publish VERIFIED.
+            final_verdict = "INCONCLUSIVE"
+            gates.append({
+                "gate_id": "GATE_5_INTEGRITY",
+                "name": "Evidence Integrity and Sealing",
+                "status": "FAIL",
+                "reason_codes": ["ARTIFACT_INTEGRITY_FAILURE"],
+                "details": {"sealed_directory": str(art_dir), "errors": integrity_errors}
+            })
+            # Rewrite manifest + report with the final INCONCLUSIVE verdict and reseal.
+            manifest["verdict"] = final_verdict
+            manifest["integrity_errors"] = integrity_errors
+            report_md = generate_verification_report(
+                verification_id=verification_id,
+                baseline_run_id=baseline_run_id,
+                verdict=final_verdict,
+                gates=gates,
+                manifest=manifest,
+                holdout_summary=gate3_res.details,
+                regression_summary=gate4_res.details,
+            )
+            with open(art_dir / "manifest.json", "w", encoding="utf-8") as f:
+                json.dump(manifest, f, indent=2)
+            with open(art_dir / "report.md", "w", encoding="utf-8") as f:
+                f.write(report_md)
+            seal_package_hashes(art_dir)
 
         now = datetime.now(timezone.utc).isoformat()
         with get_db() as conn:
@@ -204,7 +244,7 @@ class JobExecutionService:
                     job.job_id,
                     baseline_run_id,
                     candidate_policy.model_dump_json(),
-                    provisional_verdict,
+                    final_verdict,
                     json.dumps(gates),
                     str(art_dir),
                     job.created_at,

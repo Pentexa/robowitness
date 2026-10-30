@@ -4,6 +4,17 @@ from pathlib import Path
 from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Repository root (…/backend/..). Relative artifact/DB paths anchor here so
+# evidence lands in <repo>/artifacts no matter the process working directory.
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+
+
+def _anchored(path_str: str) -> Path:
+    p = Path(path_str)
+    if p.is_absolute():
+        return p
+    return (_REPO_ROOT / p).resolve()
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -27,10 +38,10 @@ class Settings(BaseSettings):
 
     @property
     def artifacts_path(self) -> Path:
-        return Path(self.RW_ARTIFACTS_DIR).resolve()
+        return _anchored(self.RW_ARTIFACTS_DIR)
 
     @property
     def db_path(self) -> Path:
-        return Path(self.RW_DB_PATH).resolve()
+        return _anchored(self.RW_DB_PATH)
 
 settings = Settings()

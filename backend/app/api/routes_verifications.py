@@ -2,17 +2,26 @@
 import json
 import uuid
 from datetime import datetime, timezone
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 from app.config import settings
 from app.db import get_db
 from app.errors import RoboWitnessException
 from app.schemas.jobs import JobCreateResponse
+from app.schemas.telemetry import TelemetryFrame, TelemetryPage
 from app.schemas.verification import GateResult, VerificationRecord, VerifyFixRequest
 
 router = APIRouter(tags=["Verifications"])
 
 @router.post("/fixes/verify", response_model=JobCreateResponse, status_code=status.HTTP_202_ACCEPTED)
 def verify_candidate_fix(req: VerifyFixRequest):
+    with get_db() as conn:
+        cursor = conn.execute("SELECT run_id FROM runs WHERE run_id = ?", (req.baseline_run_id,))
+        if not cursor.fetchone():
+            raise RoboWitnessException(
+                status_code=404,
+                code="BASELINE_RUN_NOT_FOUND",
+                message=f"Baseline run {req.baseline_run_id} does not exist"
+            )
     job_id = f"job-{uuid.uuid4().hex[:12]}"
     verification_id = f"verif-{uuid.uuid4().hex[:12]}"
     now = datetime.now(timezone.utc).isoformat()
@@ -59,4 +68,54 @@ def get_verification(verification_id: str):
         artifact_dir=row["artifact_dir"],
         created_at=row["created_at"],
         completed_at=row["completed_at"],
+    )
+
+
+@router.get("/verifications/{verification_id}/candidate-telemetry", response_model=TelemetryPage, status_code=status.HTTP_200_OK)
+def get_candidate_telemetry(
+    verification_id: str,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(600, ge=1, le=2000),
+):
+    """Paginated paired-candidate frames sealed with the verification package.
+
+    Packages created before candidate replay existed return 404; their gate
+    metrics in comparison.json remain the source of truth.
+    """
+    v_dir = settings.artifacts_path / "verifications" / verification_id
+    try:
+        resolved = v_dir.resolve()
+        if str(resolved) != str((settings.artifacts_path / "verifications" / verification_id).resolve()):
+            raise RoboWitnessException(status_code=403, code="FORBIDDEN_PATH", message="Access denied")
+    except RoboWitnessException:
+        raise
+    except Exception:
+        raise RoboWitnessException(status_code=403, code="FORBIDDEN_PATH", message="Access denied")
+
+    telemetry_file = resolved / "telemetry_candidate.jsonl"
+    if not telemetry_file.exists():
+        raise RoboWitnessException(
+            status_code=404,
+            code="CANDIDATE_TELEMETRY_NOT_FOUND",
+            message=f"No sealed candidate replay for {verification_id} (older package or incomplete run)"
+        )
+
+    frames = []
+    total = 0
+    with open(telemetry_file, "r", encoding="utf-8") as f:
+        for line in f:
+            line_str = line.strip()
+            if not line_str:
+                continue
+            if total >= offset and len(frames) < limit:
+                frames.append(TelemetryFrame.model_validate_json(line_str))
+            total += 1
+
+    next_offset = (offset + limit) if (offset + limit) < total else None
+    return TelemetryPage(
+        run_id=verification_id,
+        frames=frames,
+        total=total,
+        offset=offset,
+        next_offset=next_offset,
     )

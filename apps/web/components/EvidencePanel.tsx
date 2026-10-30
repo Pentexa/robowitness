@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Download, ShieldCheck } from "lucide-react";
+import { API_BASE_URL } from "../lib/api";
 import { VerificationRecord } from "../lib/types";
 
 interface EvidencePanelProps {
@@ -11,33 +12,32 @@ interface EvidencePanelProps {
 export const EvidencePanel: React.FC<EvidencePanelProps> = ({ verification }) => {
   if (!verification) return null;
 
-  const downloadUrl = `/api/evidence/${verification.verification_id}/download`;
+  const downloadUrl = `${API_BASE_URL}/api/evidence/${verification.verification_id}/download`;
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h3 className="card-title">4. Evidence Package & Integrity</h3>
-        <span className="badge badge-primary font-mono text-xs">
-          <ShieldCheck size={14} className="inline mr-1" /> SHA-256 SEALED
+    <div className="rw-card">
+      <div className="rw-card-head">
+        <h3 className="rw-card-title">6. Evidence Package</h3>
+        <span className="rw-badge mono">
+          <ShieldCheck size={13} />
+          SHA-256 SEALED
         </span>
       </div>
 
-      <div className="card-body">
-        <div className="evidence-info">
-          <p className="text-sm text-muted">
-            Cryptographically sealed package with manifest, investigation hypothesis, 20-case holdout results, and markdown report.
-          </p>
-
-          <div className="mt-3 action-row">
-            <a
-              id="btn-download-evidence"
-              href={downloadUrl}
-              className="btn btn-secondary inline-flex items-center gap-2"
-              download
-            >
-              <Download size={16} /> Download Evidence ZIP
-            </a>
-          </div>
+      <div className="rw-card-body">
+        <p className="rw-note">
+          Cryptographically sealed package: manifest, investigation hypothesis, 20-case
+          holdout results, regression outcomes and markdown report.
+        </p>
+        <div className="rw-actions">
+          <a
+            id="btn-download-evidence"
+            href={downloadUrl}
+            className="rw-btn rw-btn-ghost"
+            download
+          >
+            <Download size={15} /> Download evidence ZIP
+          </a>
         </div>
       </div>
     </div>

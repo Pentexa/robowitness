@@ -34,9 +34,9 @@ yarn-error.log*
 *.sqlite3
 *.sqlite3-journal
 *.sqlite3-wal
-artifacts/runs/*
+artifacts/*
+!artifacts/.gitkeep
 !artifacts/runs/.gitkeep
-artifacts/verifications/*
 !artifacts/verifications/.gitkeep
 
 # IDEs & OS files

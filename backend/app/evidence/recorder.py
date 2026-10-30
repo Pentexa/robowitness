@@ -96,6 +96,7 @@ def save_verification_artifacts(
     holdout_results: Dict[str, Any],
     regression_results: Dict[str, Any],
     report_content: str,
+    candidate_frames: List[TelemetryFrame] | None = None,
 ) -> Path:
     final_dir = artifacts_root / "verifications" / verification_id
     final_dir.mkdir(parents=True, exist_ok=True)
@@ -120,6 +121,13 @@ def save_verification_artifacts(
 
         with open(tmp_dir / "report.md", "w", encoding="utf-8") as f:
             f.write(report_content)
+
+        # Optional per-verification candidate replay (sealed + hashed when present;
+        # older packages without it still verify — required list is unchanged).
+        if candidate_frames:
+            with open(tmp_dir / "telemetry_candidate.jsonl", "w", encoding="utf-8") as tf:
+                for frame in candidate_frames:
+                    tf.write(frame.model_dump_json() + "\n")
 
         seal_package_hashes(tmp_dir)
 
