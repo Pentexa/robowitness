@@ -1,136 +1,268 @@
+<div align="center">
+
 # RoboWitness
 
-**Independent Verification Engine for AI Robotics Policy Fixes**
+### The independent referee for AI-generated robotics policies
 
-> **Core Invariant:** The AI proposes. The simulator executes. The independent oracle decides. The evidence explains.
+**The AI proposes. The simulator executes. The independent oracle decides. The evidence explains.**
 
----
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![PyBullet](https://img.shields.io/badge/Physics-PyBullet%20%7C%2060%20Hz-orange?style=flat-square)](https://pybullet.org/)
+[![Tests](https://img.shields.io/badge/backend%20tests-91%20passed-brightgreen?style=flat-square)](#measured-results)
+[![Verdicts](https://img.shields.io/badge/verdicts-never%20manufactured-6f42c1?style=flat-square)](#honest-limitations)
+[![License](https://img.shields.io/badge/license-BSD--2--Clause-blue?style=flat-square)](LICENSE)
 
-## 1. Overview
-RoboWitness is a locally runnable, software-only verification platform built to independently evaluate AI-generated robotics policy fixes. It enforces strict separation between:
-1. **Controller Policies** — which only receive time-delayed, noisy sensor observations, never ground truth.
-2. **Authoritative Physics** — simulated via PyBullet `DIRECT` mode at a deterministic 60Hz tick loop.
-3. **Independent Oracle** — which decides objective PASS / FAIL / INCONCLUSIVE verdicts based on true geometric surface clearance, wall gaps, contacts, and timeouts.
-4. **Independent Verification Protocol** — which gates candidate proposals across:
-   - **Gate 1:** Baseline Failure Reproduction
-   - **Gate 2:** Paired Comparison (identical seed, world state, obstacle trajectory)
-   - **Gate 3:** 20 Frozen Holdout Scenarios
-   - **Gate 4:** Critical Regression Suite
-   - **Gate 5:** Cryptographic Evidence Sealing (`hashes.json`, SHA-256)
+[Quick start](#quick-start) · [How it works](#how-it-works) · [The five gates](#the-five-gates) · [Measured results](#measured-results) · [API](#api-surface) · [Documentation](#documentation)
+
+</div>
 
 ---
 
-## 2. Repository Architecture
+**RoboWitness is a locally runnable, software-only verification engine for AI-generated robotics policy fixes.** It does not ask the AI to grade its own homework. A candidate policy is executed in a deterministic PyBullet world, judged by an independent oracle against true geometry, pushed through five verification gates, and sealed into SHA-256 evidence that anyone can re-check.
 
-```text
-robowitness/
-├── README.md                         # Architecture and local run guide
-├── AGENTS.md                         # Autonomous agent instructions
-├── ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md
-├── .gitignore
-├── .env.example
-├── Makefile                          # Development and testing targets
-├── docs/
-│   ├── IMPLEMENTATION_STATUS.md      # Live phase progress tracker
-│   ├── CONTRACTS.md                  # Canonical schema specifications
-│   ├── EVIDENCE_FORMAT.md            # Evidence package structure
-│   └── DEMO_GUIDE.md                 # Three demonstration paths guide
-├── backend/
-│   ├── pyproject.toml
-│   ├── requirements.lock
-│   ├── app/
-│   │   ├── config.py
-│   │   ├── db.py                     # SQLite WAL persistence
-│   │   ├── errors.py
-│   │   ├── main.py                   # FastAPI application
-│   │   ├── schemas/                  # Pydantic v2 domain models
-│   │   ├── simulation/               # PyBullet DIRECT 60Hz simulation
-│   │   ├── policies/                 # Baseline & configurable policies
-│   │   ├── verification/             # Oracle, paired, holdout, regression
-│   │   ├── ai/                       # Meta AI adapter & offline reference
-│   │   ├── evidence/                 # SHA-256 recorder & markdown reporter
-│   │   ├── jobs/                     # Atomic SQLite job worker
-│   │   └── api/                      # REST endpoints under /api
-│   └── tests/                        # Unit, integration, and e2e tests
-├── apps/
-│   └── web/                          # Next.js App Router + HTML5 Canvas
-├── scenarios/
-│   ├── reference/                    # Canonical RW-REF-001 scenario
-│   ├── regression/                   # 3 critical regression cases
-│   ├── library/                      # 10 selectable test scenarios + catalog.json
-│   └── holdout/                      # Frozen 20-scenario manifest
-├── scripts/
-│   ├── bootstrap.ps1 / bootstrap.sh  # Environment bootstrap scripts
-│   ├── smoke_test.py                 # Fast schema & import validator
-│   ├── verify_evidence.py            # Independent SHA-256 evidence verifier
-│   └── run_offline_demo.py           # Offline reference demonstrator
-└── artifacts/                        # Run and verification evidence output
+> **Core invariant:** the policy only ever sees delayed, noisy sensor observations — never ground truth. The simulator executes. The oracle decides. The evidence explains.
+
+<details>
+<summary><strong>Türkçe özet</strong></summary>
+
+<br />
+
+RoboWitness, yapay zekânın önerdiği robot politikası düzeltmelerini bağımsız olarak doğrulayan, tamamen yerelde çalışan bir yazılım doğrulama motorudur. Politika yalnızca gecikmeli ve gürültülü sensör verisi görür; PyBullet simülasyonu deterministik 60 Hz'de çalıştırır; bağımsız oracle gerçek geometriye göre `PASS` / `FAIL` / `INCONCLUSIVE` karar verir; beş kapı ve SHA-256 mühürlü kanıt paketi sonucu değiştirilemez hale getirir. Path B (tam doğrulanmış iyileştirme) henüz karşılanmadı: en iyi aday 20 donmuş senaryonun 18'ini geçti ve dürüstçe `REJECTED` aldı. Bu depo, doğrulanmamış bir sonucu asla `VERIFIED` gibi göstermez.
+
+</details>
+
+## At a glance
+
+| Aspect | Detail |
+|---|---|
+| **What it is** | A deterministic simulation + independent oracle + 5-gate verification protocol + sealed evidence pipeline for robot policy fixes. |
+| **What it is not** | A real-robot test bench, a certified safety authority, or a security sandbox. It verifies simulated behaviour — nothing more, nothing less. |
+| **The loop** | Run baseline → inspect measured failure → propose a fix → paired re-run → gates 1–5 → `VERIFIED_IN_SIMULATION`, `REJECTED`, or `INCONCLUSIVE` |
+| **Physics** | PyBullet `DIRECT`, fixed 60 Hz tick loop, seeded and repeatable |
+| **Interface** | FastAPI backend, atomic SQLite job worker, Next.js 14 dashboard (Turkish UI, English code/docs) |
+| **AI modes** | Offline reference mode by default; optional live Meta adapter when credentials are configured |
+| **Evidence** | Every run writes telemetry, metrics, events, manifest, and SHA-256 hashes; packages are independently verifiable |
+| **License** | BSD 2-Clause |
+
+## Why RoboWitness
+
+Three failure modes make most "AI fixed the robot" claims untrustworthy:
+
+1. **Self-grading.** The model that proposes a fix should not also declare it safe.
+2. **Simulation theater.** A pretty replay is not evidence. Without paired runs, frozen holdouts, and objective metrics, a demo proves only that a demo ran.
+3. **Unverifiable claims.** "It works" means little without reproducible commands, sealed telemetry, and hashes that survive a second look.
+
+RoboWitness separates the four roles that are usually blurred together:
+
+| Role | Responsibility | Never does |
+|---|---|---|
+| **Proposer** | Suggests policy changes from measured failure data | Touch the simulator or the oracle |
+| **Simulator** | Executes the policy at a fixed 60 Hz timestep | Know the verdict in advance |
+| **Oracle** | Applies collision, clearance, goal, timeout, and stuck rules to true state | Read the AI's rationale or trust its confidence |
+| **Evidence** | Hashes every artifact with SHA-256 and re-verifies it independently | Assume the producer was honest |
+
+## How it works
+
+```mermaid
+flowchart TD
+    A["AI or human proposes a policy fix"] --> B["Gate 1<br/>Reproduce the baseline failure"]
+    B --> C["Gate 2<br/>Paired run: same seed, world, obstacle trajectory"]
+    C --> D["Gate 3<br/>20 frozen holdout scenarios"]
+    D --> E["Gate 4<br/>Critical regression suite"]
+    E --> F["Gate 5<br/>SHA-256 evidence sealing"]
+    F --> G{"Independent verdict"}
+    G -->|All gates pass| H["VERIFIED_IN_SIMULATION"]
+    G -->|Any gate fails| I["REJECTED"]
+    G -->|Missing or tampered evidence| J["INCONCLUSIVE"]
+
+    style H fill:#d4f8d4,stroke:#2e7d32,color:#1b5e20
+    style I fill:#ffd9d9,stroke:#c62828,color:#8e0000
+    style J fill:#fff3cd,stroke:#b26a00,color:#6d4c00
 ```
 
----
+A single run looks like this:
 
-## 3. Local Installation & Startup
+```text
+Scenario + policy
+      │
+      ▼
+PyBullet DIRECT (60 Hz) ──► true state (x, y, yaw, clearance, contacts)
+      │                              │
+      │ delayed + noisy observations │
+      ▼                              ▼
+Controller policy            Independent oracle
+      │                              │
+      └──────── telemetry ───────────┘
+                     │
+                     ▼
+        PASS / FAIL / INCONCLUSIVE
+                     │
+                     ▼
+      Evidence package + SHA-256 seal
+```
 
-### Step 1: Environment Setup
-Using PowerShell on Windows:
+The oracle uses objective reason codes: `COLLISION`, `MIN_CLEARANCE_VIOLATION`, `GOAL_NOT_REACHED`, `TIMEOUT`, `STUCK`, and `INCOMPLETE_EVALUATION`. There is no "looks good to me" path.
+
+## The five gates
+
+| Gate | Question it answers | Pass condition |
+|---|---|---|
+| **1 — Baseline reproduction** | Is the original failure real and repeatable? | The frozen baseline still fails identically from the immutable scenario. |
+| **2 — Paired comparison** | Did the fix actually change the measured outcome? | Candidate and baseline run on the same seed, world state, and obstacle trajectory; only the policy hash differs. |
+| **3 — Frozen holdout** | Does the fix generalize beyond the tuning set? | All 20 holdout scenarios — never seen during tuning — pass. |
+| **4 — Regression suite** | Did the fix break what already worked? | Clear-corridor, stationary-obstacle, and goal-reachability cases still pass. |
+| **5 — Evidence sealing** | Can the result be trusted after the fact? | Every artifact is hashed, packaged, and re-verified independently; tampering yields `INCONCLUSIVE`. |
+
+A real measured verdict from this repository:
+
+```text
+verif-90bfa84ad648
+  GATE 1  baseline reproduction ......... PASS
+  GATE 2  paired comparison ............. PASS
+  GATE 3  frozen holdout (20) ........... FAIL  18/20
+  GATE 4  regression suite .............. PASS
+  GATE 5  evidence sealing .............. PASS
+  VERDICT ............................... REJECTED
+```
+
+> **No manufactured verdicts.** If one gate fails, the candidate is rejected. `VERIFIED_IN_SIMULATION` is never hard-coded, never inferred from a nice replay, and never awarded because a demo looked convincing.
+
+## Feature tour
+
+### Verification core
+
+- **Deterministic 60 Hz simulation** — PyBullet `DIRECT`, fixed timestep, seeded worlds, bit-identical repeats.
+- **Observation honesty** — controllers receive delayed (`0–1000 ms`) and noisy sensor observations, never ground-truth poses.
+- **Independent oracle** — collision, minimum-clearance, goal, timeout, and stuck checks against true geometry, with machine-readable reasons.
+- **Five-gate protocol** — baseline reproduction, paired comparison, frozen holdout, regressions, and cryptographic sealing.
+- **Atomic job system** — SQLite WAL queue with single-owner claims, worker heartbeats, cancellation, and honest failure states.
+- **Paired replay** — baseline and candidate frames side by side under identical conditions.
+- **Sealed evidence** — `manifest.json`, `telemetry.jsonl`, `metrics.json`, `events.jsonl`, `hashes.json`, and an independent verifier.
+
+### Dashboard
+
+The web app is a five-tab Turkish-language workflow designed for non-experts:
+
+| Tab | What it does |
+|---|---|
+| **Test** | Pick a scenario and robot, run the baseline, watch the 2D replay (canonical) or 3D view (display-only). |
+| **İncele** | Read a grounded failure analysis tied to the measured tick and real clearance numbers; near-misses are explained separately from collisions. |
+| **Düzeltme** | Adjust the five policy parameters, apply an AI suggestion, or load a saved policy profile. |
+| **Sonuç** | Inspect gates 1–5, compare baseline vs candidate replay, and download the sealed evidence ZIP. |
+| **Karne** | Run an 11-scenario exam battery, get a per-scenario report card, replay any run, and download a Markdown report. |
+
+### Robot and scenario lab
+
+- **Robot catalog** — six built-in profiles (ROBOTIS TurtleBot3 Waffle Pi/Burger, Clearpath Jackal, MiR250, Boston Dynamics Spot, Unitree Go2) plus user-created robots with full specs.
+- **Honest compatibility gate** — only differential-drive robots with a body radius of `0.15–0.40 m` can enter this simulator. Others stay in the catalog and are explicitly marked incompatible.
+- **Scenario library** — the canonical `RW-REF-001` reference, 10 selectable library scenarios (`RW-LIB-001…010`), 3 regression cases, and a frozen 20-scenario holdout manifest.
+- **Policy profiles** — four built-in presets plus your own saved parameter sets, usable in single runs and batteries.
+- **Exam battery** — one click runs the reference plus all 10 library scenarios for a chosen robot and policy profile, then produces a report card.
+- **Real-log import** — upload a real drive as CSV (`t_s,x_m,y_m,yaw_rad,min_obstacle_distance_m`) or JSON frames; it is judged by the same rules and labeled `REAL_LOG`.
+- **Passive ROS 2 recorder** — `scripts/ros2_bridge.py` listens to `/odom` and `/scan` only and never publishes; without `rclpy` it exits with an honest `[BLOCKED]` message.
+- **Local policy plugins (opt-in)** — your own single-file Python policy can drive runs and batteries in a subprocess with timeouts and output clamping. This is **not** a security sandbox, and AI-generated code is forbidden there.
+
+### Enterprise layer (opt-in)
+
+Documented in `docs/ENTERPRISE.md`; with nothing configured, everything keeps working in open local mode:
+
+- **Auth, roles, workspaces** — `RW_API_KEYS=key:role:workspace;…` enables API-key auth (`admin` > `editor` > `viewer`) and logical workspace isolation for tenant data (robots, profiles, batteries, imports).
+- **Audit and metrics** — every write is recorded in an audit trail; `GET /api/audit` (admin) and `GET /api/metrics` expose workspace counts and job states.
+- **Battery comparison** — diff two report cards scenario by scenario (İYİLEŞTİ/KÖTÜLEŞTİ), in the Karne tab or via `GET /api/batteries/compare`.
+- **Map import** — draw your own environment as an occupancy grid (`#` obstacle, `S` start, `G` goal) and convert it to a validated scenario (`POST /api/maps/scenario`).
+- **CI gate** — `scripts/ci_battery_gate.py` runs a battery through the API and fails the pipeline (exit 1) when pass-rate/collision thresholds are missed.
+
+## Quick start
+
+### Prerequisites
+
+| Requirement | Version / note |
+|---|---|
+| Python | 3.11+ |
+| Node.js | 18.17+ (Next.js 14) |
+| Git | Any recent version |
+| C++ build tools | Windows only: MSVC 2019+ Build Tools for PyBullet (PyPI has no `cp311` Windows wheel for `pybullet==3.2.5`) |
+| GPU | Not required |
+
+### 1. Bootstrap
+
+**Windows (PowerShell):**
+
 ```powershell
 .\scripts\bootstrap.ps1
 ```
 
-Or manually:
-```powershell
-cd backend
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
+**macOS / Linux:**
+
+```bash
+./scripts/bootstrap.sh
 ```
 
-### Step 2: Running Services
-**Terminal A: FastAPI Backend**
+**Manual install:**
+
+```bash
+cd backend
+python -m venv .venv
+# Windows: .\.venv\Scripts\Activate.ps1
+source .venv/bin/activate
+pip install -e ".[dev]"
+
+cd ../apps/web
+npm install
+```
+
+### 2. Start the three services
+
+**Terminal A — FastAPI backend**
+
 ```powershell
 cd backend
 .\.venv\Scripts\uvicorn.exe app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-**Terminal B: Background Jobs Worker**
+**Terminal B — background job worker**
+
 ```powershell
 cd backend
 .\.venv\Scripts\python.exe -m app.jobs.worker
 ```
 
-**Terminal C: Next.js Frontend Dashboard**
+**Terminal C — Next.js dashboard**
+
 ```powershell
 cd apps/web
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
 
----
+Open **[http://localhost:3000](http://localhost:3000)**.
 
-## 4. Running Tests & Verifications
+> On macOS/Linux, replace `.\.venv\Scripts\...` with `.venv/bin/...`.
 
-```powershell
-# Run smoke test
-python scripts/smoke_test.py
+### 3. See it work without the UI
 
-# Run backend unit tests
-cd backend
-pytest -v
+The offline demo runs real simulations end to end — no mocks, no pre-written verdicts:
 
-# Run frontend checks
-cd ../apps/web
-npm run lint
-npm run typecheck
+```bash
+python scripts/run_offline_demo.py
 ```
 
----
+It loads `RW-REF-001`, runs the baseline, runs an improved candidate, runs an over-cautious candidate, and prints the measured oracle verdicts. No Meta API key is required. Sealed evidence packages are produced by the API worker (`POST /api/runs` → `POST /api/fixes/verify`).
 
-## 5. Offline Reference Mode
-RoboWitness functions fully offline without any paid Meta API keys. When `RW_AI_MODE=offline` is set in `.env`, the system serves validated offline reference scenarios and investigations labeled with `OFFLINE_REFERENCE` provenance.
+Expected shape of the output:
+
+```text
+[BASELINE]     oracle=FAIL  reasons=[...]  ticks=...  min_clear=0.0016  goal=False  collision=True
+[CANDIDATE]    oracle=...   reasons=[...]  ...
+[OVERCAUTIOUS] oracle=...   reasons=[...]  ...
+Done. Baseline=FAIL Candidate=... OverCautious=...
+```
 
 ### Windows note: PyBullet from source
-PyPI ships no `cp311` Windows wheel for `pybullet==3.2.5`, so Windows installs
-compile it with MSVC 2019+ (Build Tools are sufficient):
+
+PyPI ships no `cp311` Windows wheel for `pybullet==3.2.5`, so Windows installs compile it with MSVC 2019+ (Build Tools are sufficient):
+
 ```powershell
 & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x64
 $env:DISTUTILS_USE_SDK=1; $env:MSSdk=1
@@ -138,57 +270,162 @@ python -m pip install wheel setuptools
 python -m pip install --no-build-isolation pybullet==3.2.5
 ```
 
-## 5b. Robot Catalog & Scenario Library
+## Measured results
 
-The Test tab includes a **robot catalog**: pick a robot by brand/model
-(ROBOTIS TurtleBot3, Clearpath Jackal, MiR250, Spot, Go2, …), see its specs
-(drive type, body radius, wheels, weight, payload, sensor type/range/latency/
-noise, compute, OS, battery), or **add your own robot** with the same fields
-(edit/delete supported; brand+model+variant must be unique). Builtin specs are
-nominal example values, not manufacturer-certified measurements. “Seçili Robotu
-Teste Uygula” copies only the physical/sensor fields into the scenario's
-`RobotSpec`; start/goal stay scenario-owned. Robots the differential-drive
-simulator cannot represent (non-differential drive, body radius outside
-0.15–0.40 m) remain catalog-only and are honestly marked incompatible.
+All numbers below were measured in this repository. The full log, commands, IDs, and artifacts live in [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md).
 
-Next to it, a **scenario library** offers 10 extra test scenarios
-(`RW-LIB-001…010`: narrow corridor, slalom, head-on, crossing, 800 ms latency,
-noisy sensor, dual moving obstacles, empty-corridor control, slow traffic)
-via `GET /api/scenarios/library`; robot CRUD lives under `/api/robots`.
-Measured baseline results for the library are recorded in
-`docs/IMPLEMENTATION_STATUS.md`.
+| Check | Measured result (2026-11-02) |
+|---|---|
+| Backend test suite | **91 passed** (unit + integration) |
+| Backend quality | `ruff format --check` + `ruff check --select E,F` clean |
+| Frontend quality | `npm run lint`, `npm run typecheck`, `npm run build` clean |
+| Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats |
+| Path B — improvement accepted | **UNMET.** Best candidate passed **18/20** frozen holdouts; verdict honestly `REJECTED` |
+| Path C — rejection demonstrated | Over-cautious candidate `REJECTED` on paired, holdout, and regression gates |
+| Evidence integrity | Sealed packages re-verify with `scripts/verify_evidence.py`; tamper or missing member → `INCONCLUSIVE` |
+| Exam battery example | TurtleBot3 Waffle Pi + baseline: **4/11 PASS**, 5 collisions, 2 near-misses, worst clearance `0.003 m` |
 
-## 5c. Exam Battery, Policy Profiles, Real-Log Import
+**Holdout history — no tuning on the eval set:**
 
-- **Robot exam (Karne tab):** pick a catalog robot + a policy profile, run the
-  default battery (reference + 10 library scenarios) with one click, and get a
-  report card — per-scenario PASS/FAIL, collisions, near-misses, worst
-  clearance — with per-run replay and a downloadable Markdown report
-  (`GET /api/batteries/{id}/report.md`). Measured example (TurtleBot3 Waffle Pi,
-  baseline profile): 4/11 passed, 5 collisions, 2 near-misses.
-- **Policy profiles:** named presets for the 5 policy parameters
-  (`/api/policy-profiles`): 4 builtins plus your own saved profiles, selectable
-  in the Düzeltme tab and in the battery.
-- **Your own policy code (opt-in):** with `RW_ALLOW_LOCAL_POLICY=on`, single-file
-  Python policies you wrote in `backend/app/policies/local/` (see
-  `example_policy.py`) can drive single runs and the battery. They execute in a
-  separate subprocess with timeouts and clamped outputs; plugin errors fail the
-  run honestly. This is **not** a security sandbox — trusted own code only, and
-  AI-generated code is forbidden there.
-- **Real-log import:** upload a real robot drive (CSV
-  `t_s,x_m,y_m,yaw_rad,min_obstacle_distance_m` or JSON frames) in the Karne
-  tab; it is judged by the same collision/clearance/goal rules and labeled
-  `REAL_LOG` — measured elsewhere, not simulated here. A passive ROS 2 recorder
-  (`scripts/ros2_bridge.py`, listens only, never publishes) can produce such
-  logs on a ROS machine.
+| Frozen set | Role | Result |
+|---|---|---|
+| v1 | Development (used for tuning, then archived) | 20/20 |
+| v2 | Evaluation | 17/20 → `REJECTED` |
+| v3 | Evaluation | 17/20 → `REJECTED` |
+| v4 | Evaluation | 18/20 → `REJECTED` |
 
-## 6. Measured verification status (2026-10-30, frozen holdout set v4)
-- **Path A (failure detected):** baseline `RW-REF-001` deterministically `FAIL`s
-  (`COLLISION` at tick 358, 3/3+ identical repeats, bit-identical after controller upgrade).
-- **Path C (rejection demonstrated):** over-cautious candidate honestly `REJECTED`
-  (paired `TIMEOUT`/`GOAL_NOT_REACHED`, holdout + regression failures).
-- **Path B (improvement accepted): UNMET.** Four frozen eval sets (v1 dev 20/20 → v2/v3 17/20 → v4 **18/20**),
-  shared-law upgrades (delivered-velocity estimator, direction-space avoidance blending,
-  anti-sitting-duck creep, obstacle-speed influence — baseline bit-identical throughout),
-  60-case dev best 59/60. Verdicts honestly `REJECTED`. See `docs/DEMO_GUIDE.md` and
-  `docs/IMPLEMENTATION_STATUS.md` for exact commands, IDs, and artifacts.
+> **Honest by design:** Path B is currently unmet. Reactive control hits a capability ceiling on fast-obstacle / high-latency crossing geometries: stronger avoidance turns collisions into stuck/timeout failures. A `VERIFIED` verdict needs a richer controller family or a narrower operational design domain — a product decision that has not been taken silently here. The repository reports `REJECTED` because that is what the gates measured.
+
+## API surface
+
+Interactive OpenAPI docs are available at **`http://127.0.0.1:8000/docs`** while the backend runs.
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/health` | Service health and truthful worker heartbeat |
+| `GET` | `/api/scenarios/reference` | Canonical `RW-REF-001` scenario |
+| `GET` | `/api/scenarios/library` | The 10 selectable library scenarios |
+| `POST` | `/api/scenarios/generate` | Generate a scenario (offline reference or live AI) |
+| `POST` | `/api/runs` | Queue a simulation run |
+| `GET` | `/api/runs/{run_id}` | Run result, metrics, and oracle verdict |
+| `GET` | `/api/jobs/{job_id}` | Job progress |
+| `POST` | `/api/jobs/{job_id}/cancel` | Cancel a queued or running job |
+| `POST` | `/api/failures/{run_id}/investigate` | Grounded failure analysis; returns `409` for non-FAIL runs |
+| `POST` | `/api/fixes/verify` | Queue the five-gate verification |
+| `GET` | `/api/verifications` | Verification history |
+| `GET` | `/api/verifications/{id}` | Gate results and comparison |
+| `GET` | `/api/verifications/{id}/candidate-telemetry` | Sealed candidate replay frames |
+| `GET` | `/api/evidence/{id}` | Evidence manifest |
+| `GET` | `/api/evidence/{id}/download` | Safe ZIP download |
+| `GET` / `POST` | `/api/robots` | List / create robot profiles |
+| `GET` / `POST` | `/api/policy-profiles` | List / create policy presets |
+| `POST` | `/api/batteries` | Queue the 11-scenario exam battery |
+| `GET` | `/api/batteries/{id}/report.md` | Download the Markdown report card |
+| `POST` | `/api/imports/telemetry` | Import a real drive log (CSV or JSON) |
+| `GET` | `/api/local-policies` | List opt-in local policy plugins |
+| `GET` | `/api/metrics`, `/api/audit` | Operational metrics and audit trail |
+
+Optional API-key auth (`X-API-Key`) supports `admin`, `editor`, and `viewer` roles. With no keys configured, the app runs in open local mode.
+
+## Project layout
+
+```text
+robowitness/
+├── backend/
+│   ├── app/
+│   │   ├── api/              # REST endpoints under /api
+│   │   ├── simulation/       # PyBullet DIRECT, 60 Hz, sensor pipeline
+│   │   ├── policies/         # Baseline, configurable, profiles, local plugins
+│   │   ├── verification/     # Oracle, paired, holdout, regression, sealing
+│   │   ├── evidence/         # SHA-256 recorder, reports, ZIP packaging
+│   │   ├── ai/               # Offline reference + optional Meta adapter
+│   │   ├── jobs/             # Atomic SQLite worker
+│   │   ├── robots/           # Robot catalog and repository
+│   │   ├── ros_bridge/       # Pure ROS log format converters
+│   │   └── schemas/          # Pydantic v2 domain models
+│   └── tests/                # Unit, integration, and end-to-end tests
+├── apps/web/                 # Next.js 14 + React 18 + Three.js dashboard
+├── scenarios/
+│   ├── reference/            # RW-REF-001
+│   ├── regression/           # 3 critical regression cases
+│   ├── library/              # 10 selectable scenarios + catalog.json
+│   └── holdout/              # Frozen 20-scenario manifests (v1–v4)
+├── scripts/                  # Bootstrap, demo, evidence verifier, ROS bridge
+├── docs/                     # Contracts, evidence format, demo guide, status
+├── artifacts/                # Runs, verifications, SQLite DB, evidence output
+├── ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md
+└── README.md
+```
+
+## Testing and quality
+
+```bash
+# Backend test suite
+cd backend
+pytest -v
+
+# Backend lint and formatting
+ruff format --check app tests
+ruff check --select E,F .
+
+# Frontend checks
+cd ../apps/web
+npm run lint
+npm run typecheck
+npm run build
+
+# Fast import/schema smoke test
+cd ../..
+python scripts/smoke_test.py
+
+# Independently verify any sealed evidence package
+python scripts/verify_evidence.py artifacts/verifications/<verification_id>
+```
+
+The verifier recomputes every SHA-256 digest. A missing file or a mismatched hash produces `ARTIFACT_INTEGRITY_FAILURE` and an `INCONCLUSIVE` verdict — the pipeline would rather say "I don't know" than "trust me."
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [`ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md`](ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md) | Full architecture, invariants, and phase requirements |
+| [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) | Live phase status, measured commands, artifacts, and open gaps |
+| [`docs/CONTRACTS.md`](docs/CONTRACTS.md) | Canonical schemas and API contracts |
+| [`docs/EVIDENCE_FORMAT.md`](docs/EVIDENCE_FORMAT.md) | Evidence package structure and sealing rules |
+| [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md) | Path A/B/C demonstration scripts |
+| [`AGENTS.md`](AGENTS.md) | Instructions for autonomous coding agents |
+
+## Honest limitations
+
+- **Software-only, planar world.** The simulator models a 2D warehouse with circular obstacles. It is not a real-robot test bench, a certified safety authority, or a substitute for physical validation.
+- **Path B is unmet.** No candidate has passed all 20 frozen holdouts. Best measured result is 18/20, and the verdict is `REJECTED`. That is a finding, not a bug to hide.
+- **The 3D view is display-only.** The 2D canvas is the canonical evidence view; Three.js mirrors the same frames for visualization and never touches physics, the oracle, or evidence.
+- **Built-in robot specs are nominal examples.** They are catalog values, not manufacturer-certified measurements. Robots the differential-drive simulator cannot represent are marked incompatible instead of being silently approximated.
+- **Live ROS 2 is unverified here.** The recorder is passive by design, and this development machine has no ROS installation. Without `rclpy`, it exits with an honest `[BLOCKED]` message.
+- **Local policy plugins are not a sandbox.** They are opt-in, subprocess-isolated, timeout-bounded, and output-clamped — but only trusted, user-written code belongs there. AI-generated code is explicitly forbidden.
+- **Live Meta connectivity is optional.** Offline reference mode is the default and fully supported; live AI calls require your own base URL, model, and key.
+- **Evidence proves integrity, not physical truth.** SHA-256 sealing proves the recorded artifacts were not altered after the fact. It does not prove the simulator matches reality.
+
+## Contributing
+
+Issues and pull requests are welcome. Before opening a PR:
+
+1. Run the backend tests and frontend checks above.
+2. Keep the invariant intact: never let a policy see ground truth, never let the proposer grade itself, and never manufacture a verdict.
+3. Add measured evidence for behavioural claims — commands, IDs, and artifacts, not adjectives.
+
+## License
+
+BSD 2-Clause License. See [`LICENSE`](LICENSE).
+
+Copyright (c) 2026, Ahmet Aras Akyasan.
+
+---
+
+<div align="center">
+
+**If a result cannot survive an independent re-check, it is not a result.**
+
+Built with Python, FastAPI, PyBullet, Next.js, and an unreasonable commitment to honest verdicts.
+
+</div>
