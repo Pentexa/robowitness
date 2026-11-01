@@ -1,18 +1,16 @@
 """Planar differential-drive robot kinematics and PyBullet collision representation."""
+
 import math
 import pybullet as p
 from app.schemas.policy import ControlCommand
 from app.schemas.scenario import Pose2D, RobotSpec
 
+
 class SimRobot:
     def __init__(self, spec: RobotSpec, client_id: int):
         self.spec = spec
         self.client_id = client_id
-        self.pose = Pose2D(
-            x_m=spec.start.x_m,
-            y_m=spec.start.y_m,
-            yaw_rad=spec.start.yaw_rad
-        )
+        self.pose = Pose2D(x_m=spec.start.x_m, y_m=spec.start.y_m, yaw_rad=spec.start.yaw_rad)
         self.body_id = self._create_body()
 
     def _create_body(self) -> int:
@@ -20,14 +18,14 @@ class SimRobot:
             p.GEOM_CYLINDER,
             radius=self.spec.body_radius_m,
             height=0.3,
-            physicsClientId=self.client_id
+            physicsClientId=self.client_id,
         )
         body = p.createMultiBody(
             baseMass=5.0,
             baseCollisionShapeIndex=col_shape,
             basePosition=[self.pose.x_m, self.pose.y_m, 0.15],
             baseOrientation=p.getQuaternionFromEuler([0, 0, self.pose.yaw_rad]),
-            physicsClientId=self.client_id
+            physicsClientId=self.client_id,
         )
         return body
 
@@ -45,9 +43,6 @@ class SimRobot:
         # Update PyBullet body pose
         quat = p.getQuaternionFromEuler([0, 0, new_yaw])
         p.resetBasePositionAndOrientation(
-            self.body_id,
-            [new_x, new_y, 0.15],
-            quat,
-            physicsClientId=self.client_id
+            self.body_id, [new_x, new_y, 0.15], quat, physicsClientId=self.client_id
         )
         return self.pose

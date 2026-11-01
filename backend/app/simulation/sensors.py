@@ -1,15 +1,21 @@
 """Deterministic sensor queue with delayed and noisy observations."""
+
 import math
 import random
 from collections import deque
-from typing import Dict, List, Optional, Tuple
-from app.schemas.policy import ObstacleTrack, RelativeObstacleObservation, SensorObservation
+from typing import Dict, List, Optional
+from app.schemas.policy import (
+    ObstacleTrack,
+    RelativeObstacleObservation,
+    SensorObservation,
+)
 from app.schemas.scenario import Pose2D, RobotSpec
 
 # Fixed regression window for velocity estimation (deterministic, documented).
 # 16 delivered samples (~0.27 s at 60 Hz) halves noise-induced velocity error
 # versus 8 samples; lag cost (~7 cm at 0.5 m/s) is acceptable for avoidance.
 _TRACK_WINDOW = 16
+
 
 class SensorSystem:
     def __init__(self, robot_spec: RobotSpec, dt: float, seed: int):
@@ -42,8 +48,16 @@ class SensorSystem:
 
             if surface_dist <= self.spec.sensor_range_m:
                 # Add deterministic Gaussian noise if configured
-                noise_x = self.rng.gauss(0, self.spec.sensor_noise_std_m) if self.spec.sensor_noise_std_m > 0 else 0.0
-                noise_y = self.rng.gauss(0, self.spec.sensor_noise_std_m) if self.spec.sensor_noise_std_m > 0 else 0.0
+                noise_x = (
+                    self.rng.gauss(0, self.spec.sensor_noise_std_m)
+                    if self.spec.sensor_noise_std_m > 0
+                    else 0.0
+                )
+                noise_y = (
+                    self.rng.gauss(0, self.spec.sensor_noise_std_m)
+                    if self.spec.sensor_noise_std_m > 0
+                    else 0.0
+                )
 
                 rel_obstacles.append(
                     RelativeObstacleObservation(
@@ -135,11 +149,13 @@ class SensorSystem:
                 ts = [(h[0] - t0) * self.dt for h in hist]
                 vx = _slope(ts, xs)
                 vy = _slope(ts, ys)
-                tracks.append(ObstacleTrack(id=oid, vx_mps=vx, vy_mps=vy,
-                                            samples=n, confident=True))
+                tracks.append(
+                    ObstacleTrack(id=oid, vx_mps=vx, vy_mps=vy, samples=n, confident=True)
+                )
             else:
-                tracks.append(ObstacleTrack(id=oid, vx_mps=0.0, vy_mps=0.0,
-                                            samples=n, confident=False))
+                tracks.append(
+                    ObstacleTrack(id=oid, vx_mps=0.0, vy_mps=0.0, samples=n, confident=False)
+                )
         return tracks
 
 

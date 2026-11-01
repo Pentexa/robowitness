@@ -6,7 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "robowitness"
 version = "0.1.0"
 description = "RoboWitness - Independent verification for AI-generated robotics policy fixes"
-readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110.0",
@@ -22,7 +21,14 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
+    "ruff>=0.8.0",
 ]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 100
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

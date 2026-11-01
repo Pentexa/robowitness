@@ -1,9 +1,8 @@
 """Runs and Jobs API routes."""
+
 import json
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Optional
 from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
 from app.config import settings
@@ -16,9 +15,11 @@ from app.schemas.telemetry import RunResult, TelemetryFrame, TelemetryPage
 
 router = APIRouter(tags=["Runs and Jobs"])
 
+
 class CreateRunRequest(BaseModel):
     scenario: ScenarioSpec
     policy: PolicyConfig
+
 
 @router.post("/runs", response_model=JobCreateResponse, status_code=status.HTTP_202_ACCEPTED)
 def create_run(req: CreateRunRequest):
@@ -26,11 +27,13 @@ def create_run(req: CreateRunRequest):
     run_id = f"run-{uuid.uuid4().hex[:12]}"
     now = datetime.now(timezone.utc).isoformat()
 
-    payload = json.dumps({
-        "scenario": req.scenario.model_dump(),
-        "policy": req.policy.model_dump(),
-        "run_id": run_id,
-    })
+    payload = json.dumps(
+        {
+            "scenario": req.scenario.model_dump(),
+            "policy": req.policy.model_dump(),
+            "run_id": run_id,
+        }
+    )
 
     with get_db() as conn:
         conn.execute(
@@ -38,11 +41,12 @@ def create_run(req: CreateRunRequest):
             INSERT INTO jobs (job_id, kind, status, payload_json, result_id, attempts, created_at)
             VALUES (?, 'simulation_run', 'queued', ?, ?, 0, ?)
             """,
-            (job_id, payload, run_id, now)
+            (job_id, payload, run_id, now),
         )
         conn.commit()
 
     return JobCreateResponse(job_id=job_id, result_id=run_id, status="queued")
+
 
 @router.get("/jobs/{job_id}", response_model=JobResponse, status_code=status.HTTP_200_OK)
 def get_job(job_id: str):
@@ -54,7 +58,7 @@ def get_job(job_id: str):
         raise RoboWitnessException(
             status_code=404,
             code="JOB_NOT_FOUND",
-            message=f"Job {job_id} does not exist"
+            message=f"Job {job_id} does not exist",
         )
 
     progress = None
@@ -76,6 +80,7 @@ def get_job(job_id: str):
         finished_at=row["finished_at"],
     )
 
+
 @router.post("/jobs/{job_id}/cancel", response_model=JobResponse, status_code=status.HTTP_200_OK)
 def cancel_job(job_id: str):
     with get_db() as conn:
@@ -85,7 +90,7 @@ def cancel_job(job_id: str):
             raise RoboWitnessException(
                 status_code=404,
                 code="JOB_NOT_FOUND",
-                message=f"Job {job_id} does not exist"
+                message=f"Job {job_id} does not exist",
             )
 
         if row["status"] in ("completed", "failed", "cancelled"):
@@ -94,11 +99,12 @@ def cancel_job(job_id: str):
         now = datetime.now(timezone.utc).isoformat()
         conn.execute(
             "UPDATE jobs SET status = 'cancelled', finished_at = ? WHERE job_id = ?",
-            (now, job_id)
+            (now, job_id),
         )
         conn.commit()
 
     return get_job(job_id)
+
 
 @router.get("/runs/{run_id}", response_model=RunResult, status_code=status.HTTP_200_OK)
 def get_run(run_id: str):
@@ -110,7 +116,7 @@ def get_run(run_id: str):
         raise RoboWitnessException(
             status_code=404,
             code="RUN_NOT_FOUND",
-            message=f"Run {run_id} does not exist"
+            message=f"Run {run_id} does not exist",
         )
 
     return RunResult(
@@ -128,7 +134,12 @@ def get_run(run_id: str):
         finished_at=row["completed_at"],
     )
 
-@router.get("/runs/{run_id}/telemetry", response_model=TelemetryPage, status_code=status.HTTP_200_OK)
+
+@router.get(
+    "/runs/{run_id}/telemetry",
+    response_model=TelemetryPage,
+    status_code=status.HTTP_200_OK,
+)
 def get_run_telemetry(
     run_id: str,
     offset: int = Query(0, ge=0),
@@ -140,7 +151,7 @@ def get_run_telemetry(
         raise RoboWitnessException(
             status_code=404,
             code="TELEMETRY_NOT_FOUND",
-            message=f"Telemetry artifact for {run_id} not found on disk"
+            message=f"Telemetry artifact for {run_id} not found on disk",
         )
 
     frames = []

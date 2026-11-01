@@ -1,10 +1,11 @@
 """Durable Job schemas and status transitions."""
-from datetime import datetime
-from typing import Any, Dict, Literal, Optional
+
+from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 JobStatus = Literal["queued", "running", "completed", "failed", "cancelled"]
 JobKind = Literal["simulation_run", "verification"]
+
 
 class JobProgress(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -12,6 +13,7 @@ class JobProgress(BaseModel):
     current_step: int = 0
     total_steps: int = 0
     message: str = ""
+
 
 class JobRecord(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -29,6 +31,7 @@ class JobRecord(BaseModel):
     error_code: Optional[str] = None
     progress_json: Optional[str] = None
 
+
 class JobResponse(BaseModel):
     job_id: str
     kind: JobKind
@@ -39,6 +42,7 @@ class JobResponse(BaseModel):
     created_at: str
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
+
 
 class JobCreateResponse(BaseModel):
     job_id: str

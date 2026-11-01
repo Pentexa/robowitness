@@ -1,5 +1,5 @@
 """Health and system status routes."""
-import os
+
 import sqlite3
 from datetime import datetime, timezone
 from typing import Optional
@@ -11,6 +11,7 @@ router = APIRouter(prefix="/health", tags=["Health"])
 
 WORKER_HEARTBEAT_STALE_S = 30.0
 
+
 class HealthResponse(BaseModel):
     status: str
     schema_version: str
@@ -19,12 +20,14 @@ class HealthResponse(BaseModel):
     worker_last_seen: Optional[str] = None
     ai_mode: str
 
+
 def _worker_heartbeat() -> tuple[bool, Optional[str]]:
     hb = settings.artifacts_path / "worker_heartbeat.json"
     try:
         if not hb.exists():
             return False, None
         import json
+
         data = json.loads(hb.read_text(encoding="utf-8"))
         ts = data.get("ts")
         if not ts:
@@ -33,6 +36,7 @@ def _worker_heartbeat() -> tuple[bool, Optional[str]]:
         return (age <= WORKER_HEARTBEAT_STALE_S), ts
     except Exception:
         return False, None
+
 
 @router.get("", response_model=HealthResponse, status_code=status.HTTP_200_OK)
 def get_health():

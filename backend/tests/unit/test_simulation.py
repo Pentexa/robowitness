@@ -1,4 +1,5 @@
 """Simulation semantics tests: tick order, obstacle trajectory, sensor delay/noise, cleanup."""
+
 import math
 import pybullet as p
 import pytest
@@ -10,7 +11,6 @@ from app.simulation.runner import SimulationRunner
 from app.policies.configurable import configurable_policy
 from app.schemas.policy import PolicyConfig
 from app.verification.oracle import evaluate_oracle
-import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent.parent
@@ -18,7 +18,6 @@ ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 @pytest.fixture
 def client_id():
-    world = SimulationWorld.__new__(SimulationWorld)
     cid = p.connect(p.DIRECT)
     try:
         yield cid
@@ -31,7 +30,8 @@ def client_id():
 
 def _ref_spec() -> ScenarioSpec:
     return ScenarioSpec.model_validate_json(
-        (ROOT / "scenarios" / "reference" / "moving_obstacle_latency.json").read_text())
+        (ROOT / "scenarios" / "reference" / "moving_obstacle_latency.json").read_text()
+    )
 
 
 def test_fixed_tick_is_1_60_and_max_ticks_consistent():
@@ -76,6 +76,7 @@ def test_first_tick_observation_not_ready():
     spec = _ref_spec()
     sys = SensorSystem(spec.robot, spec.world.fixed_timestep_s, spec.seed)
     from app.schemas.scenario import Pose2D
+
     pose = Pose2D(x_m=1.0, y_m=4.0, yaw_rad=0.0)
     sys.capture_observation(0, 0.0, pose, [])
     delivered = sys.get_delivered_observation(0, 0.0)
@@ -88,6 +89,7 @@ def test_zero_latency_delivers_immediately():
     spec.robot.sensor_latency_ms = 0
     sys = SensorSystem(spec.robot, spec.world.fixed_timestep_s, spec.seed)
     from app.schemas.scenario import Pose2D
+
     pose = Pose2D(x_m=1.0, y_m=4.0, yaw_rad=0.0)
     sys.capture_observation(5, 5 * spec.world.fixed_timestep_s, pose, [])
     delivered = sys.get_delivered_observation(5, 5 * spec.world.fixed_timestep_s)
@@ -100,6 +102,7 @@ def test_noise_rng_isolated_per_seed_and_repeatable():
     spec = _ref_spec()
     spec.robot.sensor_noise_std_m = 0.02
     from app.schemas.scenario import Pose2D
+
     pose = Pose2D(x_m=1.0, y_m=4.0, yaw_rad=0.0)
     truth = [{"id": "O1", "x_m": 3.0, "y_m": 4.0, "radius_m": 0.35}]
 
@@ -114,6 +117,7 @@ def test_noise_rng_isolated_per_seed_and_repeatable():
 
 def test_world_client_cleanup_on_exception():
     from app.schemas.scenario import WorldSpec
+
     world = SimulationWorld(WorldSpec(width_m=8.0, height_m=6.0, duration_limit_s=5.0))
     cid = world.connect()
     assert cid >= 0
@@ -139,6 +143,7 @@ def test_reference_run_produces_real_telemetry_and_repeats():
 
 def _drive_sensor(sys, ticks, truth_fn, pose_xy=(4.0, 4.0)):
     from app.schemas.scenario import Pose2D
+
     pose = Pose2D(x_m=pose_xy[0], y_m=pose_xy[1], yaw_rad=0.0)
     delivered = None
     for k in range(ticks):
@@ -150,8 +155,11 @@ def _drive_sensor(sys, ticks, truth_fn, pose_xy=(4.0, 4.0)):
 def test_velocity_tracks_moving_obstacle():
     spec = _ref_spec()
     sys = SensorSystem(spec.robot, spec.world.fixed_timestep_s, spec.seed)
-    d = _drive_sensor(sys, 40, lambda k, dt: [
-        {"id": "O1", "x_m": 6.0, "y_m": 4.0 + 0.45 * k * dt, "radius_m": 0.35}])
+    d = _drive_sensor(
+        sys,
+        40,
+        lambda k, dt: [{"id": "O1", "x_m": 6.0, "y_m": 4.0 + 0.45 * k * dt, "radius_m": 0.35}],
+    )
     assert d.tracks and d.tracks[0].confident is True
     assert abs(d.tracks[0].vx_mps) < 0.05
     assert abs(d.tracks[0].vy_mps - 0.45) < 0.08
@@ -160,8 +168,7 @@ def test_velocity_tracks_moving_obstacle():
 def test_velocity_zero_for_static_obstacle():
     spec = _ref_spec()
     sys = SensorSystem(spec.robot, spec.world.fixed_timestep_s, spec.seed)
-    d = _drive_sensor(sys, 40, lambda k, dt: [
-        {"id": "S", "x_m": 6.0, "y_m": 2.0, "radius_m": 0.3}])
+    d = _drive_sensor(sys, 40, lambda k, dt: [{"id": "S", "x_m": 6.0, "y_m": 2.0, "radius_m": 0.3}])
     assert d.tracks and d.tracks[0].confident is True
     assert abs(d.tracks[0].vx_mps) < 1e-9 and abs(d.tracks[0].vy_mps) < 1e-9
 
@@ -169,6 +176,5 @@ def test_velocity_zero_for_static_obstacle():
 def test_single_sample_track_not_confident():
     spec = _ref_spec()
     sys = SensorSystem(spec.robot, spec.world.fixed_timestep_s, spec.seed)
-    d = _drive_sensor(sys, 1, lambda k, dt: [
-        {"id": "Q", "x_m": 3.0, "y_m": 4.0, "radius_m": 0.3}])
+    d = _drive_sensor(sys, 1, lambda k, dt: [{"id": "Q", "x_m": 3.0, "y_m": 4.0, "radius_m": 0.3}])
     assert d.tracks == [] or all(t.confident is False for t in d.tracks)

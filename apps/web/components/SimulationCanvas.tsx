@@ -10,14 +10,14 @@ interface SimulationCanvasProps {
   currentFrameIndex: number;
 }
 
-const C_BG = "#090D16";
-const C_GRID = "rgba(255,255,255,0.05)";
-const C_WALL = "rgba(255,255,255,0.22)";
-const C_GOAL = "rgba(255,255,255,0.75)";
-const C_OBS = "#CBD5E1";
-const C_ROBOT = "#00E5FF";
-const C_ROBOT_EDGE = "#0891B2";
-const C_HIT = "#FF3366";
+const C_BG = "#000000";
+const C_GRID = "rgba(255,255,255,0.055)";
+const C_WALL = "rgba(255,255,255,0.28)";
+const C_GOAL = "rgba(255,255,255,0.85)";
+const C_OBS = "#8A8A8A";
+const C_ROBOT = "#FFFFFF";
+const C_TRAIL = "rgba(255,255,255,0.6)";
+const C_HIT = "#FFFFFF";
 
 export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   scenario,
@@ -46,12 +46,9 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
     ctx.fillRect(0, 0, width, height);
 
     const origin = worldToCanvas(0, scenario.world.height_m, scenario.world.height_m, transform);
-    const wallW = scenario.world.width_m * transform.scale;
-    const wallH = scenario.world.height_m * transform.scale;
-
     ctx.strokeStyle = C_WALL;
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(origin.px, origin.py, wallW, wallH);
+    ctx.strokeRect(origin.px, origin.py, scenario.world.width_m * transform.scale, scenario.world.height_m * transform.scale);
 
     ctx.strokeStyle = C_GRID;
     ctx.lineWidth = 1;
@@ -81,14 +78,14 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
     ctx.arc(goalPos.px, goalPos.py, goalRadiusPx, 0, 2 * Math.PI);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(148,163,184,0.9)";
+    ctx.fillStyle = "rgba(255,255,255,0.65)";
     ctx.font = "600 11px 'JetBrains Mono', monospace";
-    ctx.fillText("GOAL", goalPos.px - 15, goalPos.py + 4);
+    ctx.fillText("HEDEF", goalPos.px - 17, goalPos.py + 4);
 
     scenario.obstacles.forEach((obs) => {
       const s = worldToCanvas(obs.start.x_m, obs.start.y_m, scenario.world.height_m, transform);
       const e = worldToCanvas(obs.end.x_m, obs.end.y_m, scenario.world.height_m, transform);
-      ctx.strokeStyle = "rgba(148,163,184,0.4)";
+      ctx.strokeStyle = "rgba(138,138,138,0.35)";
       ctx.setLineDash([3, 5]);
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -101,7 +98,7 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
     const activeFrame = frames[currentFrameIndex];
 
     if (frames.length > 0) {
-      ctx.strokeStyle = "rgba(0,229,255,0.55)";
+      ctx.strokeStyle = C_TRAIL;
       ctx.lineWidth = 2;
       ctx.beginPath();
       for (let i = 0; i <= currentFrameIndex && i < frames.length; i++) {
@@ -116,10 +113,11 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
       activeFrame.obstacles.forEach((obs) => {
         const pos = worldToCanvas(obs.x_m, obs.y_m, scenario.world.height_m, transform);
         const radiusPx = obs.radius_m * transform.scale;
-        ctx.fillStyle = C_OBS;
+        ctx.strokeStyle = C_OBS;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(pos.px, pos.py, radiusPx, 0, 2 * Math.PI);
-        ctx.fill();
+        ctx.stroke();
       });
 
       const robotPos = worldToCanvas(activeFrame.robot.x_m, activeFrame.robot.y_m, scenario.world.height_m, transform);
@@ -129,18 +127,15 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
       ctx.beginPath();
       ctx.arc(robotPos.px, robotPos.py, robotRadiusPx, 0, 2 * Math.PI);
       ctx.fill();
-      ctx.strokeStyle = C_ROBOT_EDGE;
-      ctx.lineWidth = 2;
-      ctx.stroke();
 
       const yaw = activeFrame.robot.yaw_rad;
-      ctx.strokeStyle = "#FFFFFF";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(robotPos.px, robotPos.py);
       ctx.lineTo(
-        robotPos.px + robotRadiusPx * 1.4 * Math.cos(yaw),
-        robotPos.py - robotRadiusPx * 1.4 * Math.sin(yaw)
+        robotPos.px + robotRadiusPx * 1.1 * Math.cos(yaw),
+        robotPos.py - robotRadiusPx * 1.1 * Math.sin(yaw)
       );
       ctx.stroke();
 
@@ -149,11 +144,11 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
         ctx.strokeStyle = C_HIT;
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(robotPos.px, robotPos.py, robotRadiusPx * 1.9, 0, 2 * Math.PI);
+        ctx.arc(robotPos.px, robotPos.py, robotRadiusPx * 2.0, 0, 2 * Math.PI);
         ctx.stroke();
         ctx.fillStyle = C_HIT;
         ctx.font = "700 13px 'JetBrains Mono', monospace";
-        ctx.fillText("COLLISION", robotPos.px - 36, robotPos.py - robotRadiusPx - 10);
+        ctx.fillText("ÇARPTI!", robotPos.px - 26, robotPos.py - robotRadiusPx - 10);
       }
     }
   }, [scenario, frames, currentFrameIndex]);

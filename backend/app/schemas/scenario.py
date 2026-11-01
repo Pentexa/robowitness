@@ -1,16 +1,20 @@
 """Canonical Scenario specification and geometry schemas."""
+
 import math
 from typing import List, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
 
 def check_finite(val: float, name: str) -> float:
     if not math.isfinite(val):
         raise ValueError(f"{name} must be a finite number")
     return val
 
+
 def normalize_angle(rad: float) -> float:
     check_finite(rad, "yaw_rad")
     return (rad + math.pi) % (2.0 * math.pi) - math.pi
+
 
 class Point2D(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -21,6 +25,7 @@ class Point2D(BaseModel):
     @classmethod
     def validate_finite(cls, v: float, info) -> float:
         return check_finite(v, info.field_name)
+
 
 class Pose2D(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -38,6 +43,7 @@ class Pose2D(BaseModel):
     def validate_yaw(cls, v: float) -> float:
         return normalize_angle(v)
 
+
 class Vector2D(BaseModel):
     model_config = ConfigDict(extra="forbid")
     x_mps: float
@@ -47,6 +53,7 @@ class Vector2D(BaseModel):
     @classmethod
     def validate_finite(cls, v: float, info) -> float:
         return check_finite(v, info.field_name)
+
 
 class WorldSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -61,6 +68,7 @@ class WorldSpec(BaseModel):
     def validate_finite(cls, v: float, info) -> float:
         return check_finite(v, info.field_name)
 
+
 class RobotSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
     kind: Literal["differential_drive"] = "differential_drive"
@@ -73,6 +81,7 @@ class RobotSpec(BaseModel):
     sensor_range_m: float = Field(default=4.0, gt=0.0)
     sensor_latency_ms: int = Field(ge=0, le=1000)
     sensor_noise_std_m: float = Field(ge=0.0, le=0.2)
+
 
 class ObstacleSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -94,6 +103,7 @@ class ObstacleSpec(BaseModel):
                 raise ValueError("Moving ping-pong obstacle must have positive speed_mps")
         return self
 
+
 class OracleSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
     collision_free: bool = True
@@ -101,6 +111,7 @@ class OracleSpec(BaseModel):
     must_reach_goal: bool = True
     max_duration_s: float = Field(ge=5.0, le=60.0)
     max_stuck_duration_s: float = Field(default=3.0, ge=0.5, le=10.0)
+
 
 class ScenarioSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -120,13 +131,23 @@ class ScenarioSpec(BaseModel):
         r_rad = self.robot.body_radius_m
 
         # 1. Robot start inside warehouse with margin
-        if not (r_rad <= self.robot.start.x_m <= w - r_rad and r_rad <= self.robot.start.y_m <= h - r_rad):
-            raise ValueError(f"Robot start ({self.robot.start.x_m}, {self.robot.start.y_m}) out of bounds for radius {r_rad}")
+        if not (
+            r_rad <= self.robot.start.x_m <= w - r_rad
+            and r_rad <= self.robot.start.y_m <= h - r_rad
+        ):
+            raise ValueError(
+                f"Robot start ({self.robot.start.x_m}, {self.robot.start.y_m}) "
+                f"out of bounds for radius {r_rad}"
+            )
 
         # 2. Robot goal inside warehouse with margin
         g_rad = self.robot.goal_radius_m
-        if not (g_rad <= self.robot.goal.x_m <= w - g_rad and g_rad <= self.robot.goal.y_m <= h - g_rad):
-            raise ValueError(f"Robot goal ({self.robot.goal.x_m}, {self.robot.goal.y_m}) out of bounds")
+        if not (
+            g_rad <= self.robot.goal.x_m <= w - g_rad and g_rad <= self.robot.goal.y_m <= h - g_rad
+        ):
+            raise ValueError(
+                f"Robot goal ({self.robot.goal.x_m}, {self.robot.goal.y_m}) out of bounds"
+            )
 
         # 3. Obstacle IDs unique and motion inside bounds
         seen_ids = set()
@@ -138,10 +159,15 @@ class ScenarioSpec(BaseModel):
             o_rad = obs.radius_m
             for pt_name, pt in [("start", obs.start), ("end", obs.end)]:
                 if not (o_rad <= pt.x_m <= w - o_rad and o_rad <= pt.y_m <= h - o_rad):
-                    raise ValueError(f"Obstacle {obs.id} {pt_name} position out of warehouse bounds")
+                    raise ValueError(
+                        f"Obstacle {obs.id} {pt_name} position out of warehouse bounds"
+                    )
 
             # 4. Check initial overlap with robot
-            dist_to_robot = math.hypot(obs.start.x_m - self.robot.start.x_m, obs.start.y_m - self.robot.start.y_m)
+            dist_to_robot = math.hypot(
+                obs.start.x_m - self.robot.start.x_m,
+                obs.start.y_m - self.robot.start.y_m,
+            )
             if dist_to_robot < (r_rad + o_rad):
                 raise ValueError(f"Obstacle {obs.id} overlaps with robot at start position")
 
@@ -156,6 +182,9 @@ class ScenarioSpec(BaseModel):
 
         # 6. Oracle max_duration_s <= world duration_limit_s
         if self.oracle.max_duration_s > self.world.duration_limit_s:
-            raise ValueError(f"Oracle max_duration_s ({self.oracle.max_duration_s}) cannot exceed world duration_limit_s ({self.world.duration_limit_s})")
+            raise ValueError(
+                f"Oracle max_duration_s ({self.oracle.max_duration_s}) cannot exceed "
+                f"world duration_limit_s ({self.world.duration_limit_s})"
+            )
 
         return self

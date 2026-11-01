@@ -59,6 +59,54 @@ export interface ScenarioSpec {
   oracle: OracleSpec;
 }
 
+export type RobotDriveType =
+  | "differential_drive"
+  | "ackermann"
+  | "omnidirectional"
+  | "tracked"
+  | "quadruped"
+  | "other";
+
+export interface RobotProfileInput {
+  brand: string;
+  model: string;
+  variant: string;
+  year: number | null;
+  drive_type: RobotDriveType;
+  body_radius_m: number;
+  wheel_base_m: number | null;
+  wheel_radius_m: number | null;
+  weight_kg: number | null;
+  max_speed_mps: number | null;
+  max_payload_kg: number | null;
+  sensor_type: string;
+  sensor_range_m: number;
+  sensor_latency_ms: number;
+  sensor_noise_std_m: number;
+  compute_unit: string;
+  operating_system: string;
+  battery_wh: number | null;
+  notes: string;
+}
+
+export interface RobotProfile extends RobotProfileInput {
+  robot_id: string;
+  source: "builtin" | "user";
+  created_at: string;
+  updated_at: string;
+  simulation_compatible: boolean;
+  compatibility_issues: string[];
+}
+
+export interface ScenarioCatalogEntry {
+  scenario: ScenarioSpec;
+  title: string;
+  description: string;
+  difficulty: string;
+  category: string;
+  tags: string[];
+}
+
 export interface PolicyConfig {
   schema_version: "1.0";
   id: string;
@@ -67,52 +115,6 @@ export interface PolicyConfig {
   reaction_margin_m: number;
   brake_gain: number;
   obstacle_prediction_horizon_s: number;
-}
-
-export interface ObstacleTelemetry {
-  id: string;
-  x_m: number;
-  y_m: number;
-  radius_m: number;
-}
-
-export interface EventRecord {
-  event_id: string;
-  type: string;
-  tick: number;
-  sim_time_s: number;
-  details: Record<string, any>;
-}
-
-export interface TelemetryFrame {
-  schema_version: "1.0";
-  tick: number;
-  sim_time_s: number;
-  robot: Pose2D;
-  obstacles: ObstacleTelemetry[];
-  sensor: {
-    sample_tick: number;
-    delivered_tick: number;
-    age_s: number;
-    valid: boolean;
-    observations: any[];
-  };
-  command: {
-    linear_mps: number;
-    angular_radps: number;
-  };
-  clearance_m: number;
-  events: EventRecord[];
-}
-
-export interface RunMetrics {
-  total_ticks: number;
-  sim_duration_s: number;
-  min_clearance_m: number;
-  goal_reached: boolean;
-  collision_detected: boolean;
-  stuck_detected: boolean;
-  timeout_detected: boolean;
 }
 
 export interface PolicyPatch {
@@ -133,12 +135,58 @@ export interface InvestigationResponse {
   provenance: "LIVE_META" | "OFFLINE_REFERENCE" | "UNAVAILABLE";
 }
 
+export interface ObstacleTelemetry {
+  id: string;
+  x_m: number;
+  y_m: number;
+  radius_m: number;
+}
+
+export interface EventRecord {
+  event_id: string;
+  type: string;
+  tick: number;
+  sim_time_s: number;
+  details: Record<string, unknown>;
+}
+
+export interface TelemetryFrame {
+  schema_version: "1.0";
+  tick: number;
+  sim_time_s: number;
+  robot: Pose2D;
+  obstacles: ObstacleTelemetry[];
+  sensor: {
+    sample_tick: number;
+    delivered_tick: number;
+    age_s: number;
+    valid: boolean;
+    observations: unknown[];
+  };
+  command: {
+    linear_mps: number;
+    angular_radps: number;
+  };
+  clearance_m: number;
+  events: EventRecord[];
+}
+
+export interface RunMetrics {
+  total_ticks: number;
+  sim_duration_s: number;
+  min_clearance_m: number;
+  goal_reached: boolean;
+  collision_detected: boolean;
+  stuck_detected: boolean;
+  timeout_detected: boolean;
+}
+
 export interface GateResult {
   gate_id: string;
   name: string;
   status: "PASS" | "FAIL" | "INCONCLUSIVE" | "NOT_RUN" | "RUNNING";
   reason_codes: string[];
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }
 
 export interface VerificationRecord {

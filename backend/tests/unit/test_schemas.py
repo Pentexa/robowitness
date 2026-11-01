@@ -1,6 +1,6 @@
 """Unit tests for ScenarioSpec, PolicyConfig, and schema validation."""
+
 import json
-import math
 from pathlib import Path
 import pytest
 from pydantic import ValidationError
@@ -17,6 +17,7 @@ from app.schemas.scenario import (
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
 
+
 def test_reference_scenario_parses_successfully():
     ref_path = ROOT_DIR / "scenarios" / "reference" / "moving_obstacle_latency.json"
     assert ref_path.exists(), "Reference scenario file must exist"
@@ -32,6 +33,7 @@ def test_reference_scenario_parses_successfully():
     assert len(spec.obstacles) == 1
     assert spec.obstacles[0].speed_mps == 0.45
 
+
 def test_reject_unknown_fields_in_scenario():
     ref_path = ROOT_DIR / "scenarios" / "reference" / "moving_obstacle_latency.json"
     with open(ref_path, "r", encoding="utf-8") as f:
@@ -41,12 +43,14 @@ def test_reject_unknown_fields_in_scenario():
     with pytest.raises(ValidationError):
         ScenarioSpec.model_validate(data)
 
+
 def test_reject_nan_and_infinity():
     with pytest.raises(ValidationError):
         Point2D(x_m=float("nan"), y_m=4.0)
 
     with pytest.raises(ValidationError):
         Point2D(x_m=1.0, y_m=float("inf"))
+
 
 def test_reject_out_of_bounds_robot_start():
     with pytest.raises(ValidationError):
@@ -66,6 +70,7 @@ def test_reject_out_of_bounds_robot_start():
             obstacles=[],
             oracle=OracleSpec(max_duration_s=10.0),
         )
+
 
 def test_reject_overlapping_initial_bodies():
     with pytest.raises(ValidationError):
@@ -95,6 +100,7 @@ def test_reject_overlapping_initial_bodies():
             ],
             oracle=OracleSpec(max_duration_s=10.0),
         )
+
 
 def test_policy_config_bounds_and_unknown_fields():
     # Valid policy

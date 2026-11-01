@@ -1,14 +1,15 @@
 """Evidence package inspection and safe download routes."""
+
 import io
 import json
 import zipfile
-from pathlib import Path
 from fastapi import APIRouter, status
 from fastapi.responses import StreamingResponse
 from app.config import settings
 from app.errors import RoboWitnessException
 
 router = APIRouter(prefix="/evidence", tags=["Evidence"])
+
 
 @router.get("/{verification_id}", status_code=status.HTTP_200_OK)
 def get_evidence_metadata(verification_id: str):
@@ -17,7 +18,7 @@ def get_evidence_metadata(verification_id: str):
         raise RoboWitnessException(
             status_code=404,
             code="EVIDENCE_NOT_FOUND",
-            message=f"Evidence package {verification_id} not found on disk"
+            message=f"Evidence package {verification_id} not found on disk",
         )
 
     manifest_file = v_dir / "manifest.json"
@@ -42,6 +43,7 @@ def get_evidence_metadata(verification_id: str):
         "hashes": hashes_data,
     }
 
+
 @router.get("/{verification_id}/download")
 def download_evidence_zip(verification_id: str):
     v_dir = settings.artifacts_path / "verifications" / verification_id
@@ -50,7 +52,9 @@ def download_evidence_zip(verification_id: str):
         resolved = v_dir.resolve()
         artifacts_root = settings.artifacts_path.resolve()
         if not str(resolved).startswith(str(artifacts_root)):
-            raise RoboWitnessException(status_code=403, code="FORBIDDEN_PATH", message="Access denied")
+            raise RoboWitnessException(
+                status_code=403, code="FORBIDDEN_PATH", message="Access denied"
+            )
     except Exception:
         raise RoboWitnessException(status_code=403, code="FORBIDDEN_PATH", message="Access denied")
 
@@ -58,7 +62,7 @@ def download_evidence_zip(verification_id: str):
         raise RoboWitnessException(
             status_code=404,
             code="EVIDENCE_NOT_FOUND",
-            message=f"Evidence package {verification_id} not found"
+            message=f"Evidence package {verification_id} not found",
         )
 
     zip_buffer = io.BytesIO()
@@ -72,5 +76,5 @@ def download_evidence_zip(verification_id: str):
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename=evidence_{verification_id}.zip"}
+        headers={"Content-Disposition": f"attachment; filename=evidence_{verification_id}.zip"},
     )

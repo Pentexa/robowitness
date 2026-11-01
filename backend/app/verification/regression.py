@@ -1,13 +1,14 @@
 """Critical regression suite evaluator (Gate 4)."""
+
 import json
 from pathlib import Path
-from typing import List
 from app.policies.configurable import configurable_policy
 from app.schemas.policy import PolicyConfig
 from app.schemas.scenario import ScenarioSpec
 from app.schemas.verification import GateResult
 from app.simulation.runner import SimulationRunner
 from app.verification.oracle import evaluate_oracle
+
 
 def evaluate_regressions(candidate_policy: PolicyConfig, regression_dir: Path) -> GateResult:
     scenario_files = list(regression_dir.glob("*.json"))
@@ -17,7 +18,7 @@ def evaluate_regressions(candidate_policy: PolicyConfig, regression_dir: Path) -
             name="Critical Regression Gate",
             status="INCONCLUSIVE",
             reason_codes=["MISSING_REGRESSION_SCENARIOS"],
-            details={}
+            details={},
         )
 
     passed_count = 0
@@ -32,18 +33,20 @@ def evaluate_regressions(candidate_policy: PolicyConfig, regression_dir: Path) -
         frames, metrics, raw_reasons = runner.run()
         oracle_status, reasons = evaluate_oracle(metrics, spec.oracle, raw_reasons)
 
-        is_pass = (oracle_status == "PASS")
+        is_pass = oracle_status == "PASS"
         if is_pass:
             passed_count += 1
 
-        details.append({
-            "scenario_id": spec.id,
-            "oracle_status": oracle_status,
-            "reasons": reasons,
-            "goal_reached": metrics.goal_reached,
-        })
+        details.append(
+            {
+                "scenario_id": spec.id,
+                "oracle_status": oracle_status,
+                "reasons": reasons,
+                "goal_reached": metrics.goal_reached,
+            }
+        )
 
-    all_passed = (passed_count == len(scenario_files))
+    all_passed = passed_count == len(scenario_files)
     status = "PASS" if all_passed else "FAIL"
 
     return GateResult(
@@ -55,5 +58,5 @@ def evaluate_regressions(candidate_policy: PolicyConfig, regression_dir: Path) -
             "total_cases": len(scenario_files),
             "passed_cases": passed_count,
             "cases": details,
-        }
+        },
     )

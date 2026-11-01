@@ -1,12 +1,15 @@
 """Standard error definitions and response models."""
+
 import uuid
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
+
 class ErrorDetail(BaseModel):
     field: Optional[str] = None
     reason: str
+
 
 class ErrorBody(BaseModel):
     code: str
@@ -14,8 +17,10 @@ class ErrorBody(BaseModel):
     details: List[ErrorDetail] = Field(default_factory=list)
     request_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
+
 class ErrorEnvelope(BaseModel):
     error: ErrorBody
+
 
 class RoboWitnessException(HTTPException):
     def __init__(

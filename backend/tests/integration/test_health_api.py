@@ -1,4 +1,6 @@
 """Integration tests for Health and API endpoints."""
+
+
 def test_get_health_endpoint(client):
     response = client.get("/api/health")
     assert response.status_code == 200
@@ -7,6 +9,7 @@ def test_get_health_endpoint(client):
     assert data["schema_version"] == "1.0"
     assert "db_status" in data
     assert "ai_mode" in data
+
 
 def test_openapi_schema_generation(client):
     response = client.get("/openapi.json")

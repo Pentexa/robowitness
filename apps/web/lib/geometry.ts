@@ -1,4 +1,4 @@
-import { Point2D, Pose2D } from "./types";
+import type { Pose2D } from "./types";
 
 export interface CanvasTransform {
   scale: number;
@@ -38,7 +38,6 @@ export function worldToCanvas(
   transform: CanvasTransform
 ): { px: number; py: number } {
   const px = transform.offsetX + x_m * transform.scale;
-  // Invert Y axis for screen space
   const py = transform.offsetY + (worldHeight_m - y_m) * transform.scale;
   return { px, py };
 }

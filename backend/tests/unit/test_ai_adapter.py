@@ -1,4 +1,5 @@
 """AI adapter tests: offline works without secrets; invalid output rejected; live unavailable."""
+
 import pytest
 from pydantic import ValidationError
 from app.ai.adapter import MetaAdapter, OfflineReferenceAdapter, get_ai_adapter
@@ -41,13 +42,20 @@ def test_malformed_scenario_rejected_not_executed():
         ScenarioSpec.model_validate({"id": "BAD", "kind": "dynamic_obstacle"})
     # NaN must never enter the pipeline
     with pytest.raises(ValidationError):
-        ScenarioSpec.model_validate({
-            "id": "RW-NAN", "kind": "static_obstacle", "seed": 1,
-            "world": {"width_m": 10.0, "height_m": 6.0, "duration_limit_s": 10.0},
-            "robot": {"start": {"x_m": float("nan"), "y_m": 4.0, "yaw_rad": 0.0},
-                      "goal": {"x_m": 5.0, "y_m": 3.0}},
-            "obstacles": [], "oracle": {"max_duration_s": 10.0},
-        })
+        ScenarioSpec.model_validate(
+            {
+                "id": "RW-NAN",
+                "kind": "static_obstacle",
+                "seed": 1,
+                "world": {"width_m": 10.0, "height_m": 6.0, "duration_limit_s": 10.0},
+                "robot": {
+                    "start": {"x_m": float("nan"), "y_m": 4.0, "yaw_rad": 0.0},
+                    "goal": {"x_m": 5.0, "y_m": 3.0},
+                },
+                "obstacles": [],
+                "oracle": {"max_duration_s": 10.0},
+            }
+        )
 
 
 def test_meta_adapter_without_key_is_unavailable():
@@ -58,7 +66,9 @@ def test_meta_adapter_without_key_is_unavailable():
     assert inv is None and prov2 == "UNAVAILABLE"
 
 
-def test_default_adapter_is_offline_without_credentials():
-    assert settings.RW_META_API_KEY == "" or settings.RW_AI_MODE == "offline"
+def test_default_adapter_is_offline_without_credentials(monkeypatch):
+    # Never assert on real secret values: force blank creds and offline mode.
+    monkeypatch.setattr(settings, "RW_META_API_KEY", "")
+    monkeypatch.setattr(settings, "RW_AI_MODE", "offline")
     adapter = get_ai_adapter()
     assert isinstance(adapter, OfflineReferenceAdapter)

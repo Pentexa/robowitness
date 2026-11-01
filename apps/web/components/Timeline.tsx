@@ -16,7 +16,6 @@ export const Timeline: React.FC<TimelineProps> = ({ frames, currentIndex, onSeek
   const collisionFrames = frames
     .map((f, i) => (f.events.some((e) => e.type === "COLLISION") ? i : -1))
     .filter((i) => i >= 0);
-
   const cur = frames[Math.min(currentIndex, total - 1)];
 
   return (
@@ -29,7 +28,7 @@ export const Timeline: React.FC<TimelineProps> = ({ frames, currentIndex, onSeek
         value={Math.min(currentIndex, total - 1)}
         onChange={(e) => onSeek(parseInt(e.target.value, 10))}
         className="rw-range"
-        aria-label="Replay timeline scrubber"
+        aria-label="Zaman çizgisi: kaydırarak istediğiniz ana gidin"
       />
       <div className="rw-marks">
         {collisionFrames.map((idx) => (
@@ -37,14 +36,14 @@ export const Timeline: React.FC<TimelineProps> = ({ frames, currentIndex, onSeek
             key={idx}
             className="rw-mark-hit"
             style={{ left: `${(idx / (total - 1)) * 100}%` }}
-            title={`Collision at tick ${idx}`}
+            title={`Çarpma anı (${frames[idx]?.tick ?? idx}. adım)`}
           />
         ))}
       </div>
       <div className="rw-stats">
-        <span>TICK {cur?.tick ?? 0}</span>
-        <span>CLR {(cur?.clearance_m ?? 0).toFixed(3)}m</span>
-        <span>VEL {(cur?.command.linear_mps ?? 0).toFixed(2)}m/s</span>
+        <span>ADIM {cur?.tick ?? 0} / {total - 1}</span>
+        <span>ENGELE MESAFE {(cur?.clearance_m ?? 0).toFixed(3)} m</span>
+        <span>HIZ {(cur?.command.linear_mps ?? 0).toFixed(2)} m/sn</span>
       </div>
     </div>
   );

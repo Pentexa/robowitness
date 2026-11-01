@@ -1,4 +1,5 @@
 """Configurable navigation policy."""
+
 import math
 from app.schemas.policy import ControlCommand, PolicyConfig, SensorObservation
 
@@ -33,8 +34,9 @@ def _core_navigation_law(obs: SensorObservation, config: PolicyConfig) -> Contro
         # Blend in direction space: normalize the goal vector FIRST so a
         # distant goal cannot drown the avoidance term, then add avoidance.
         goal_norm = math.hypot(goal_x, goal_y) or 1.0
-        goal_x, goal_y, avoid_mag = _apply_avoidance(obs, config, current_yaw,
-                                                    goal_x / goal_norm, goal_y / goal_norm)
+        goal_x, goal_y, avoid_mag = _apply_avoidance(
+            obs, config, current_yaw, goal_x / goal_norm, goal_y / goal_norm
+        )
         desired_heading = math.atan2(goal_y, goal_x)
     else:
         # Untouched baseline path (horizon == 0): bit-identical behavior.
@@ -53,7 +55,9 @@ def _core_navigation_law(obs: SensorObservation, config: PolicyConfig) -> Contro
         dist = o.distance_m
         if dist < effective_safe:
             brake_factor = max(0.0, dist / effective_safe)
-            target_speed = min(target_speed, config.max_speed_mps * (brake_factor ** config.brake_gain))
+            target_speed = min(
+                target_speed, config.max_speed_mps * (brake_factor**config.brake_gain)
+            )
 
     # Heading-alignment slowdown applies to goal tracking only: when avoidance
     # is actively steering (intentional misalignment), do not fight it.
@@ -71,8 +75,13 @@ def _core_navigation_law(obs: SensorObservation, config: PolicyConfig) -> Contro
     return ControlCommand(linear_mps=max(0.0, target_speed), angular_radps=angular_cmd)
 
 
-def _apply_avoidance(obs: SensorObservation, config: PolicyConfig, yaw: float,
-                     goal_x: float, goal_y: float):
+def _apply_avoidance(
+    obs: SensorObservation,
+    config: PolicyConfig,
+    yaw: float,
+    goal_x: float,
+    goal_y: float,
+):
     """Blend a lateral escape vector into the goal vector.
 
     For each confidently-tracked obstacle, predict its robot-frame relative
@@ -101,9 +110,13 @@ def _apply_avoidance(obs: SensorObservation, config: PolicyConfig, yaw: float,
         # Influence grows with own speed (stopping distance) AND with the
         # obstacle's delivered speed (fast crossers need earlier reaction).
         # Horizon-gated: baseline (horizon=0) keeps the static margin.
-        influence = (config.safe_distance_m + config.reaction_margin_m
-                     + 0.5 * config.max_speed_mps * horizon + o.radius_m
-                     + 0.5 * math.hypot(vrx, vry) * horizon)
+        influence = (
+            config.safe_distance_m
+            + config.reaction_margin_m
+            + 0.5 * config.max_speed_mps * horizon
+            + o.radius_m
+            + 0.5 * math.hypot(vrx, vry) * horizon
+        )
         if surface_d < influence:
             w = max(0.0, 1.0 - surface_d / influence)
             avoid_x += (-px / dist_center) * w

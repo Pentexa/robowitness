@@ -1,9 +1,13 @@
 """Independent deterministic oracle rule evaluator."""
+
 from typing import List, Tuple
 from app.schemas.scenario import OracleSpec
 from app.schemas.telemetry import OracleStatus, RunMetrics
 
-def evaluate_oracle(metrics: RunMetrics, oracle_spec: OracleSpec, reason_codes: List[str]) -> Tuple[OracleStatus, List[str]]:
+
+def evaluate_oracle(
+    metrics: RunMetrics, oracle_spec: OracleSpec, reason_codes: List[str]
+) -> Tuple[OracleStatus, List[str]]:
     """Determine oracle verdict strictly from measured metrics and rules."""
     final_reasons = list(reason_codes)
 

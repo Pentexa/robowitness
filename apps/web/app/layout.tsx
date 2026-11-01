@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
-
 export const metadata: Metadata = {
-  title: "RoboWitness — Independent Verification for AI Robotics Fixes",
-  description: "Locally runnable verification platform ensuring AI-proposed policy fixes survive reproducible simulation gates.",
+  title: "RoboWitness — Robot Test Programı",
+  description:
+    "Robot düzeltmelerini bilgisayarda test eden program: robotu çalıştırın, hatayı inceleyin, yeni ayarları deneyin ve bağımsız sonucu görün.",
 };
 
 export default function RootLayout({
@@ -16,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="tr">
       <body>{children}</body>
     </html>
   );

@@ -1,13 +1,12 @@
 """Dedicated worker process polling SQLite jobs queue."""
+
 import json
 import os
 import signal
-import sys
 import tempfile
 import time
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 from app.config import settings
 from app.db import init_db
 from app.jobs.repository import claim_next_job, update_job_progress, update_job_status
@@ -28,18 +27,21 @@ def write_heartbeat(worker_id: str, force: bool = False) -> None:
     try:
         _HEARTBEAT_PATH.parent.mkdir(parents=True, exist_ok=True)
         payload = {"worker_id": worker_id, "ts": datetime.now(timezone.utc).isoformat()}
-        with tempfile.NamedTemporaryFile("w", dir=str(_HEARTBEAT_PATH.parent),
-                                         delete=False, encoding="utf-8") as tf:
+        with tempfile.NamedTemporaryFile(
+            "w", dir=str(_HEARTBEAT_PATH.parent), delete=False, encoding="utf-8"
+        ) as tf:
             json.dump(payload, tf)
             tmp_name = tf.name
         os.replace(tmp_name, _HEARTBEAT_PATH)
     except Exception as e:
         print(f"[Worker] heartbeat write failed: {e}")
 
+
 def signal_handler(signum, frame):
     global RUNNING
     print(f"\n[Worker] Received signal {signum}, stopping cooperatively...")
     RUNNING = False
+
 
 def run_worker_loop(poll_interval_s: float = 0.5):
     global RUNNING
@@ -47,9 +49,9 @@ def run_worker_loop(poll_interval_s: float = 0.5):
     signal.signal(signal.SIGTERM, signal_handler)
 
     worker_id = f"worker-{os.getpid()}-{uuid.uuid4().hex[:6]}"
-    print(f"==================================================")
+    print("==================================================")
     print(f"RoboWitness Worker Starting: {worker_id}")
-    print(f"==================================================")
+    print("==================================================")
 
     init_db()
     service = JobExecutionService()
@@ -69,8 +71,7 @@ def run_worker_loop(poll_interval_s: float = 0.5):
                 service.execute_simulation_run(job)
             elif job.kind == "verification":
                 service.execute_verification(
-                    job,
-                    progress_callback=lambda p: update_job_progress(job.job_id, p)
+                    job, progress_callback=lambda p: update_job_progress(job.job_id, p)
                 )
 
             update_job_status(job.job_id, status="completed", finished=True)
@@ -83,6 +84,7 @@ def run_worker_loop(poll_interval_s: float = 0.5):
             time.sleep(poll_interval_s)
 
     print("[Worker] Exited cleanly.")
+
 
 if __name__ == "__main__":
     run_worker_loop()

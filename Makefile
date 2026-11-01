@@ -1,4 +1,4 @@
-.PHONY: help install test test-backend test-frontend dev-backend dev-worker dev-web run-offline-demo
+.PHONY: help install test test-backend test-frontend fmt lint-backend dev-backend dev-worker dev-web run-offline-demo
 
 help:
 	@echo "RoboWitness Architecture & Run Commands:"
@@ -7,6 +7,8 @@ help:
 	@echo "  make dev-worker     - Run local jobs worker process"
 	@echo "  make dev-web        - Run Next.js web application on port 3000"
 	@echo "  make test-backend   - Run backend unit and integration tests"
+	@echo "  make fmt            - Format backend with ruff"
+	@echo "  make lint-backend   - Ruff format-check + lint (E,F) for backend"
 	@echo "  make run-offline-demo - Run end-to-end offline reference flow"
 
 install:
@@ -24,6 +26,13 @@ dev-web:
 
 test-backend:
 	cd backend && pytest -v
+
+fmt:
+	ruff format backend/app backend/tests
+
+lint-backend:
+	ruff format --check backend/app backend/tests
+	ruff check --select E,F backend/
 
 run-offline-demo:
 	python scripts/run_offline_demo.py

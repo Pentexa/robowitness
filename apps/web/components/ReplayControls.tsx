@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
+import { Play, Pause, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 
 interface ReplayControlsProps {
   isPlaying: boolean;
@@ -29,38 +29,32 @@ export const ReplayControls: React.FC<ReplayControlsProps> = ({
   return (
     <div className="rw-player">
       <div className="rw-btn-group">
-        <button id="btn-replay-reset" className="rw-btn rw-btn-icon" onClick={onReset} title="Reset to start">
+        <button id="btn-replay-reset" className="rw-btn rw-btn-icon" onClick={onReset} title="En başa dön" aria-label="En başa dön">
           <RotateCcw size={15} />
         </button>
-        <button id="btn-replay-prev" className="rw-btn rw-btn-icon" onClick={onStepBackward} title="Step back">
+        <button id="btn-replay-prev" className="rw-btn rw-btn-icon" onClick={onStepBackward} title="Bir adım geri" aria-label="Bir adım geri">
           <SkipBack size={15} />
         </button>
-        <button
-          id="btn-replay-play"
-          className={`rw-btn rw-btn-icon ${isPlaying ? "is-on" : ""}`}
-          onClick={onTogglePlay}
-          title={isPlaying ? "Pause" : "Play"}
-        >
-          {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+        <button id="btn-replay-play" className={`rw-btn rw-btn-icon ${isPlaying ? "is-on" : ""}`} onClick={onTogglePlay} title={isPlaying ? "Duraklat" : "Oynat"} aria-label={isPlaying ? "Duraklat" : "Oynat"}>
+          {isPlaying ? <Pause size={15} /> : <Play size={15} />}
         </button>
-        <button id="btn-replay-next" className="rw-btn rw-btn-icon" onClick={onStepForward} title="Step forward">
+        <button id="btn-replay-next" className="rw-btn rw-btn-icon" onClick={onStepForward} title="Bir adım ileri" aria-label="Bir adım ileri">
           <SkipForward size={15} />
         </button>
       </div>
-
       <div className="rw-time">
-        <span>{currentSimTime.toFixed(2)}s</span>
-        <span className="dim"> / {totalDuration.toFixed(2)}s</span>
+        <span>{currentSimTime.toFixed(2)} sn</span>
+        <span className="dim"> / {totalDuration.toFixed(2)} sn</span>
       </div>
-
-      <div className="rw-btn-group">
+      <div className="rw-btn-group" aria-label="Oynatma hızı">
         {[0.5, 1.0, 2.0].map((s) => (
           <button
             key={s}
             className={`rw-btn rw-btn-sm mono ${speed === s ? "rw-btn-primary" : "rw-btn-ghost"}`}
             onClick={() => onSpeedChange(s)}
+            title={`${s} kat hızla oynat`}
           >
-            {s}x
+            {s}×
           </button>
         ))}
       </div>

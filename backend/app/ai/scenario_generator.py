@@ -1,8 +1,10 @@
 """AI Scenario generation service."""
+
 from typing import Optional
 from app.ai.adapter import get_ai_adapter
 from app.schemas.ai import AIProvenance
 from app.schemas.scenario import ScenarioSpec
+
 
 class ScenarioGeneratorService:
     def __init__(self):

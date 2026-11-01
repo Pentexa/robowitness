@@ -1,8 +1,10 @@
 """Simulation obstacles: static and deterministic ping-pong trajectories."""
+
 import math
-from typing import List, Tuple
+from typing import Tuple
 import pybullet as p
 from app.schemas.scenario import ObstacleSpec
+
 
 class SimObstacle:
     def __init__(self, spec: ObstacleSpec, client_id: int):
@@ -26,13 +28,13 @@ class SimObstacle:
             p.GEOM_CYLINDER,
             radius=self.spec.radius_m,
             height=0.5,
-            physicsClientId=self.client_id
+            physicsClientId=self.client_id,
         )
         body = p.createMultiBody(
             baseMass=0.0,
             baseCollisionShapeIndex=col_shape,
             basePosition=[self.x_m, self.y_m, 0.25],
-            physicsClientId=self.client_id
+            physicsClientId=self.client_id,
         )
         return body
 
@@ -56,6 +58,6 @@ class SimObstacle:
             self.body_id,
             [self.x_m, self.y_m, 0.25],
             [0, 0, 0, 1],
-            physicsClientId=self.client_id
+            physicsClientId=self.client_id,
         )
         return self.x_m, self.y_m

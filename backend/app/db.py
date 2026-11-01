@@ -1,5 +1,5 @@
 """SQLite database initialization and connection management."""
-import os
+
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -53,6 +53,13 @@ CREATE TABLE IF NOT EXISTS verifications (
     FOREIGN KEY(baseline_run_id) REFERENCES runs(run_id)
 );
 
+CREATE TABLE IF NOT EXISTS robots (
+    robot_id TEXT PRIMARY KEY,
+    profile_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS ai_requests (
     request_id TEXT PRIMARY KEY,
     prompt_hash TEXT NOT NULL,
@@ -62,6 +69,7 @@ CREATE TABLE IF NOT EXISTS ai_requests (
     created_at TEXT NOT NULL
 );
 """
+
 
 def init_db(db_path: Path = None) -> None:
     path = db_path or settings.db_path
@@ -73,6 +81,7 @@ def init_db(db_path: Path = None) -> None:
         conn.commit()
     finally:
         conn.close()
+
 
 @contextmanager
 def get_db(db_path: Path = None) -> Generator[sqlite3.Connection, None, None]:

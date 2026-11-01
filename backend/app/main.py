@@ -1,4 +1,5 @@
 """RoboWitness Backend Application Entrypoint."""
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -7,12 +8,14 @@ from fastapi.responses import JSONResponse
 from app.api.routes_evidence import router as evidence_router
 from app.api.routes_failures import router as failures_router
 from app.api.routes_health import router as health_router
+from app.api.routes_robots import router as robots_router
 from app.api.routes_runs import router as runs_router
 from app.api.routes_scenarios import router as scenarios_router
 from app.api.routes_verifications import router as verifications_router
 from app.config import settings
 from app.db import init_db
 from app.errors import ErrorBody, ErrorDetail, ErrorEnvelope, RoboWitnessException
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,11 +26,14 @@ async def lifespan(app: FastAPI):
     (settings.artifacts_path / "verifications").mkdir(parents=True, exist_ok=True)
     yield
 
+
 def create_app() -> FastAPI:
     app = FastAPI(
         title="RoboWitness API",
         version="1.0.0",
-        description="Independent evidence and verification engine for simulated robotics failure fixes",
+        description=(
+            "Independent evidence and verification engine for simulated robotics failure fixes"
+        ),
         lifespan=lifespan,
     )
 
@@ -47,6 +53,7 @@ def create_app() -> FastAPI:
     app.include_router(failures_router, prefix="/api")
     app.include_router(verifications_router, prefix="/api")
     app.include_router(evidence_router, prefix="/api")
+    app.include_router(robots_router, prefix="/api")
 
     # Custom Error Handlers
     @app.exception_handler(RoboWitnessException)
@@ -72,5 +79,6 @@ def create_app() -> FastAPI:
         )
 
     return app
+
 
 app = create_app()

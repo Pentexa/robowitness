@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { FlaskConical } from "lucide-react";
 import { PolicyConfig } from "../lib/types";
 
 interface FixComparisonProps {
@@ -17,15 +18,46 @@ const FIELDS: Array<{
   key: "max_speed_mps" | "safe_distance_m" | "reaction_margin_m" | "brake_gain" | "obstacle_prediction_horizon_s";
   label: string;
   unit: string;
+  help: string;
   min: number;
   max: number;
   step: number;
 }> = [
-  { key: "max_speed_mps", label: "Max speed", unit: "m/s", min: 0.05, max: 1.2, step: 0.05 },
-  { key: "safe_distance_m", label: "Safe distance", unit: "m", min: 0.2, max: 2.0, step: 0.05 },
-  { key: "reaction_margin_m", label: "Reaction margin", unit: "m", min: 0.0, max: 1.0, step: 0.05 },
-  { key: "brake_gain", label: "Brake gain", unit: "×", min: 0.1, max: 10.0, step: 0.1 },
-  { key: "obstacle_prediction_horizon_s", label: "Prediction horizon", unit: "s", min: 0.0, max: 2.0, step: 0.1 },
+  {
+    key: "max_speed_mps",
+    label: "Robot hızı",
+    unit: "m/sn",
+    help: "Düşürürseniz robot yavaşlar: çarpmaya karşı daha güvenli olur ama süre dolabilir.",
+    min: 0.05, max: 1.2, step: 0.05,
+  },
+  {
+    key: "safe_distance_m",
+    label: "Engelden uzak durma mesafesi",
+    unit: "m",
+    help: "Büyütürseniz robot engellerden daha uzaktan geçer.",
+    min: 0.2, max: 2.0, step: 0.05,
+  },
+  {
+    key: "reaction_margin_m",
+    label: "Erken tepki payı",
+    unit: "m",
+    help: "Büyütürseniz robot engele daha erken tepki vermeye başlar.",
+    min: 0.0, max: 1.0, step: 0.05,
+  },
+  {
+    key: "brake_gain",
+    label: "Fren sertliği",
+    unit: "×",
+    help: "Büyütürseniz robot engele yaklaşınca daha hızlı yavaşlar.",
+    min: 0.1, max: 10.0, step: 0.1,
+  },
+  {
+    key: "obstacle_prediction_horizon_s",
+    label: "Engeli önceden tahmin süresi",
+    unit: "sn",
+    help: "Büyütürseniz robot, engelin nereye gideceğini daha uzak gelecekten hesaba katar.",
+    min: 0.0, max: 2.0, step: 0.1,
+  },
 ];
 
 export const FixComparison: React.FC<FixComparisonProps> = ({
@@ -45,30 +77,40 @@ export const FixComparison: React.FC<FixComparisonProps> = ({
   return (
     <div className="rw-card">
       <div className="rw-card-head">
-        <h3 className="rw-card-title">3. Policy Fix Comparison</h3>
-        <span className="rw-badge mono">
-          <span className="dot" />
-          {provenance}
-        </span>
-      </div>
-
-      <div className="rw-card-body">
         <div>
-          <div className="rw-table-head">
-            <span>Parameter</span>
-            <span>Baseline</span>
-            <span>Candidate</span>
-          </div>
-          {FIELDS.map((f) => {
-            const base = baselinePolicy[f.key] as number;
-            const cand = candidatePolicy[f.key] as number;
-            const changed = base !== cand;
-            return (
-              <div className="rw-table-row" key={f.key}>
-                <span>
+          <h3 className="rw-card-title">Düzeltmeyi Dene</h3>
+          <p className="rw-card-sub">“Eski” değerler ilk çalıştırmadaki ayarlardır. Kaydırıcılarla “Yeni” değerleri değiştirin.</p>
+        </div>
+      </div>
+      <div className="rw-card-body">
+        {!hasBaseline && (
+          <p className="rw-empty">Önce <strong>Test</strong> sekmesinden robotu eski ayarlarla bir kez çalıştırın. Sonra burada yeni ayarları deneyebilirsiniz.</p>
+        )}
+        {FIELDS.map((f) => {
+          const base = baselinePolicy[f.key] as number;
+          const cand = candidatePolicy[f.key] as number;
+          const changed = base !== cand;
+          return (
+            <div className="rw-param" key={f.key}>
+              <div className="rw-param-top">
+                <span className="rw-param-name">
                   {f.label} <span className="muted text-xs">({f.unit})</span>
                 </span>
-                <span className="mono muted">{base.toFixed(2)}</span>
+                {changed && <span className="rw-changed">DEĞİŞTİ</span>}
+              </div>
+              <p className="rw-hint">{f.help}</p>
+              <div className="rw-param-vals">
+                <span className="rw-param-old">Eski: {Number(base).toFixed(2)}</span>
+                <input
+                  id={`slider-${f.key.replace(/_/g, "-")}`}
+                  type="range"
+                  step={f.step}
+                  min={f.min}
+                  max={f.max}
+                  value={cand}
+                  onChange={(e) => handleChange(f.key, parseFloat(e.target.value))}
+                  aria-label={`${f.label} kaydırıcı`}
+                />
                 <input
                   id={`input-${f.key.replace(/_/g, "-")}`}
                   type="number"
@@ -78,23 +120,33 @@ export const FixComparison: React.FC<FixComparisonProps> = ({
                   value={cand}
                   onChange={(e) => handleChange(f.key, parseFloat(e.target.value))}
                   className="rw-input"
-                  style={changed ? { borderColor: "var(--accent-line)" } : undefined}
-                  aria-label={`Candidate ${f.label}`}
+                  aria-label={`Yeni ${f.label}`}
                 />
               </div>
-            );
-          })}
-        </div>
-
+            </div>
+          );
+        })}
         <button
           id="btn-verify-fix"
-          className="rw-btn rw-btn-primary rw-btn-block"
+          className="rw-btn rw-btn-primary rw-btn-big"
           onClick={onVerify}
           disabled={isVerifying || !hasBaseline}
-          title={hasBaseline ? undefined : "Run a baseline first"}
+          title={hasBaseline ? undefined : "Önce robotu bir kez çalıştırın"}
         >
-          {isVerifying ? "Executing verification sequence…" : "Run independent verification protocol"}
+          <FlaskConical size={16} />
+          {isVerifying ? "Testler çalışıyor, bekleyin…" : "Düzeltmeyi Test Et"}
         </button>
+        <p className="rw-hint">
+          Bu buton yeni ayarları aynı testte, ayrıca robotun görmediği 20 yeni testte ve önemli eski testlerde
+          dener. Biraz sürebilir; pencereyi kapatmayın. Kararı siz değil, bağımsız kontrol verir.
+        </p>
+        <details className="rw-details">
+          <summary>Teknik detaylar (isteğe bağlı)</summary>
+          <div>
+            <span className="mono text-xs">Kaynak: {provenance}</span>
+            <span className="mono text-xs">Eski ayar kodu: {baselinePolicy.id} · Yeni ayar kodu: {candidatePolicy.id}</span>
+          </div>
+        </details>
       </div>
     </div>
   );

@@ -1,12 +1,15 @@
 """Policy configuration and controller contracts."""
+
 import math
 from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
 
 def check_finite(val: float, name: str) -> float:
     if not math.isfinite(val):
         raise ValueError(f"{name} must be a finite number")
     return val
+
 
 class PolicyConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -29,14 +32,17 @@ class PolicyConfig(BaseModel):
     def validate_finite(cls, v: float, info) -> float:
         return check_finite(v, info.field_name)
 
+
 class PolicyPatch(BaseModel):
     """Allowed patch fields from AI or user - strictly the 5 numeric parameters."""
+
     model_config = ConfigDict(extra="forbid")
     max_speed_mps: Optional[float] = Field(default=None, ge=0.05, le=1.2)
     safe_distance_m: Optional[float] = Field(default=None, ge=0.20, le=2.0)
     reaction_margin_m: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     brake_gain: Optional[float] = Field(default=None, ge=0.1, le=10.0)
     obstacle_prediction_horizon_s: Optional[float] = Field(default=None, ge=0.0, le=2.0)
+
 
 class RelativeObstacleObservation(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -46,10 +52,12 @@ class RelativeObstacleObservation(BaseModel):
     radius_m: float
     distance_m: float
 
+
 class ObstacleTrack(BaseModel):
     """Deterministic velocity estimate derived SOLELY from previously delivered
     sensor observations (never ground truth). Attached by trusted sensor
     infrastructure for the policy to use when its prediction horizon > 0."""
+
     model_config = ConfigDict(extra="forbid")
     id: str
     vx_mps: float
@@ -57,8 +65,10 @@ class ObstacleTrack(BaseModel):
     samples: int
     confident: bool
 
+
 class SensorObservation(BaseModel):
     """Immutable sensor observation presented to controller."""
+
     model_config = ConfigDict(extra="forbid")
     sample_tick: int
     delivered_tick: int
@@ -70,6 +80,7 @@ class SensorObservation(BaseModel):
     goal_distance_m: float
     obstacles: List[RelativeObstacleObservation] = Field(default_factory=list)
     tracks: List[ObstacleTrack] = Field(default_factory=list)
+
 
 class ControlCommand(BaseModel):
     model_config = ConfigDict(extra="forbid")

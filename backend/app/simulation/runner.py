@@ -1,9 +1,10 @@
 """Authoritative 1/60-second simulation loop runner."""
+
 import math
 from typing import List, Tuple
 import pybullet as p
-from app.schemas.policy import ControlCommand, PolicyConfig
-from app.schemas.scenario import Pose2D, ScenarioSpec
+from app.schemas.policy import PolicyConfig
+from app.schemas.scenario import ScenarioSpec
 from app.schemas.telemetry import (
     CommandTelemetry,
     EventRecord,
@@ -16,6 +17,7 @@ from app.simulation.obstacles import SimObstacle
 from app.simulation.robot import SimRobot
 from app.simulation.sensors import SensorSystem
 from app.simulation.world import SimulationWorld
+
 
 class SimulationRunner:
     def __init__(self, scenario: ScenarioSpec, policy_config: PolicyConfig, policy_fn):
@@ -44,7 +46,7 @@ class SimulationRunner:
 
             last_goal_dist = math.hypot(
                 self.scenario.robot.goal.x_m - robot.pose.x_m,
-                self.scenario.robot.goal.y_m - robot.pose.y_m
+                self.scenario.robot.goal.y_m - robot.pose.y_m,
             )
             ticks_without_progress = 0
             stuck_tick_threshold = int(self.scenario.oracle.max_stuck_duration_s / self.dt)
@@ -57,12 +59,14 @@ class SimulationRunner:
                 obs_telemetry = []
                 for sim_obs in obstacles:
                     ox, oy = sim_obs.update_position(sim_time_s)
-                    true_obs_positions.append({
-                        "id": sim_obs.spec.id,
-                        "x_m": ox,
-                        "y_m": oy,
-                        "radius_m": sim_obs.spec.radius_m,
-                    })
+                    true_obs_positions.append(
+                        {
+                            "id": sim_obs.spec.id,
+                            "x_m": ox,
+                            "y_m": oy,
+                            "radius_m": sim_obs.spec.radius_m,
+                        }
+                    )
                     obs_telemetry.append(
                         ObstacleTelemetry(
                             id=sim_obs.spec.id,
@@ -121,21 +125,24 @@ class SimulationRunner:
                             type="COLLISION",
                             tick=tick,
                             sim_time_s=sim_time_s,
-                            details={"clearance_m": round(current_clearance, 4)}
+                            details={"clearance_m": round(current_clearance, 4)},
                         )
                     )
                     if "COLLISION" not in reason_codes:
                         reason_codes.append("COLLISION")
 
                 # Check minimum clearance violation
-                if current_clearance < self.scenario.oracle.min_clearance_m and not collision_detected:
+                if (
+                    current_clearance < self.scenario.oracle.min_clearance_m
+                    and not collision_detected
+                ):
                     if "MIN_CLEARANCE_VIOLATION" not in reason_codes:
                         reason_codes.append("MIN_CLEARANCE_VIOLATION")
 
                 # Check goal reached
                 dist_to_goal = math.hypot(
                     self.scenario.robot.goal.x_m - new_pose.x_m,
-                    self.scenario.robot.goal.y_m - new_pose.y_m
+                    self.scenario.robot.goal.y_m - new_pose.y_m,
                 )
                 if dist_to_goal <= self.scenario.robot.goal_radius_m:
                     goal_reached = True
@@ -145,7 +152,7 @@ class SimulationRunner:
                             type="GOAL_REACHED",
                             tick=tick,
                             sim_time_s=sim_time_s,
-                            details={"distance_m": round(dist_to_goal, 4)}
+                            details={"distance_m": round(dist_to_goal, 4)},
                         )
                     )
 
@@ -171,11 +178,12 @@ class SimulationRunner:
                         delivered_tick=delivered_obs.delivered_tick,
                         age_s=delivered_obs.age_s,
                         valid=delivered_obs.valid,
-                        observations=[{"id": o.id, "dist": o.distance_m} for o in delivered_obs.obstacles]
+                        observations=[
+                            {"id": o.id, "dist": o.distance_m} for o in delivered_obs.obstacles
+                        ],
                     ),
                     command=CommandTelemetry(
-                        linear_mps=cmd.linear_mps,
-                        angular_radps=cmd.angular_radps
+                        linear_mps=cmd.linear_mps, angular_radps=cmd.angular_radps
                     ),
                     clearance_m=round(current_clearance, 4),
                     events=tick_events,

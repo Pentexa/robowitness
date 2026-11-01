@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "entries": [
+    {"scenario_id": "RW-LIB-001", "file": "dar_koridor.json", "title": "Dar Koridor", "description": "İki sabit engel arasındaki dar geçitten çarpma mesafesini koruyarak geçme.", "difficulty": "Orta", "category": "Sabit Engel", "tags": ["dar geçit", "güvenli mesafe"]},
+    {"scenario_id": "RW-LIB-002", "file": "slalom.json", "title": "Slalom", "description": "Ardışık üç sabit engel arasında zigzag yapmadan güvenli geçiş.", "difficulty": "Orta", "category": "Sabit Engel", "tags": ["slalom", "çoklu engel"]},
+    {"scenario_id": "RW-LIB-003", "file": "diyagonal_gecis.json", "title": "Diyagonal Geçiş", "description": "Köşeden köşeye giden robotun yol üstündeki sabit engelleri aşması.", "difficulty": "Orta", "category": "Sabit Engel", "tags": ["diyagonal", "hedefe yönelme"]},
+    {"scenario_id": "RW-LIB-004", "file": "karsidan_gelen.json", "title": "Karşıdan Gelen Engel", "description": "Engel, robotun şeridinde karşıdan üzerine doğru hareket eder.", "difficulty": "Zor", "category": "Hareketli Engel", "tags": ["kafa kafaya", "kaçınma"]},
+    {"scenario_id": "RW-LIB-005", "file": "capraz_kesme.json", "title": "Çapraz Kesme", "description": "Engel, robotun yolunu çapraz keserek geçer; zamanlama kritiktir.", "difficulty": "Zor", "category": "Hareketli Engel", "tags": ["çapraz", "zamanlama"]},
+    {"scenario_id": "RW-LIB-006", "file": "yuksek_gecikme.json", "title": "Yüksek Sensör Gecikmesi", "description": "800 ms sensör gecikmesi ve hızlı hareketli engel; referans senaryonun daha zor hâli.", "difficulty": "Zor", "category": "Sensör", "tags": ["gecikme", "hızlı engel"]},
+    {"scenario_id": "RW-LIB-007", "file": "gurultulu_sensor.json", "title": "Gürültülü Sensör", "description": "Ölçüm gürültüsü yüksekken hareketli engelden kaçınma.", "difficulty": "Orta", "category": "Sensör", "tags": ["gürültü", "ölçüm hatası"]},
+    {"scenario_id": "RW-LIB-008", "file": "cift_hareketli_engel.json", "title": "Çift Hareketli Engel", "description": "İki hareketli engel zıt yönlerde yolu keser; ikisinden de kaçınmak gerekir.", "difficulty": "Zor", "category": "Hareketli Engel", "tags": ["çoklu engel", "zamanlama"]},
+    {"scenario_id": "RW-LIB-009", "file": "bos_koridor.json", "title": "Boş Koridor (Kontrol)", "description": "Engelsiz kontrol senaryosu; sağlıklı robotun hedefe ulaşması beklenir.", "difficulty": "Kolay", "category": "Kontrol", "tags": ["kontrol", "engelsiz"]},
+    {"scenario_id": "RW-LIB-010", "file": "yavas_trafik.json", "title": "Yavaş Trafik", "description": "Yavaş hareketli engel yolu keser; erken fark edip bekleme/kaçınma dengesi sınanır.", "difficulty": "Kolay", "category": "Hareketli Engel", "tags": ["yavaş engel", "bekleme"]}
+  ]
+}

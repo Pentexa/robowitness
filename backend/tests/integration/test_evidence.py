@@ -1,5 +1,5 @@
 """Evidence integrity tests: seal, tamper detection, missing members, path safety."""
-import json
+
 from pathlib import Path
 from app.evidence.integrity import verify_package_integrity
 from app.evidence.recorder import (
@@ -20,21 +20,43 @@ ROOT = Path(__file__).resolve().parent.parent.parent.parent
 def _tiny_spec() -> ScenarioSpec:
     """Minimal fast static scenario for evidence tests (no holdout dependency)."""
     return ScenarioSpec(
-        id="RW-EVI-TINY", kind="static_obstacle", seed=7,
-        world={"type": "warehouse", "width_m": 8.0, "height_m": 6.0,
-               "duration_limit_s": 6.0, "fixed_timestep_s": 1.0 / 60.0},
-        robot={"kind": "differential_drive",
-               "start": {"x_m": 1.0, "y_m": 3.0, "yaw_rad": 0.0},
-               "goal": {"x_m": 7.0, "y_m": 3.0},
-               "goal_radius_m": 0.35, "body_radius_m": 0.25,
-               "sensor_latency_ms": 0, "sensor_noise_std_m": 0.0},
-        obstacles=[{"id": "S1", "shape": "circle", "radius_m": 0.3,
-                    "motion": "static",
-                    "start": {"x_m": 4.0, "y_m": 1.5}, "end": {"x_m": 4.0, "y_m": 1.5},
-                    "speed_mps": 0.0}],
-        oracle={"collision_free": True, "min_clearance_m": 0.25,
-                "must_reach_goal": True, "max_duration_s": 6.0,
-                "max_stuck_duration_s": 3.0},
+        id="RW-EVI-TINY",
+        kind="static_obstacle",
+        seed=7,
+        world={
+            "type": "warehouse",
+            "width_m": 8.0,
+            "height_m": 6.0,
+            "duration_limit_s": 6.0,
+            "fixed_timestep_s": 1.0 / 60.0,
+        },
+        robot={
+            "kind": "differential_drive",
+            "start": {"x_m": 1.0, "y_m": 3.0, "yaw_rad": 0.0},
+            "goal": {"x_m": 7.0, "y_m": 3.0},
+            "goal_radius_m": 0.35,
+            "body_radius_m": 0.25,
+            "sensor_latency_ms": 0,
+            "sensor_noise_std_m": 0.0,
+        },
+        obstacles=[
+            {
+                "id": "S1",
+                "shape": "circle",
+                "radius_m": 0.3,
+                "motion": "static",
+                "start": {"x_m": 4.0, "y_m": 1.5},
+                "end": {"x_m": 4.0, "y_m": 1.5},
+                "speed_mps": 0.0,
+            }
+        ],
+        oracle={
+            "collision_free": True,
+            "min_clearance_m": 0.25,
+            "must_reach_goal": True,
+            "max_duration_s": 6.0,
+            "max_stuck_duration_s": 3.0,
+        },
     )
 
 
@@ -75,7 +97,8 @@ def test_missing_member_detected(tmp_path):
 
 def test_verification_package_tamper_detected(tmp_path):
     art = save_verification_artifacts(
-        artifacts_root=tmp_path, verification_id="verif-tamper",
+        artifacts_root=tmp_path,
+        verification_id="verif-tamper",
         manifest={"verification_id": "verif-tamper", "verdict": "REJECTED"},
         investigation={"hypothesis": "test"},
         comparison={"baseline": {}, "candidate": {}},
@@ -91,12 +114,13 @@ def test_verification_package_tamper_detected(tmp_path):
 
 
 def test_candidate_replay_sealed_and_endpoint_serves_or_404s(tmp_path, client):
-    from app.schemas.telemetry import TelemetryFrame
+
     spec, policy = _tiny_spec(), PolicyConfig()
     frames, _, _ = SimulationRunner(spec, policy, configurable_policy).run()
     assert len(frames) > 0
     art = save_verification_artifacts(
-        artifacts_root=tmp_path, verification_id="verif-replay",
+        artifacts_root=tmp_path,
+        verification_id="verif-replay",
         manifest={"verification_id": "verif-replay", "verdict": "REJECTED"},
         investigation={"hypothesis": "test"},
         comparison={"baseline": {}, "candidate": {}},

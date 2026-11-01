@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "id": "RW-LIB-005",
+  "kind": "dynamic_obstacle",
+  "seed": 2105,
+  "world": {
+    "type": "warehouse",
+    "width_m": 12.0,
+    "height_m": 8.0,
+    "duration_limit_s": 30.0,
+    "fixed_timestep_s": 0.016666666666666666
+  },
+  "robot": {
+    "kind": "differential_drive",
+    "start": {
+      "x_m": 1.0,
+      "y_m": 4.0,
+      "yaw_rad": 0.0
+    },
+    "goal": {
+      "x_m": 11.0,
+      "y_m": 4.0
+    },
+    "goal_radius_m": 0.35,
+    "body_radius_m": 0.25,
+    "wheel_base_m": 0.42,
+    "wheel_radius_m": 0.09,
+    "sensor_range_m": 4.0,
+    "sensor_latency_ms": 150,
+    "sensor_noise_std_m": 0.0
+  },
+  "obstacles": [
+    {
+      "id": "O1",
+      "shape": "circle",
+      "radius_m": 0.35,
+      "motion": "ping_pong",
+      "start": {
+        "x_m": 6.0,
+        "y_m": 7.0
+      },
+      "end": {
+        "x_m": 7.0,
+        "y_m": 1.0
+      },
+      "speed_mps": 0.5
+    }
+  ],
+  "oracle": {
+    "collision_free": true,
+    "min_clearance_m": 0.25,
+    "must_reach_goal": true,
+    "max_duration_s": 30.0,
+    "max_stuck_duration_s": 3.0
+  }
+}

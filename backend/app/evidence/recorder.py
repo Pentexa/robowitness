@@ -1,4 +1,5 @@
 """Atomic evidence persistence for runs and verifications."""
+
 import json
 import shutil
 import tempfile
@@ -28,6 +29,7 @@ VERIFICATION_REQUIRED_FILES = [
     "report.md",
 ]
 
+
 def save_run_artifacts(
     artifacts_root: Path,
     run_id: str,
@@ -53,7 +55,10 @@ def save_run_artifacts(
             f.write(policy.model_dump_json(indent=2))
 
         # 3. telemetry.jsonl and events.jsonl
-        with open(tmp_dir / "telemetry.jsonl", "w", encoding="utf-8") as tf, open(tmp_dir / "events.jsonl", "w", encoding="utf-8") as ef:
+        with (
+            open(tmp_dir / "telemetry.jsonl", "w", encoding="utf-8") as tf,
+            open(tmp_dir / "events.jsonl", "w", encoding="utf-8") as ef,
+        ):
             for frame in frames:
                 tf.write(frame.model_dump_json() + "\n")
                 for evt in frame.events:
@@ -86,6 +91,7 @@ def save_run_artifacts(
                 shutil.copy2(p, final_dir / p.name)
 
     return final_dir
+
 
 def save_verification_artifacts(
     artifacts_root: Path,

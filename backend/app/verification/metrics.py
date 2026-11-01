@@ -1,6 +1,8 @@
 """Simulation metrics extraction and computation."""
+
 from typing import List
 from app.schemas.telemetry import RunMetrics, TelemetryFrame
+
 
 def compute_run_metrics(frames: List[TelemetryFrame]) -> RunMetrics:
     if not frames:

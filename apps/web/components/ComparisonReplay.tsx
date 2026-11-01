@@ -13,6 +13,8 @@ interface ComparisonReplayProps {
   gates: GateResult[];
 }
 
+const boolTr = (v: unknown): string => (v === true || v === "true" ? "Evet" : v === false || v === "false" ? "Hayır" : String(v ?? "—"));
+
 export const ComparisonReplay: React.FC<ComparisonReplayProps> = ({
   scenario,
   baselineRunId,
@@ -72,38 +74,36 @@ export const ComparisonReplay: React.FC<ComparisonReplayProps> = ({
   return (
     <div className="rw-card">
       <div className="rw-card-head">
-        <h3 className="rw-card-title">5. Paired Replay Comparison</h3>
+        <div>
+          <h3 className="rw-card-title">Eski ve Yeni Ayarlar Yan Yana</h3>
+          <p className="rw-card-sub">İkisi de birebir aynı testte çalıştı. Solda eski, sağda yeni ayarlar.</p>
+        </div>
         <span className="rw-badge mono">
-          {status === "ready"
-            ? `BASE ${baseFrames.length} / CAND ${candFrames.length}`
-            : "SYNCED REPLAY"}
+          {status === "ready" ? `ESKİ ${baseFrames.length} / YENİ ${candFrames.length} ADIM` : "HAZIRLANIYOR"}
         </span>
       </div>
       <div className="rw-card-body">
-        {status === "loading" && <p className="rw-empty">Loading sealed baseline + candidate telemetry…</p>}
+        {status === "loading" && <p className="rw-empty">İki çalıştırma da yükleniyor…</p>}
         {status === "no-candidate" && (
-          <p className="rw-empty">
-            No sealed candidate replay in this package (created before candidate replay existed). Gate metrics in
-            comparison.json remain the source of truth.
-          </p>
+          <p className="rw-empty">Bu kayıtta yeni ayarların tekrar görüntüsü yok. Kontrol sonuçları yine de geçerlidir.</p>
         )}
-        {status.startsWith("error") && <p className="rw-err">{status}</p>}
+        {status.startsWith("error") && <p className="rw-err">Yüklenemedi: {status}</p>}
         {status === "ready" && (
           <>
             {paired && (
-              <div className="mono text-xs muted">
-                Paired Δ clearance {String(paired.details.baseline_min_clearance_m)} →{" "}
-                {String(paired.details.candidate_min_clearance_m)} m · goal{" "}
-                {String(paired.details.baseline_goal_reached)} → {String(paired.details.candidate_goal_reached)}
-              </div>
+              <p className="mono text-xs muted">
+                Engele en yakın mesafe: {String(paired.details.baseline_min_clearance_m)} m →{" "}
+                {String(paired.details.candidate_min_clearance_m)} m · Hedefe ulaştı mı:{" "}
+                {boolTr(paired.details.baseline_goal_reached)} → {boolTr(paired.details.candidate_goal_reached)}
+              </p>
             )}
             <div className="rw-compare">
               <div>
-                <h4>Baseline · tick {baseFrames[baseIdx]?.tick ?? 0}</h4>
+                <h4>Eski ayarlar · adım {baseFrames[baseIdx]?.tick ?? 0}</h4>
                 <SimulationCanvas scenario={scenario} frames={baseFrames} currentFrameIndex={baseIdx} />
               </div>
               <div>
-                <h4>Candidate · tick {candFrames[candIdx]?.tick ?? 0}</h4>
+                <h4>Yeni ayarlar · adım {candFrames[candIdx]?.tick ?? 0}</h4>
                 <SimulationCanvas scenario={scenario} frames={candFrames} currentFrameIndex={candIdx} />
               </div>
             </div>
@@ -114,15 +114,21 @@ export const ComparisonReplay: React.FC<ComparisonReplayProps> = ({
                 setIsPlaying(false);
                 setIndex(0);
               }}
-              onStepForward={() =>
-                setIndex((p) => Math.min(Math.max(baseFrames.length, candFrames.length) - 1, p + 1))
-              }
+              onStepForward={() => setIndex((p) => Math.min(Math.max(baseFrames.length, candFrames.length) - 1, p + 1))}
               onStepBackward={() => setIndex((p) => Math.max(0, p - 1))}
               speed={speed}
               onSpeedChange={setSpeed}
               currentSimTime={baseFrames[baseIdx]?.sim_time_s ?? 0}
               totalDuration={baseFrames[baseFrames.length - 1]?.sim_time_s ?? 0}
             />
+            <details className="rw-details">
+              <summary>Teknik detaylar (isteğe bağlı)</summary>
+              <div>
+                <span className="mono text-xs">
+                  Eski çalıştırma: {baselineRunId} · Kayıt: {verificationId}
+                </span>
+              </div>
+            </details>
           </>
         )}
       </div>

@@ -1,8 +1,10 @@
 """SHA-256 evidence sealing and independent verification."""
+
 import hashlib
 import json
 from pathlib import Path
 from typing import Dict, List, Tuple
+
 
 def compute_file_sha256(file_path: Path) -> str:
     hasher = hashlib.sha256()
@@ -10,6 +12,7 @@ def compute_file_sha256(file_path: Path) -> str:
         while chunk := f.read(65536):
             hasher.update(chunk)
     return hasher.hexdigest().lower()
+
 
 def seal_package_hashes(package_dir: Path) -> Path:
     """Generate SHA-256 hashes for all member files and seal into hashes.json."""
@@ -23,7 +26,10 @@ def seal_package_hashes(package_dir: Path) -> Path:
         json.dump(hashes, f, indent=2, sort_keys=True)
     return hashes_file
 
-def verify_package_integrity(package_dir: Path, required_files: List[str]) -> Tuple[bool, List[str]]:
+
+def verify_package_integrity(
+    package_dir: Path, required_files: List[str]
+) -> Tuple[bool, List[str]]:
     """Check that all required files exist and strictly match hashes.json."""
     hashes_file = package_dir / "hashes.json"
     if not hashes_file.exists():

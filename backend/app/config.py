@@ -1,5 +1,5 @@
 """Application configuration and environment settings."""
-import os
+
 from pathlib import Path
 from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,8 +15,12 @@ def _anchored(path_str: str) -> Path:
         return p
     return (_REPO_ROOT / p).resolve()
 
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=str(_REPO_ROOT / ".env"),
+        extra="ignore",
+    )
 
     RW_META_API_KEY: str = ""
     RW_META_BASE_URL: str = ""
@@ -43,5 +47,6 @@ class Settings(BaseSettings):
     @property
     def db_path(self) -> Path:
         return _anchored(self.RW_DB_PATH)
+
 
 settings = Settings()
