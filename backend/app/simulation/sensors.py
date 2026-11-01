@@ -38,15 +38,20 @@ class SensorSystem:
         """Capture ground truth at tick k and enqueue for delivery at k + latency_ticks."""
         delivery_tick = current_tick + self.latency_ticks
 
-        # Compute relative observations for obstacles within range
+        # Compute relative observations for obstacles within range.
+        # Occlusion: an obstacle hidden behind a closer one (the line of sight
+        # passes through the closer obstacle's body) is not observed at all —
+        # a real range sensor cannot see through it.
         rel_obstacles = []
-        for obs in true_obstacles:
+        for idx, obs in enumerate(true_obstacles):
             dx = obs["x_m"] - true_robot_pose.x_m
             dy = obs["y_m"] - true_robot_pose.y_m
             center_dist = math.hypot(dx, dy)
             surface_dist = center_dist - obs["radius_m"] - self.spec.body_radius_m
 
-            if surface_dist <= self.spec.sensor_range_m:
+            if surface_dist <= self.spec.sensor_range_m and not _is_occluded(
+                idx, true_obstacles, true_robot_pose
+            ):
                 # Add deterministic Gaussian noise if configured
                 noise_x = (
                     self.rng.gauss(0, self.spec.sensor_noise_std_m)
@@ -157,6 +162,27 @@ class SensorSystem:
                     ObstacleTrack(id=oid, vx_mps=0.0, vy_mps=0.0, samples=n, confident=False)
                 )
         return tracks
+
+
+def _is_occluded(idx: int, obstacles: List[Dict[str, float]], pose: Pose2D) -> bool:
+    """True if another, closer obstacle's body blocks the line of sight."""
+    target = obstacles[idx]
+    tx, ty = target["x_m"] - pose.x_m, target["y_m"] - pose.y_m
+    target_dist = math.hypot(tx, ty)
+    if target_dist <= 0.0:
+        return False
+    ux, uy = tx / target_dist, ty / target_dist
+    for jdx, other in enumerate(obstacles):
+        if jdx == idx:
+            continue
+        ox, oy = other["x_m"] - pose.x_m, other["y_m"] - pose.y_m
+        along = ox * ux + oy * uy  # projection onto the line of sight
+        if along <= 0.0 or along >= target_dist:
+            continue  # behind the sensor or beyond the target: cannot block it
+        perp = abs(ox * uy - oy * ux)  # perpendicular distance to the ray
+        if perp < other["radius_m"]:
+            return True
+    return False
 
 
 def _slope(ts: List[float], vs: List[float]) -> float:

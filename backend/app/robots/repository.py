@@ -16,26 +16,31 @@ def _key(brand: str, model: str, variant: str) -> tuple[str, str, str]:
     return (brand.strip().lower(), model.strip().lower(), variant.strip().lower())
 
 
-def list_user_robots() -> list[RobotProfile]:
+def list_user_robots(workspace: str = "default") -> list[RobotProfile]:
     with get_db() as conn:
-        rows = conn.execute("SELECT profile_json FROM robots ORDER BY created_at ASC").fetchall()
+        rows = conn.execute(
+            "SELECT profile_json FROM robots WHERE workspace_id = ? ORDER BY created_at ASC",
+            (workspace,),
+        ).fetchall()
     return [RobotProfile.model_validate_json(row["profile_json"]) for row in rows]
 
 
-def list_robots() -> list[RobotProfile]:
-    return builtin_robots() + list_user_robots()
+def list_robots(workspace: str = "default") -> list[RobotProfile]:
+    return builtin_robots() + list_user_robots(workspace)
 
 
-def get_robot(robot_id: str) -> RobotProfile | None:
-    for robot in list_robots():
+def get_robot(robot_id: str, workspace: str = "default") -> RobotProfile | None:
+    for robot in list_robots(workspace):
         if robot.robot_id == robot_id:
             return robot
     return None
 
 
-def find_duplicate(data: RobotProfileCreate, exclude_id: str | None = None) -> RobotProfile | None:
+def find_duplicate(
+    data: RobotProfileCreate, exclude_id: str | None = None, workspace: str = "default"
+) -> RobotProfile | None:
     wanted = _key(data.brand, data.model, data.variant)
-    for robot in list_robots():
+    for robot in list_robots(workspace):
         if exclude_id is not None and robot.robot_id == exclude_id:
             continue
         if _key(robot.brand, robot.model, robot.variant) == wanted:
@@ -43,21 +48,23 @@ def find_duplicate(data: RobotProfileCreate, exclude_id: str | None = None) -> R
     return None
 
 
-def create_robot(data: RobotProfileCreate) -> RobotProfile:
+def create_robot(data: RobotProfileCreate, workspace: str = "default") -> RobotProfile:
     now = _now()
     profile = build_profile(data, f"robot-{uuid.uuid4().hex[:12]}", "user", now, now)
     with get_db() as conn:
         conn.execute(
-            "INSERT INTO robots (robot_id, profile_json, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?)",
-            (profile.robot_id, profile.model_dump_json(), now, now),
+            "INSERT INTO robots (robot_id, profile_json, created_at, updated_at, workspace_id) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (profile.robot_id, profile.model_dump_json(), now, now, workspace),
         )
         conn.commit()
     return profile
 
 
-def update_robot(robot_id: str, data: RobotProfileCreate) -> RobotProfile | None:
-    existing = get_robot(robot_id)
+def update_robot(
+    robot_id: str, data: RobotProfileCreate, workspace: str = "default"
+) -> RobotProfile | None:
+    existing = get_robot(robot_id, workspace)
     if existing is None or existing.source != "user":
         return None
     profile = build_profile(data, robot_id, "user", existing.created_at, _now())
@@ -70,8 +77,8 @@ def update_robot(robot_id: str, data: RobotProfileCreate) -> RobotProfile | None
     return profile
 
 
-def delete_robot(robot_id: str) -> bool:
-    existing = get_robot(robot_id)
+def delete_robot(robot_id: str, workspace: str = "default") -> bool:
+    existing = get_robot(robot_id, workspace)
     if existing is None or existing.source != "user":
         return False
     with get_db() as conn:

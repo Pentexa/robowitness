@@ -27,6 +27,11 @@ def temp_workspace():
         settings.RW_AI_MODE = "offline"
         # Local policy execution must start OFF in tests; tests opt in explicitly.
         settings.RW_ALLOW_LOCAL_POLICY = "off"
+        settings.RW_API_KEYS = ""
+        settings.RW_JWT_SECRET = ""
+        settings.RW_OIDC_JWKS_URL = ""
+        settings.RW_OIDC_ISSUER = ""
+        settings.RW_OIDC_AUDIENCE = ""
         settings.RW_META_API_KEY = ""
         settings.RW_META_BASE_URL = ""
         settings.RW_META_MODEL = ""

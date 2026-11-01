@@ -28,6 +28,7 @@ from app.verification.paired import (
     evaluate_paired_comparison,
 )
 from app.verification.regression import evaluate_regressions
+from app.webhooks import notify
 
 
 class JobExecutionService:
@@ -124,9 +125,7 @@ class JobExecutionService:
                     )
                 )
             run_id = f"run-{uuid.uuid4().hex[:12]}"
-            plugin = (
-                SubprocessPolicy(data["local_policy"]) if data.get("local_policy") else None
-            )
+            plugin = SubprocessPolicy(data["local_policy"]) if data.get("local_policy") else None
             try:
                 status_, reasons, metrics = self._execute_single_run(
                     scenario=scenario,
@@ -168,11 +167,26 @@ class JobExecutionService:
         )
         with get_db() as conn:
             conn.execute(
-                "INSERT INTO battery_runs (battery_id, robot_id, result_json, created_at) "
-                "VALUES (?, ?, ?, ?)",
-                (battery_id, result.robot_id, result.model_dump_json(), job.created_at),
+                "INSERT INTO battery_runs (battery_id, robot_id, result_json, created_at, "
+                "workspace_id) VALUES (?, ?, ?, ?, ?)",
+                (
+                    battery_id,
+                    result.robot_id,
+                    result.model_dump_json(),
+                    job.created_at,
+                    data.get("workspace_id", "default"),
+                ),
             )
             conn.commit()
+        notify(
+            "battery.completed",
+            {
+                "battery_id": battery_id,
+                "robot_id": result.robot_id,
+                "robot_label": result.robot_label,
+                "summary": result.summary.model_dump(),
+            },
+        )
 
     def execute_verification(self, job: JobRecord, progress_callback=None) -> None:
         data = json.loads(job.payload_json)

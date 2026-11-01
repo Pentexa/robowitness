@@ -3,10 +3,14 @@
 import React, { useEffect, useState } from "react";
 import { ClipboardList, Download, Upload } from "lucide-react";
 import {
-  batteryReportUrl,
+  compareBatteries,
   createBattery,
+  downloadBatteryReport,
   fetchBatteries,
   fetchBattery,
+  fetchBatteryTrend,
+  runFleet,
+  type BatteryTrendPoint,
   fetchJob,
   fetchLocalPolicies,
   fetchPolicyProfiles,
@@ -14,6 +18,7 @@ import {
   importTelemetry,
 } from "../lib/api";
 import { REASON_LABELS } from "./RunVerdict";
+import type { BatteryCompareEntry } from "../lib/api";
 import {
   BatteryResult,
   ImportResult,
@@ -45,6 +50,17 @@ export const BatteryPanel: React.FC<BatteryPanelProps> = ({ onLoadRun }) => {
   const [running, setRunning] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [trend, setTrend] = useState<BatteryTrendPoint[]>([]);
+  const [fleetSelected, setFleetSelected] = useState<string[]>([]);
+  const [fleetCards, setFleetCards] = useState<BatteryResult[]>([]);
+  const [fleetSkipped, setFleetSkipped] = useState<Array<{ robot_id: string; reason: string }>>([]);
+  const [fleetRunning, setFleetRunning] = useState<boolean>(false);
+
+  const [compareA, setCompareA] = useState<string>("");
+  const [compareB, setCompareB] = useState<string>("");
+  const [compareEntries, setCompareEntries] = useState<BatteryCompareEntry[] | null>(null);
+  const [compareError, setCompareError] = useState<string | null>(null);
+
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [goalX, setGoalX] = useState<string>("");
@@ -67,7 +83,56 @@ export const BatteryPanel: React.FC<BatteryPanelProps> = ({ onLoadRun }) => {
     fetchBatteries(5)
       .then(setHistory)
       .catch(() => console.warn("Battery history unavailable"));
+    fetchBatteryTrend()
+      .then(setTrend)
+      .catch(() => console.warn("Battery trend unavailable"));
   }, []);
+
+  const refreshTrend = async () => {
+    setTrend(await fetchBatteryTrend().catch(() => []));
+    setHistory(await fetchBatteries(5).catch(() => []));
+  };
+
+  const handleRunFleet = async () => {
+    const profile = profiles.find((p) => p.profile_id === profileId);
+    if (!profile || fleetSelected.length === 0) return;
+    setFleetRunning(true);
+    setFleetCards([]);
+    setFleetSkipped([]);
+    try {
+      const result = await runFleet(fleetSelected, profile.policy);
+      setFleetSkipped(result.skipped);
+      const pending = new Map(result.jobs.map((j) => [j.job_id, j.battery_id]));
+      const done = new Map<string, BatteryResult>();
+      const timer = setInterval(async () => {
+        try {
+          for (const [jobId, batteryId] of Array.from(pending.entries())) {
+            const jobState = await fetchJob(jobId);
+            if (jobState.status === "completed") {
+              done.set(batteryId, await fetchBattery(batteryId));
+              pending.delete(jobId);
+            } else if (jobState.status === "failed" || jobState.status === "cancelled") {
+              pending.delete(jobId);
+            }
+          }
+          if (pending.size === 0) {
+            clearInterval(timer);
+            setFleetCards(
+              Array.from(done.values()).sort((x, y) => y.summary.passed - x.summary.passed)
+            );
+            setFleetRunning(false);
+            await refreshTrend().catch(() => undefined);
+          }
+        } catch {
+          clearInterval(timer);
+          setFleetRunning(false);
+        }
+      }, 1500);
+    } catch {
+      setFleetRunning(false);
+      setError("Filo bataryası başlatılamadı.");
+    }
+  };
 
   const handleRunBattery = async () => {
     const profile = profiles.find((p) => p.profile_id === profileId);
@@ -91,6 +156,7 @@ export const BatteryPanel: React.FC<BatteryPanelProps> = ({ onLoadRun }) => {
             const card = await fetchBattery(job.result_id);
             setBattery(card);
             setHistory(await fetchBatteries(5).catch(() => []));
+            setTrend(await fetchBatteryTrend().catch(() => []));
             setProgress(null);
             setRunning(false);
           } else if (jobState.status === "failed" || jobState.status === "cancelled") {
@@ -237,9 +303,96 @@ export const BatteryPanel: React.FC<BatteryPanelProps> = ({ onLoadRun }) => {
               </div>
             ))}
           </div>
-          <a id="btn-download-report" className="rw-btn rw-btn-ghost" href={batteryReportUrl(battery.battery_id)}>
+          <button
+            id="btn-download-report"
+            className="rw-btn rw-btn-ghost"
+            onClick={() => downloadBatteryReport(battery.battery_id).catch(() => setError("Karne indirilemedi"))}
+          >
             <Download size={15} /> Karneyi İndir (.md)
-          </a>
+          </button>
+        </section>
+      )}
+
+      {history.length >= 2 && (
+        <section className="rw-section">
+          <h3 className="rw-section-title">Karne Karşılaştırma (A → B)</h3>
+          <div className="rw-btn-row">
+            <select
+              id="select-compare-a"
+              className="rw-input"
+              style={{ flex: 1 }}
+              value={compareA}
+              onChange={(e) => setCompareA(e.target.value)}
+              aria-label="Karşılaştırma A karnesi"
+            >
+              <option value="">A: eski karne</option>
+              {history.map((h) => (
+                <option key={h.battery_id} value={h.battery_id}>
+                  {h.robot_label} · {h.summary.passed}/{h.summary.total} · {new Date(h.created_at).toLocaleString("tr-TR")}
+                </option>
+              ))}
+            </select>
+            <select
+              id="select-compare-b"
+              className="rw-input"
+              style={{ flex: 1 }}
+              value={compareB}
+              onChange={(e) => setCompareB(e.target.value)}
+              aria-label="Karşılaştırma B karnesi"
+            >
+              <option value="">B: yeni karne</option>
+              {history.map((h) => (
+                <option key={h.battery_id} value={h.battery_id}>
+                  {h.robot_label} · {h.summary.passed}/{h.summary.total} · {new Date(h.created_at).toLocaleString("tr-TR")}
+                </option>
+              ))}
+            </select>
+            <button
+              id="btn-compare-batteries"
+              className="rw-btn rw-btn-primary rw-btn-sm"
+              disabled={!compareA || !compareB || compareA === compareB}
+              onClick={async () => {
+                setCompareError(null);
+                try {
+                  const result = await compareBatteries(compareA, compareB);
+                  setCompareEntries(result.entries);
+                } catch {
+                  setCompareError("Karşılaştırma yapılamadı.");
+                }
+              }}
+            >
+              Karşılaştır
+            </button>
+          </div>
+          {compareError && <p className="rw-err">{compareError}</p>}
+          {compareEntries && (
+            <div>
+              {compareEntries.map((e) => (
+                <div key={e.scenario_id} className="rw-table-row" style={{ gridTemplateColumns: "1fr auto auto" }}>
+                  <span>
+                    {e.title}
+                    <span className="muted text-xs">
+                      {" "}· {e.clearance_a ?? "—"} → {e.clearance_b ?? "—"} m
+                    </span>
+                  </span>
+                  <span className="mono text-xs">
+                    {e.status_a ?? "—"} → {e.status_b ?? "—"}
+                  </span>
+                  <span
+                    className={`rw-badge ${e.outcome === "improved" ? "is-solid" : e.outcome === "worsened" ? "is-fail" : ""}`}
+                  >
+                    {e.outcome === "improved"
+                      ? "İYİLEŞTİ"
+                      : e.outcome === "worsened"
+                        ? "KÖTÜLEŞTİ"
+                        : e.outcome === "same"
+                          ? "AYNI"
+                          : e.outcome.toUpperCase()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -266,6 +419,93 @@ export const BatteryPanel: React.FC<BatteryPanelProps> = ({ onLoadRun }) => {
           </select>
         </section>
       )}
+
+      {trend.length > 0 && (
+        <section className="rw-section">
+          <h3 className="rw-section-title">Karne Trendi (geçme oranı)</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {trend.slice(-10).map((p) => (
+              <div key={p.battery_id} className="rw-btn-row" style={{ alignItems: "center" }}>
+                <span className="text-xs muted" style={{ width: 130, flex: "none" }}>
+                  {new Date(p.created_at).toLocaleDateString("tr-TR")}
+                </span>
+                <span className="text-xs" style={{ flex: 1 }}>
+                  {p.robot_label}
+                </span>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: `${Math.round(p.pass_rate * 120)}px`,
+                    height: 10,
+                    background: "#111",
+                    display: "inline-block",
+                  }}
+                />
+                <span className="mono text-xs">
+                  {p.passed}/{p.total} (%{Math.round(p.pass_rate * 100)})
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="rw-section">
+        <h3 className="rw-section-title">Filo Bataryası (birden çok robot)</h3>
+        <p className="rw-summary">
+          Aynı ayar profiliyle birden çok robotu aynı bataryadan geçirip sıralayın. Uyumsuz robotlar
+          nedenleriyle atlanır.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {robots
+            .filter((r) => r.simulation_compatible)
+            .map((r) => (
+              <label key={r.robot_id} className="rw-btn-row" style={{ alignItems: "center" }}>
+                <input
+                  type="checkbox"
+                  checked={fleetSelected.includes(r.robot_id)}
+                  onChange={(e) =>
+                    setFleetSelected((prev) =>
+                      e.target.checked
+                        ? [...prev, r.robot_id]
+                        : prev.filter((x) => x !== r.robot_id)
+                    )
+                  }
+                />
+                <span>
+                  {r.brand} {r.model}
+                </span>
+              </label>
+            ))}
+        </div>
+        <button
+          id="btn-run-fleet"
+          className="rw-btn rw-btn-primary"
+          onClick={handleRunFleet}
+          disabled={fleetRunning || fleetSelected.length === 0}
+        >
+          {fleetRunning ? "Filo çalışıyor…" : `Filo Bataryasını Çalıştır (${fleetSelected.length} robot)`}
+        </button>
+        {fleetSkipped.length > 0 && (
+          <p className="rw-summary">
+            Atlananlar: {fleetSkipped.map((s) => `${s.robot_id} (${s.reason})`).join("; ")}
+          </p>
+        )}
+        {fleetCards.length > 0 && (
+          <div>
+            {fleetCards.map((card, i) => (
+              <div key={card.battery_id} className="rw-table-row" style={{ gridTemplateColumns: "auto 1fr auto" }}>
+                <span className="mono">{i + 1}.</span>
+                <span>{card.robot_label}</span>
+                <span className="mono text-xs">
+                  {card.summary.passed}/{card.summary.total} geçti · çarpışma {card.summary.collisions} ·
+                  yakın {card.summary.near_misses}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="rw-section">
         <h3 className="rw-section-title">Gerçek Sürüş Yükle (Log)</h3>

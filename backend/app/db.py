@@ -53,6 +53,50 @@ CREATE TABLE IF NOT EXISTS verifications (
     FOREIGN KEY(baseline_run_id) REFERENCES runs(run_id)
 );
 
+CREATE TABLE IF NOT EXISTS api_keys (
+    key_id TEXT PRIMARY KEY,
+    key_hash TEXT NOT NULL UNIQUE,
+    label TEXT NOT NULL,
+    role_name TEXT NOT NULL,
+    workspace_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    revoked_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS idempotency_keys (
+    idem_key TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    endpoint TEXT NOT NULL,
+    response_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS battery_schedules (
+    schedule_id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    robot_id TEXT NOT NULL,
+    policy_json TEXT NOT NULL,
+    local_policy TEXT,
+    scenario_ids_json TEXT NOT NULL,
+    interval_minutes INTEGER NOT NULL,
+    next_run_at TEXT NOT NULL,
+    last_run_at TEXT,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    actor TEXT NOT NULL,
+    role_name TEXT NOT NULL,
+    workspace_id TEXT NOT NULL,
+    method TEXT NOT NULL,
+    path TEXT NOT NULL,
+    status_code INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS policy_profiles (
     profile_id TEXT PRIMARY KEY,
     profile_json TEXT NOT NULL,
@@ -91,6 +135,19 @@ CREATE TABLE IF NOT EXISTS ai_requests (
 """
 
 
+_WORKSPACE_TABLES = ("robots", "policy_profiles", "battery_runs", "telemetry_imports")
+
+
+def _migrate_workspace_columns(conn: sqlite3.Connection) -> None:
+    """Add workspace_id to tenant tables created before tenancy existed."""
+    for table in _WORKSPACE_TABLES:
+        cols = {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+        if cols and "workspace_id" not in cols:
+            conn.execute(
+                f"ALTER TABLE {table} ADD COLUMN workspace_id TEXT NOT NULL DEFAULT 'default'"
+            )
+
+
 def init_db(db_path: Path = None) -> None:
     path = db_path or settings.db_path
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -98,6 +155,7 @@ def init_db(db_path: Path = None) -> None:
     try:
         conn.execute("PRAGMA journal_mode=WAL;")
         conn.executescript(SCHEMA_SQL)
+        _migrate_workspace_columns(conn)
         conn.commit()
     finally:
         conn.close()

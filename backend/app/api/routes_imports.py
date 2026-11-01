@@ -6,9 +6,10 @@ import json
 import uuid
 from datetime import datetime, timezone
 from typing import List
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, Request, status
 from app.db import get_db
 from app.errors import RoboWitnessException
+from app.security import current_workspace
 from app.schemas.telemetry_import import (
     ImportedFrame,
     TelemetryImportRequest,
@@ -53,13 +54,11 @@ def _bad_import(reason: str) -> RoboWitnessException:
 @router.post(
     "/telemetry", response_model=TelemetryImportResult, status_code=status.HTTP_201_CREATED
 )
-def import_telemetry(request: TelemetryImportRequest):
+def import_telemetry(body: TelemetryImportRequest, request: Request):
     try:
-        frames = (
-            _parse_csv(request.content) if request.format == "csv" else _parse_json(request.content)
-        )
+        frames = _parse_csv(body.content) if body.format == "csv" else _parse_json(body.content)
     except Exception as exc:
-        raise _bad_import(f"Could not parse {request.format} telemetry: {exc}")
+        raise _bad_import(f"Could not parse {body.format} telemetry: {exc}")
 
     if not frames:
         raise _bad_import("No telemetry frames found in the uploaded content")
@@ -67,9 +66,9 @@ def import_telemetry(request: TelemetryImportRequest):
     try:
         oracle_status, reasons, metrics = evaluate_imported_track(
             frames,
-            goal=request.goal,
-            goal_radius_m=request.goal_radius_m,
-            min_clearance_limit_m=request.min_clearance_limit_m,
+            goal=body.goal,
+            goal_radius_m=body.goal_radius_m,
+            min_clearance_limit_m=body.min_clearance_limit_m,
         )
     except ValueError as exc:
         raise _bad_import(str(exc))
@@ -83,8 +82,8 @@ def import_telemetry(request: TelemetryImportRequest):
 
     result = TelemetryImportResult(
         import_id=f"import-{uuid.uuid4().hex[:12]}",
-        name=request.name,
-        robot_label=request.robot_label,
+        name=body.name,
+        robot_label=body.robot_label,
         oracle_status=oracle_status,  # type: ignore[arg-type]
         reason_codes=reasons,
         near_miss=near_miss,
@@ -93,28 +92,36 @@ def import_telemetry(request: TelemetryImportRequest):
     )
     with get_db() as conn:
         conn.execute(
-            "INSERT INTO telemetry_imports (import_id, result_json, created_at) VALUES (?, ?, ?)",
-            (result.import_id, result.model_dump_json(), result.created_at),
+            "INSERT INTO telemetry_imports (import_id, result_json, created_at, workspace_id) "
+            "VALUES (?, ?, ?, ?)",
+            (
+                result.import_id,
+                result.model_dump_json(),
+                result.created_at,
+                current_workspace(request),
+            ),
         )
         conn.commit()
     return result
 
 
 @router.get("", response_model=List[TelemetryImportResult], status_code=status.HTTP_200_OK)
-def list_imports(limit: int = Query(10, ge=1, le=50)):
+def list_imports(request: Request, limit: int = Query(10, ge=1, le=50)):
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT result_json FROM telemetry_imports ORDER BY created_at DESC LIMIT ?",
-            (limit,),
+            "SELECT result_json FROM telemetry_imports WHERE workspace_id = ? "
+            "ORDER BY created_at DESC LIMIT ?",
+            (current_workspace(request), limit),
         ).fetchall()
     return [TelemetryImportResult.model_validate_json(r["result_json"]) for r in rows]
 
 
 @router.get("/{import_id}", response_model=TelemetryImportResult, status_code=status.HTTP_200_OK)
-def get_import(import_id: str):
+def get_import(import_id: str, request: Request):
     with get_db() as conn:
         row = conn.execute(
-            "SELECT result_json FROM telemetry_imports WHERE import_id = ?", (import_id,)
+            "SELECT result_json FROM telemetry_imports WHERE import_id = ? AND workspace_id = ?",
+            (import_id, current_workspace(request)),
         ).fetchone()
     if row is None:
         raise RoboWitnessException(

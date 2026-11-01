@@ -4,11 +4,12 @@ import json
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, Request, status
 from pydantic import BaseModel
 from app.config import settings
 from app.db import get_db
 from app.errors import RoboWitnessException
+from app.idempotency import get_idempotent_response, store_idempotent_response
 from app.policies.local_adapter import LocalPolicyError, local_policy_path
 from app.schemas.jobs import JobCreateResponse, JobProgress, JobResponse
 from app.schemas.policy import PolicyConfig
@@ -45,7 +46,10 @@ def validate_local_policy(name: Optional[str]) -> None:
 
 
 @router.post("/runs", response_model=JobCreateResponse, status_code=status.HTTP_202_ACCEPTED)
-def create_run(req: CreateRunRequest):
+def create_run(req: CreateRunRequest, request: Request):
+    existing = get_idempotent_response(request)
+    if existing is not None:
+        return existing
     validate_local_policy(req.local_policy)
     job_id = f"job-{uuid.uuid4().hex[:12]}"
     run_id = f"run-{uuid.uuid4().hex[:12]}"
@@ -70,7 +74,9 @@ def create_run(req: CreateRunRequest):
         )
         conn.commit()
 
-    return JobCreateResponse(job_id=job_id, result_id=run_id, status="queued")
+    response = JobCreateResponse(job_id=job_id, result_id=run_id, status="queued")
+    store_idempotent_response(request, response)
+    return response
 
 
 @router.get("/jobs/{job_id}", response_model=JobResponse, status_code=status.HTTP_200_OK)

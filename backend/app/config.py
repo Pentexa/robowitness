@@ -37,6 +37,18 @@ class Settings(BaseSettings):
     # simulation. AI-generated code must never be used with this; it is not a
     # security sandbox — only run code you wrote and trust.
     RW_ALLOW_LOCAL_POLICY: str = "off"
+    # Enterprise auth (opt-in): "key:role:workspace;key2:viewer:ws" — empty = open local mode.
+    RW_API_KEYS: str = ""
+    # JWT bearer auth (opt-in): HS256 shared secret and/or OIDC JWKS (RS256).
+    RW_JWT_SECRET: str = ""
+    RW_OIDC_JWKS_URL: str = ""
+    RW_OIDC_ISSUER: str = ""
+    RW_OIDC_AUDIENCE: str = ""
+    # Enterprise hardening: per-actor requests/minute (0 = off), webhooks.
+    RW_RATE_LIMIT_PER_MIN: int = 0
+    RW_WEBHOOK_URL: str = ""
+    RW_WEBHOOK_SECRET: str = ""
+    RW_WORKER_CONCURRENCY: int = 1
     RW_DB_PATH: str = "./artifacts/robowitness.sqlite3"
     RW_ARTIFACTS_DIR: str = "./artifacts"
     RW_CORS_ORIGINS: str = "http://localhost:3000"

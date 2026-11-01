@@ -7,8 +7,10 @@ import { EvidencePanel } from "../components/EvidencePanel";
 import { FailureAnalysis } from "../components/FailureAnalysis";
 import { FixComparison } from "../components/FixComparison";
 import { ReplayControls } from "../components/ReplayControls";
+import { AdminPanel } from "../components/AdminPanel";
 import { BatteryPanel } from "../components/BatteryPanel";
 import { LocalPolicyPanel } from "../components/LocalPolicyPanel";
+import { MapImport } from "../components/MapImport";
 import { PolicyProfiles } from "../components/PolicyProfiles";
 import { RobotPanel } from "../components/RobotPanel";
 import { RunVerdict } from "../components/RunVerdict";
@@ -68,7 +70,7 @@ const DEFAULT_CANDIDATE_POLICY: PolicyConfig = {
   obstacle_prediction_horizon_s: 0.6,
 };
 
-type PanelId = "test" | "hata" | "duzeltme" | "sonuc" | "karne";
+type PanelId = "test" | "hata" | "duzeltme" | "sonuc" | "karne" | "yonetim";
 
 const STEPS: Array<{ panel: PanelId; name: string; desc: string }> = [
   { panel: "test", name: "Testi çalıştır", desc: "Robotu eski ayarlarla bir kez çalıştırın." },
@@ -439,9 +441,62 @@ export default function DashboardPage() {
             RoboWitness <span className="dim">— Robot Test Programı</span>
           </span>
         </div>
-        <button className="rw-btn rw-btn-ghost rw-btn-sm" id="btn-help" onClick={() => setHelpOpen(true)}>
-          <HelpCircle size={14} /> Yardım
-        </button>
+        <div className="rw-row">
+          <input
+            id="input-api-key"
+            className="rw-input"
+            type="password"
+            placeholder="API anahtarı (varsa)"
+            style={{ width: 160 }}
+            defaultValue={typeof window !== "undefined" ? (localStorage.getItem("rw_api_key") ?? "") : ""}
+            onBlur={(e) => {
+              try {
+                if (e.target.value) localStorage.setItem("rw_api_key", e.target.value);
+                else localStorage.removeItem("rw_api_key");
+              } catch {
+                console.warn("localStorage unavailable");
+              }
+            }}
+            title="Sunucu RW_API_KEYS ile korunuyorsa anahtarınızı yazın; tarayıcıda saklanır"
+          />
+          <input
+            id="input-jwt"
+            className="rw-input"
+            type="password"
+            placeholder="JWT (varsa)"
+            style={{ width: 130 }}
+            defaultValue={typeof window !== "undefined" ? (localStorage.getItem("rw_jwt") ?? "") : ""}
+            onBlur={(e) => {
+              try {
+                if (e.target.value) localStorage.setItem("rw_jwt", e.target.value);
+                else localStorage.removeItem("rw_jwt");
+              } catch {
+                console.warn("localStorage unavailable");
+              }
+            }}
+            title="OIDC/JWT erişim belirteci (Authorization: Bearer); tarayıcıda saklanır"
+          />
+          <input
+            id="input-workspace"
+            className="rw-input"
+            placeholder="Çalışma alanı"
+            style={{ width: 120 }}
+            defaultValue={typeof window !== "undefined" ? (localStorage.getItem("rw_workspace") ?? "") : ""}
+            onBlur={(e) => {
+              try {
+                if (e.target.value) localStorage.setItem("rw_workspace", e.target.value);
+                else localStorage.removeItem("rw_workspace");
+                window.location.reload();
+              } catch {
+                console.warn("localStorage unavailable");
+              }
+            }}
+            title="Çalışma alanı (workspace): verileriniz bu alanda izole edilir; değişince sayfa yenilenir"
+          />
+          <button className="rw-btn rw-btn-ghost rw-btn-sm" id="btn-help" onClick={() => setHelpOpen(true)}>
+            <HelpCircle size={14} /> Yardım
+          </button>
+        </div>
       </div>
 
       {/* Araç çubuğu: sıradaki adım */}
@@ -605,6 +660,14 @@ export default function DashboardPage() {
             >
               Karne
             </button>
+            <button
+              role="tab"
+              aria-selected={activePanel === "yonetim"}
+              className={`rw-tab ${activePanel === "yonetim" ? "is-active" : ""}`}
+              onClick={() => setActivePanel("yonetim")}
+            >
+              Yönetim
+            </button>
           </div>
           <div className="rw-inspector-body">
             <div className={`rw-tabpage ${activePanel === "test" ? "is-active" : ""}`}>
@@ -635,6 +698,16 @@ export default function DashboardPage() {
                 info={localPolicyInfo}
                 selected={selectedLocalPolicy}
                 onSelect={setSelectedLocalPolicy}
+              />
+              <MapImport
+                disabled={busy}
+                onScenario={(s) => {
+                  setScenario(s);
+                  setScenarioProvenance("MAP_IMPORT");
+                  setAppliedRobotLabel(null);
+                  resetRunState(false);
+                  setActivePanel("test");
+                }}
               />
             </div>
             <div className={`rw-tabpage ${activePanel === "hata" ? "is-active" : ""}`}>
@@ -683,6 +756,9 @@ export default function DashboardPage() {
             </div>
             <div className={`rw-tabpage ${activePanel === "karne" ? "is-active" : ""}`}>
               <BatteryPanel onLoadRun={handleLoadBatteryRun} />
+            </div>
+            <div className={`rw-tabpage ${activePanel === "yonetim" ? "is-active" : ""}`}>
+              <AdminPanel />
             </div>
           </div>
         </aside>

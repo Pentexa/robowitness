@@ -164,6 +164,87 @@ approved it on 2026-11-02 and it is now implemented too (see below).
   machine); Path B still unmet (no candidate has passed all 20 frozen
   holdouts — best 18/20).
 
+## Enterprise Layer (2026-11-02, user: “enterprise seviyeye çıkar, her şeyi onaylıyorum”)
+
+Full guide: `docs/ENTERPRISE.md`. Implemented + live-verified:
+
+- **Auth/RBAC/workspace:** opt-in API keys (`RW_API_KEYS=key:role:workspace;…`),
+  roles admin>editor>viewer, `X-API-Key` middleware (health public, OPTIONS
+  exempt), workspace isolation for user robots, policy profiles, batteries and
+  telemetry imports (builtin catalogs shared). Frontend stores key/workspace in
+  localStorage (titlebar inputs) and sends them on every API call.
+- **Audit + metrics:** every write lands in `audit_logs` (actor/role/workspace/
+  path/status); `GET /api/audit` (admin), `GET /api/metrics` (workspace counts,
+  last battery summary, import pass/fail, job states).
+- **Battery compare:** `GET /api/batteries/compare?a&b` + Karne UI (A/B selects,
+  İYİLEŞTİ/KÖTÜLEŞTİ/AYNI per scenario, clearance deltas).
+- **Map import (own environment):** `POST /api/maps/scenario` converts an
+  occupancy grid (`#`/`.`/`S`/`G`) to a validated scenario (connected clusters
+  → circle obstacles, ≤8, clamp warnings); UI in Test tab. Live: sample salon
+  → `RW-MAP-54b2d2`, 1 obstacle, 12×6 m.
+- **CI gate:** `scripts/ci_battery_gate.py` (exit 0/1/2) over threshold logic
+  `app/verification/battery_gate.py`. Live: lax thresholds → exit 0
+  (4/11, collisions 5); strict (1.0/0) → exit 1 with printed reasons.
+- **Live auth proof:** no key → 401, viewer reads metrics, health public.
+  Demo keys were only for the live check; running backend was restarted in
+  open local mode so the UI keeps working (enable via `.env` when wanted).
+- **Verification:** backend **98 passed** (+7 enterprise tests: auth/RBAC,
+  workspace isolation, audit/metrics, maps, gate), ruff E,F + format clean;
+  web lint+typecheck+build clean; browser proof (map convert notice, compare
+  button, API-key inputs), 0 console errors.
+- **Honest limits (also in ENTERPRISE.md):** SQLite single-file (logical
+  tenancy, not sharded), API-key auth only (no SSO/OIDC), simple physics —
+  report cards are not real-world safety certification; Path B still unmet.
+
+## Enterprise Round 2 (2026-11-02, user: “eksik olanları ekle”)
+
+Closing the gaps honestly listed after the first enterprise round:
+
+- **Sensor occlusion:** obstacles hidden behind a closer obstacle are no
+  longer observed (`_is_occluded` in sensors.py + 2 tests). Gate check:
+  RW-REF-001 baseline outcome bit-preserved (FAIL, min 0.0016, offline demo
+  Path A OK); library battery outcomes re-measured — unchanged.
+- **JWT/OIDC auth:** HS256 (`RW_JWT_SECRET`) and OIDC RS256 via JWKS
+  (`RW_OIDC_JWKS_URL`, optional iss/aud) bearer tokens, claim→principal
+  mapping, expired/tampered/wrong-secret → 401 (6 tests incl. generated RSA
+  key, monkeypatched JWKS — live OIDC IdP itself UNVERIFIED, no IdP here).
+- **Workspace backup:** `GET /api/workspaces/export` + `POST
+  /api/workspaces/import` (admin) with no-overwrite history semantics.
+- **Trend:** `GET /api/batteries/trend` + Karne chart strip.
+- **Fleet battery:** `POST /api/batteries/fleet` (per-robot jobs, skipped
+  with reasons) + ranked Karne UI.
+- **Verification:** backend **105 passed** (+7 round-2 tests), ruff clean;
+  web lint+typecheck+build clean. Live: locally minted HS256 token → 200;
+  fleet (Waffle+Jackal run, Spot skipped with reasons); trend 7 points;
+  browser Karne shows trend + fleet + JWT input, 0 console errors. Backend
+  restarted in open local mode (JWT secret was live-check only).
+- **Still honestly open:** SQLite logical tenancy (no sharding), no IdP
+  session management, kinematic 2D physics (occlusion added; no beam-level
+  LiDAR), Path B unmet (best 18/20 frozen holdouts).
+
+## Enterprise Round 3 — Platform Layer (2026-11-02, user: “durmak yok”)
+
+- **DB API keys:** CRUD under `/api/admin/api-keys` (hash-only storage,
+  one-time plaintext, revoke). First-key-must-be-admin lockout guard (422) —
+  found live when a viewer-first key locked the operator out; live DB cleaned
+  and guard added. Keys enforce auth as soon as one exists.
+- **Hardening:** Idempotency-Key on run/battery creation (retries return the
+  same job), per-actor rate limiting (`RW_RATE_LIMIT_PER_MIN` → 429),
+  X-Request-Id + nosniff/DENY headers on every response.
+- **Webhooks:** HMAC-signed `job.completed`/`battery.completed` (tested with
+  captured request + signature recomputation; failures never fail jobs).
+- **Schedules:** recurring batteries (`/api/batteries/schedules`, worker
+  enqueues due ones once, no catch-up storm) + Admin UI.
+- **Ops:** WAL-safe DB backup with SHA-256, retention (dry-run default, sealed
+  evidence untouched), Prometheus `/api/prom`, worker concurrency
+  (`RW_WORKER_CONCURRENCY`, atomic claim keeps single-owner).
+- **Admin UI:** new “Yönetim” tab — system metrics, DB backup, API keys,
+  schedules, audit trail.
+- **Verification:** backend **113 passed** (+8 round-3 tests), ruff clean; web
+  lint+typecheck+build clean; live headers/prom/backup/key-lifecycle proven;
+  browser Admin tab verified. NOTE: `npm run build` while the dev server ran
+  corrupted `.next` once (3000 → 404); dev server restarted, healthy.
+
 ## Execution State Details
 
 - **Current phase:** PHASE 12 (hardening; Phases 07/10/12 partially open, see below)

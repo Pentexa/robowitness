@@ -91,28 +91,32 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def list_user_profiles() -> list[PolicyProfile]:
+def list_user_profiles(workspace: str = "default") -> list[PolicyProfile]:
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT profile_json FROM policy_profiles ORDER BY created_at ASC"
+            "SELECT profile_json FROM policy_profiles WHERE workspace_id = ? "
+            "ORDER BY created_at ASC",
+            (workspace,),
         ).fetchall()
     return [PolicyProfile.model_validate_json(r["profile_json"]) for r in rows]
 
 
-def list_profiles() -> list[PolicyProfile]:
-    return builtin_profiles() + list_user_profiles()
+def list_profiles(workspace: str = "default") -> list[PolicyProfile]:
+    return builtin_profiles() + list_user_profiles(workspace)
 
 
-def get_profile(profile_id: str) -> PolicyProfile | None:
-    for p in list_profiles():
+def get_profile(profile_id: str, workspace: str = "default") -> PolicyProfile | None:
+    for p in list_profiles(workspace):
         if p.profile_id == profile_id:
             return p
     return None
 
 
-def find_duplicate(name: str, exclude_id: str | None = None) -> PolicyProfile | None:
+def find_duplicate(
+    name: str, exclude_id: str | None = None, workspace: str = "default"
+) -> PolicyProfile | None:
     wanted = name.strip().lower()
-    for p in list_profiles():
+    for p in list_profiles(workspace):
         if exclude_id is not None and p.profile_id == exclude_id:
             continue
         if p.name.strip().lower() == wanted:
@@ -120,7 +124,7 @@ def find_duplicate(name: str, exclude_id: str | None = None) -> PolicyProfile | 
     return None
 
 
-def create_profile(data: PolicyProfileCreate) -> PolicyProfile:
+def create_profile(data: PolicyProfileCreate, workspace: str = "default") -> PolicyProfile:
     now = _now()
     profile = PolicyProfile(
         **data.model_dump(),
@@ -131,16 +135,18 @@ def create_profile(data: PolicyProfileCreate) -> PolicyProfile:
     )
     with get_db() as conn:
         conn.execute(
-            "INSERT INTO policy_profiles (profile_id, profile_json, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?)",
-            (profile.profile_id, profile.model_dump_json(), now, now),
+            "INSERT INTO policy_profiles (profile_id, profile_json, created_at, updated_at, "
+            "workspace_id) VALUES (?, ?, ?, ?, ?)",
+            (profile.profile_id, profile.model_dump_json(), now, now, workspace),
         )
         conn.commit()
     return profile
 
 
-def update_profile(profile_id: str, data: PolicyProfileCreate) -> PolicyProfile | None:
-    existing = get_profile(profile_id)
+def update_profile(
+    profile_id: str, data: PolicyProfileCreate, workspace: str = "default"
+) -> PolicyProfile | None:
+    existing = get_profile(profile_id, workspace)
     if existing is None or existing.source != "user":
         return None
     profile = PolicyProfile(
@@ -159,8 +165,8 @@ def update_profile(profile_id: str, data: PolicyProfileCreate) -> PolicyProfile 
     return profile
 
 
-def delete_profile(profile_id: str) -> bool:
-    existing = get_profile(profile_id)
+def delete_profile(profile_id: str, workspace: str = "default") -> bool:
+    existing = get_profile(profile_id, workspace)
     if existing is None or existing.source != "user":
         return False
     with get_db() as conn:
