@@ -245,6 +245,29 @@ Closing the gaps honestly listed after the first enterprise round:
   browser Admin tab verified. NOTE: `npm run build` while the dev server ran
   corrupted `.next` once (3000 → 404); dev server restarted, healthy.
 
+## Enterprise Round 4 + Path B v5 (2026-11-02, user: “devam”)
+
+- **Beam LiDAR mode:** `RW_SENSOR_MODEL=beam` (default legacy; all frozen
+  results use legacy). 24-ray casting with quantized bearing; obstacles
+  between rays are missed like a real scanner. Measured on the library with
+  baseline: same PASS/FAIL pattern as legacy (LIB-005 min clearance
+  0.1492 vs 0.152 in legacy). Baseline gate preserved.
+- **Backup restore:** `POST /api/admin/restore` (pre-restore safety copy +
+  SHA-256 of restored file; path traversal → 404), tested round-trip.
+- **Docker:** `Dockerfile.backend`, `Dockerfile.web`, `docker-compose.yml`
+  (config validates). Docker Desktop was started on this machine; backend
+  image built + ran healthy (6 robots), web image built + served 200.
+  Daemon was unstable (died twice, restarted) — noted, images verified.
+- **Path B v5 (pre-registered, single shot):** see
+  `docs/PATH_B_V5_PREREGISTRATION.md`. Frozen v5 generated (RW-HLD5-*,
+  v4 archived byte-exact). `candidate-final-v1` → `verif-ec5ae352765d`
+  **REJECTED, Gate 3 = 18/20** (HLD5-008 clearance+stuck+timeout,
+  HLD5-016 stuck-despite-goal). No re-roll, per pre-registration. Path B
+  remains open; the honest next step is a richer controller family
+  (anti-stuck) + a fresh pre-registered v6, not another set today.
+- **Verification:** backend **117 passed** (beam 4 + restore round-trip),
+  ruff E,F clean; services on legacy sensor mode.
+
 ## Execution State Details
 
 - **Current phase:** PHASE 12 (hardening; Phases 07/10/12 partially open, see below)

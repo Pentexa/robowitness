@@ -16,11 +16,48 @@ from app.schemas.scenario import Pose2D, RobotSpec
 # versus 8 samples; lag cost (~7 cm at 0.5 m/s) is acceptable for avoidance.
 _TRACK_WINDOW = 16
 
+# Beam (LiDAR-like) model: fixed ray fan used only when RW_SENSOR_MODEL=beam.
+_BEAM_COUNT = 24
+
+
+def _beam_estimate(dx: float, dy: float, radius_m: float, body_radius_m: float):
+    """Quantize an obstacle sighting to the nearest LiDAR ray.
+
+    Returns (rel_x_m, rel_y_m, surface_distance_m) estimated from the ray hit,
+    or None if no ray strikes the obstacle disc. The reported position sits on
+    the hitting ray at the disc's near intersection — bearing is quantized to
+    the ray fan exactly like a real scanner's angular resolution.
+    """
+    center_dist = math.hypot(dx, dy)
+    if center_dist <= 0.0:
+        return None
+    center_angle = math.atan2(dy, dx)
+    half_width = math.asin(min(1.0, radius_m / center_dist))
+    step = 2.0 * math.pi / _BEAM_COUNT
+    # Nearest ray index to the obstacle's center bearing.
+    k = round(center_angle / step)
+    ray_angle = k * step
+    angle_diff = abs((ray_angle - center_angle + math.pi) % (2.0 * math.pi) - math.pi)
+    if angle_diff > half_width:
+        return None
+    # Ray-disc intersection (near side), along the ray direction.
+    proj = center_dist * math.cos(angle_diff)
+    perp_sq = center_dist**2 - proj**2
+    disc = radius_m**2 - perp_sq
+    if disc < 0.0:
+        return None
+    hit_center_dist = proj  # center projected on ray; near point is hit_center - sqrt(disc)
+    near_dist = hit_center_dist - math.sqrt(disc)
+    surface_dist = max(0.0, near_dist - body_radius_m)
+    ux, uy = math.cos(ray_angle), math.sin(ray_angle)
+    return ux * hit_center_dist, uy * hit_center_dist, surface_dist
+
 
 class SensorSystem:
-    def __init__(self, robot_spec: RobotSpec, dt: float, seed: int):
+    def __init__(self, robot_spec: RobotSpec, dt: float, seed: int, beam_mode: bool = False):
         self.spec = robot_spec
         self.dt = dt
+        self.beam_mode = beam_mode
         self.rng = random.Random(seed + 1000)
         self.latency_ticks = math.ceil((robot_spec.sensor_latency_ms / 1000.0) / dt)
         self.queue: deque = deque()
@@ -52,6 +89,11 @@ class SensorSystem:
             if surface_dist <= self.spec.sensor_range_m and not _is_occluded(
                 idx, true_obstacles, true_robot_pose
             ):
+                if self.beam_mode:
+                    estimate = _beam_estimate(dx, dy, obs["radius_m"], self.spec.body_radius_m)
+                    if estimate is None:
+                        continue  # no LiDAR ray struck this obstacle on this scan
+                    dx, dy, surface_dist = estimate
                 # Add deterministic Gaussian noise if configured
                 noise_x = (
                     self.rng.gauss(0, self.spec.sensor_noise_std_m)

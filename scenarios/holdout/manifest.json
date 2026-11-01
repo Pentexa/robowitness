@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-10-30T19:11:01.189991Z",
-  "recipe": "frozen_holdout_v4",
+  "generated_at": "2026-11-01T23:51:10.701421Z",
+  "recipe": "frozen_holdout_v5",
   "recipe_seed": 20261102,
   "total_scenarios": 20,
   "note": "Frozen final-evaluation set.",
   "scenarios": [
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-001",
+      "id": "RW-HLD5-001",
       "kind": "dynamic_obstacle",
       "seed": 5001,
       "world": {
@@ -64,7 +64,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-002",
+      "id": "RW-HLD5-002",
       "kind": "dynamic_obstacle",
       "seed": 5002,
       "world": {
@@ -120,7 +120,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-003",
+      "id": "RW-HLD5-003",
       "kind": "dynamic_obstacle",
       "seed": 5003,
       "world": {
@@ -176,7 +176,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-004",
+      "id": "RW-HLD5-004",
       "kind": "dynamic_obstacle",
       "seed": 5004,
       "world": {
@@ -232,7 +232,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-005",
+      "id": "RW-HLD5-005",
       "kind": "dynamic_obstacle",
       "seed": 5005,
       "world": {
@@ -288,7 +288,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-006",
+      "id": "RW-HLD5-006",
       "kind": "dynamic_obstacle",
       "seed": 5006,
       "world": {
@@ -344,7 +344,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-007",
+      "id": "RW-HLD5-007",
       "kind": "dynamic_obstacle",
       "seed": 5007,
       "world": {
@@ -400,7 +400,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-008",
+      "id": "RW-HLD5-008",
       "kind": "dynamic_obstacle",
       "seed": 5008,
       "world": {
@@ -456,7 +456,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-009",
+      "id": "RW-HLD5-009",
       "kind": "dynamic_obstacle",
       "seed": 5009,
       "world": {
@@ -512,7 +512,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-010",
+      "id": "RW-HLD5-010",
       "kind": "dynamic_obstacle",
       "seed": 5010,
       "world": {
@@ -568,7 +568,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-011",
+      "id": "RW-HLD5-011",
       "kind": "dynamic_obstacle",
       "seed": 5011,
       "world": {
@@ -624,7 +624,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-012",
+      "id": "RW-HLD5-012",
       "kind": "dynamic_obstacle",
       "seed": 5012,
       "world": {
@@ -680,7 +680,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-013",
+      "id": "RW-HLD5-013",
       "kind": "dynamic_obstacle",
       "seed": 5013,
       "world": {
@@ -736,7 +736,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-014",
+      "id": "RW-HLD5-014",
       "kind": "dynamic_obstacle",
       "seed": 5014,
       "world": {
@@ -792,7 +792,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-015",
+      "id": "RW-HLD5-015",
       "kind": "dynamic_obstacle",
       "seed": 5015,
       "world": {
@@ -848,7 +848,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-016",
+      "id": "RW-HLD5-016",
       "kind": "dynamic_obstacle",
       "seed": 5016,
       "world": {
@@ -904,7 +904,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-017",
+      "id": "RW-HLD5-017",
       "kind": "dynamic_obstacle",
       "seed": 5017,
       "world": {
@@ -960,7 +960,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-018",
+      "id": "RW-HLD5-018",
       "kind": "dynamic_obstacle",
       "seed": 5018,
       "world": {
@@ -1016,7 +1016,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-019",
+      "id": "RW-HLD5-019",
       "kind": "dynamic_obstacle",
       "seed": 5019,
       "world": {
@@ -1072,7 +1072,7 @@
     },
     {
       "schema_version": "1.0",
-      "id": "RW-HLD4-020",
+      "id": "RW-HLD5-020",
       "kind": "dynamic_obstacle",
       "seed": 5020,
       "world": {

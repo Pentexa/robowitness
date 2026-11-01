@@ -219,3 +219,12 @@ def test_prometheus_and_backup_and_retention_dry_run(client):
     assert retention.status_code == 200
     assert retention.json()["dry_run"] is True
     assert "counts" in retention.json()
+
+    # Restore round-trip: restoring the just-made backup (same content) is safe.
+    restored = client.post("/api/admin/restore", json={"file": backup.json()["file"]})
+    assert restored.status_code == 200, restored.text
+    assert restored.json()["sha256"] == backup.json()["sha256"]
+    assert restored.json()["safety_backup"].startswith("pre-restore-")
+    assert client.get("/api/robots").status_code == 200
+    missing = client.post("/api/admin/restore", json={"file": "../robowitness.sqlite3"})
+    assert missing.status_code == 404

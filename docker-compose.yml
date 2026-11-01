@@ -1,0 +1,46 @@
+# RoboWitness enterprise deployment: backend + worker + web
+# Kullanım: docker compose up --build
+# Not: Bu makinedeki geliştirme akışı (yerel python/node) bundan bağımsızdır.
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      RW_API_KEYS: ${RW_API_KEYS:-}
+      RW_JWT_SECRET: ${RW_JWT_SECRET:-}
+      RW_ALLOW_LOCAL_POLICY: ${RW_ALLOW_LOCAL_POLICY:-off}
+      RW_WORKER_CONCURRENCY: "1"
+    volumes:
+      - robowitness-artifacts:/app/artifacts
+    ports:
+      - "8000:8000"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: ["python", "-m", "app.jobs.worker"]
+    environment:
+      RW_ALLOW_LOCAL_POLICY: ${RW_ALLOW_LOCAL_POLICY:-off}
+      RW_WORKER_CONCURRENCY: ${RW_WORKER_CONCURRENCY:-1}
+      RW_WEBHOOK_URL: ${RW_WEBHOOK_URL:-}
+      RW_WEBHOOK_SECRET: ${RW_WEBHOOK_SECRET:-}
+    volumes:
+      - robowitness-artifacts:/app/artifacts
+    depends_on:
+      - backend
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        NEXT_PUBLIC_RW_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  robowitness-artifacts:

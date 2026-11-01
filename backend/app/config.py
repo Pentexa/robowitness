@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     RW_WEBHOOK_URL: str = ""
     RW_WEBHOOK_SECRET: str = ""
     RW_WORKER_CONCURRENCY: int = 1
+    # Sensor model: "legacy" (exact delayed geometry, default; all measured
+    # results in the docs use this) or "beam" (24-ray LiDAR-like casting:
+    # obstacles are only seen when a ray actually hits them, with quantized
+    # bearing). Beam mode is experimental and changes outcomes by design.
+    RW_SENSOR_MODEL: str = "legacy"
     RW_DB_PATH: str = "./artifacts/robowitness.sqlite3"
     RW_ARTIFACTS_DIR: str = "./artifacts"
     RW_CORS_ORIGINS: str = "http://localhost:3000"

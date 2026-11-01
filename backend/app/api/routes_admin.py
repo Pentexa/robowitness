@@ -245,6 +245,58 @@ def create_backup(request: Request):
     return {"file": target.name, "sha256": digest, "bytes": target.stat().st_size}
 
 
+class RestoreRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    file: str = Field(min_length=1, max_length=200)
+
+
+@router.post("/admin/restore", status_code=status.HTTP_200_OK)
+def restore_backup(body: RestoreRequest, request: Request):
+    """Restore the DB from a named backup in artifacts/backups.
+
+    Safety: the current DB is first copied to a pre-restore backup, and the
+    chosen file's SHA-256 is returned so the operator can verify what was
+    restored. Takes effect for new connections; restart services afterwards.
+    """
+    import hashlib
+    import sqlite3 as _sqlite3
+
+    _require_admin(request)
+    from app.config import settings
+
+    backup_dir = (settings.artifacts_path / "backups").resolve()
+    target = (backup_dir / body.file).resolve()
+    if target.parent != backup_dir or not target.exists():
+        raise RoboWitnessException(
+            status_code=404, code="BACKUP_NOT_FOUND", message=f"Backup {body.file} not found"
+        )
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    safety = backup_dir / f"pre-restore-{stamp}.sqlite3"
+    src = _sqlite3.connect(str(settings.db_path))
+    try:
+        dst = _sqlite3.connect(str(safety))
+        try:
+            src.backup(dst)
+        finally:
+            dst.close()
+    finally:
+        src.close()
+
+    restore_src = _sqlite3.connect(str(target))
+    try:
+        live = _sqlite3.connect(str(settings.db_path))
+        try:
+            restore_src.backup(live)
+        finally:
+            live.close()
+    finally:
+        restore_src.close()
+    return {"restored_from": body.file, "sha256": digest, "safety_backup": safety.name}
+
+
 @router.get("/admin/backups", status_code=status.HTTP_200_OK)
 def list_backups(request: Request):
     _require_admin(request)

@@ -1,0 +1,1130 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-30T19:11:01.189991Z",
+  "recipe": "frozen_holdout_v4",
+  "recipe_seed": 20261102,
+  "total_scenarios": 20,
+  "note": "Frozen final-evaluation set.",
+  "scenarios": [
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-001",
+      "kind": "dynamic_obstacle",
+      "seed": 5001,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 100,
+        "sensor_noise_std_m": 0.02
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.35,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.13,
+            "y_m": 6.91
+          },
+          "end": {
+            "x_m": 6.13,
+            "y_m": 3.26
+          },
+          "speed_mps": 0.38
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-002",
+      "kind": "dynamic_obstacle",
+      "seed": 5002,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 400,
+        "sensor_noise_std_m": 0.02
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.35,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 5.41,
+            "y_m": 6.62
+          },
+          "end": {
+            "x_m": 5.41,
+            "y_m": 1.0
+          },
+          "speed_mps": 0.5
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-003",
+      "kind": "dynamic_obstacle",
+      "seed": 5003,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 150,
+        "sensor_noise_std_m": 0.02
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.34,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 5.37,
+            "y_m": 4.36
+          },
+          "end": {
+            "x_m": 5.37,
+            "y_m": 1.0
+          },
+          "speed_mps": 0.41
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-004",
+      "kind": "dynamic_obstacle",
+      "seed": 5004,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 300,
+        "sensor_noise_std_m": 0.02
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.31,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.34,
+            "y_m": 4.01
+          },
+          "end": {
+            "x_m": 6.34,
+            "y_m": 1.0
+          },
+          "speed_mps": 0.45
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-005",
+      "kind": "dynamic_obstacle",
+      "seed": 5005,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 100,
+        "sensor_noise_std_m": 0.01
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.33,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.09,
+            "y_m": 6.94
+          },
+          "end": {
+            "x_m": 6.09,
+            "y_m": 1.12
+          },
+          "speed_mps": 0.44
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-006",
+      "kind": "dynamic_obstacle",
+      "seed": 5006,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 300,
+        "sensor_noise_std_m": 0.02
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.31,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.69,
+            "y_m": 5.33
+          },
+          "end": {
+            "x_m": 6.69,
+            "y_m": 1.0
+          },
+          "speed_mps": 0.39
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-007",
+      "kind": "dynamic_obstacle",
+      "seed": 5007,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 350,
+        "sensor_noise_std_m": 0.02
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.33,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 5.2,
+            "y_m": 6.31
+          },
+          "end": {
+            "x_m": 5.2,
+            "y_m": 1.0
+          },
+          "speed_mps": 0.38
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-008",
+      "kind": "dynamic_obstacle",
+      "seed": 5008,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 350,
+        "sensor_noise_std_m": 0.0
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.33,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.14,
+            "y_m": 1.95
+          },
+          "end": {
+            "x_m": 6.14,
+            "y_m": 5.33
+          },
+          "speed_mps": 0.38
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-009",
+      "kind": "dynamic_obstacle",
+      "seed": 5009,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 250,
+        "sensor_noise_std_m": 0.0
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.33,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.87,
+            "y_m": 1.98
+          },
+          "end": {
+            "x_m": 6.87,
+            "y_m": 5.04
+          },
+          "speed_mps": 0.43
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-010",
+      "kind": "dynamic_obstacle",
+      "seed": 5010,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 200,
+        "sensor_noise_std_m": 0.0
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.32,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 5.81,
+            "y_m": 2.38
+          },
+          "end": {
+            "x_m": 5.81,
+            "y_m": 7.0
+          },
+          "speed_mps": 0.36
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-011",
+      "kind": "dynamic_obstacle",
+      "seed": 5011,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 300,
+        "sensor_noise_std_m": 0.01
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.37,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 5.33,
+            "y_m": 5.29
+          },
+          "end": {
+            "x_m": 5.33,
+            "y_m": 1.89
+          },
+          "speed_mps": 0.42
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-012",
+      "kind": "dynamic_obstacle",
+      "seed": 5012,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 150,
+        "sensor_noise_std_m": 0.01
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.31,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 5.13,
+            "y_m": 6.73
+          },
+          "end": {
+            "x_m": 5.13,
+            "y_m": 1.62
+          },
+          "speed_mps": 0.39
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-013",
+      "kind": "dynamic_obstacle",
+      "seed": 5013,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 200,
+        "sensor_noise_std_m": 0.02
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.34,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.59,
+            "y_m": 5.24
+          },
+          "end": {
+            "x_m": 6.59,
+            "y_m": 1.96
+          },
+          "speed_mps": 0.37
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-014",
+      "kind": "dynamic_obstacle",
+      "seed": 5014,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 250,
+        "sensor_noise_std_m": 0.01
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.32,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 5.26,
+            "y_m": 4.26
+          },
+          "end": {
+            "x_m": 5.26,
+            "y_m": 1.0
+          },
+          "speed_mps": 0.45
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-015",
+      "kind": "dynamic_obstacle",
+      "seed": 5015,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 350,
+        "sensor_noise_std_m": 0.02
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.34,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.4,
+            "y_m": 3.6
+          },
+          "end": {
+            "x_m": 6.4,
+            "y_m": 7.0
+          },
+          "speed_mps": 0.48
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-016",
+      "kind": "dynamic_obstacle",
+      "seed": 5016,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 400,
+        "sensor_noise_std_m": 0.01
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.31,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 5.1,
+            "y_m": 6.85
+          },
+          "end": {
+            "x_m": 5.1,
+            "y_m": 1.0
+          },
+          "speed_mps": 0.36
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-017",
+      "kind": "dynamic_obstacle",
+      "seed": 5017,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 350,
+        "sensor_noise_std_m": 0.01
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.35,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.45,
+            "y_m": 2.18
+          },
+          "end": {
+            "x_m": 6.45,
+            "y_m": 7.0
+          },
+          "speed_mps": 0.38
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-018",
+      "kind": "dynamic_obstacle",
+      "seed": 5018,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 300,
+        "sensor_noise_std_m": 0.01
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.36,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.38,
+            "y_m": 1.15
+          },
+          "end": {
+            "x_m": 6.38,
+            "y_m": 6.26
+          },
+          "speed_mps": 0.49
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-019",
+      "kind": "dynamic_obstacle",
+      "seed": 5019,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 400,
+        "sensor_noise_std_m": 0.01
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.35,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 6.64,
+            "y_m": 5.85
+          },
+          "end": {
+            "x_m": 6.64,
+            "y_m": 1.0
+          },
+          "speed_mps": 0.5
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "id": "RW-HLD4-020",
+      "kind": "dynamic_obstacle",
+      "seed": 5020,
+      "world": {
+        "type": "warehouse",
+        "width_m": 12.0,
+        "height_m": 8.0,
+        "duration_limit_s": 30.0,
+        "fixed_timestep_s": 0.016666666666666666
+      },
+      "robot": {
+        "kind": "differential_drive",
+        "start": {
+          "x_m": 1.0,
+          "y_m": 4.0,
+          "yaw_rad": 0.0
+        },
+        "goal": {
+          "x_m": 11.0,
+          "y_m": 4.0
+        },
+        "goal_radius_m": 0.35,
+        "body_radius_m": 0.25,
+        "wheel_base_m": 0.42,
+        "wheel_radius_m": 0.09,
+        "sensor_range_m": 4.0,
+        "sensor_latency_ms": 100,
+        "sensor_noise_std_m": 0.02
+      },
+      "obstacles": [
+        {
+          "id": "O1",
+          "shape": "circle",
+          "radius_m": 0.37,
+          "motion": "ping_pong",
+          "start": {
+            "x_m": 5.77,
+            "y_m": 2.25
+          },
+          "end": {
+            "x_m": 5.77,
+            "y_m": 7.0
+          },
+          "speed_mps": 0.41
+        }
+      ],
+      "oracle": {
+        "collision_free": true,
+        "min_clearance_m": 0.25,
+        "must_reach_goal": true,
+        "max_duration_s": 30.0,
+        "max_stuck_duration_s": 3.0
+      }
+    }
+  ]
+}

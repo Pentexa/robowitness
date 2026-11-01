@@ -98,6 +98,19 @@ birim testiyle doğrulanır.
 - **Worker eşzamanlılığı:** `RW_WORKER_CONCURRENCY=2` gibi; atomik claim
   sayesinde aynı iş iki kez çalışmaz.
 
+## 6c. Dağıtım ve sensör modu (dördüncü tur)
+
+- **Docker:** `docker compose up --build` (backend + worker + web; artefaktlar
+  named volume'da). İmajlar bu makinede derlenip çalıştırılarak doğrulandı
+  (backend healthy, web 200). Docker Desktop bu makinede kararsızdı; iki kez
+  çöküp yeniden başlatıldı — imajlar yine de doğrulandı.
+- **Sensör modeli:** `RW_SENSOR_MODEL=beam` 24 ışınlı LiDAR benzeri modu açar
+  (kuantize kerteriz; ışın arasına düşen engel görülmez). Varsayılan `legacy`;
+  tüm donmuş sonuçlar legacy ile ölçülmüştür. Beam modunda kütüphane desenleri
+  aynı kaldı (LIB-005 mesafe 0.1492 vs legacy 0.152).
+- **Yedekten dönüş:** `POST /api/admin/restore` önce güvenlik kopyası alır,
+  sonra seçili yedeği SHA-256'sıyla geri yükler.
+
 ## 7. Dürüst sınırlar
 
 - SQLite tek dosya: çok kullanıcılı yatay ölçek için tasarlanmadı; workspace

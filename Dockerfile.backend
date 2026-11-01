@@ -1,0 +1,18 @@
+# RoboWitness backend + worker (aynı imaj, farklı komut)
+FROM python:3.11-slim
+
+WORKDIR /app/backend
+COPY backend/pyproject.toml backend/requirements.lock* ./
+COPY backend/app ./app
+RUN pip install --no-cache-dir -e .
+
+# Senaryolar ve varsayılan artefakt kökü repo kökünde
+WORKDIR /app
+COPY scenarios ./scenarios
+ENV RW_DB_PATH=/app/artifacts/robowitness.sqlite3 \
+    RW_ARTIFACTS_DIR=/app/artifacts \
+    RW_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+WORKDIR /app/backend
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

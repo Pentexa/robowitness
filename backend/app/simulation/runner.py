@@ -13,6 +13,7 @@ from app.schemas.telemetry import (
     SensorTelemetry,
     TelemetryFrame,
 )
+from app.config import settings
 from app.simulation.obstacles import SimObstacle
 from app.simulation.robot import SimRobot
 from app.simulation.sensors import SensorSystem
@@ -42,7 +43,12 @@ class SimulationRunner:
         try:
             robot = SimRobot(self.scenario.robot, client_id)
             obstacles = [SimObstacle(obs, client_id) for obs in self.scenario.obstacles]
-            sensor_sys = SensorSystem(self.scenario.robot, self.dt, self.scenario.seed)
+            sensor_sys = SensorSystem(
+                self.scenario.robot,
+                self.dt,
+                self.scenario.seed,
+                beam_mode=(settings.RW_SENSOR_MODEL.strip().lower() == "beam"),
+            )
 
             last_goal_dist = math.hypot(
                 self.scenario.robot.goal.x_m - robot.pose.x_m,
