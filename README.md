@@ -1,16 +1,12 @@
 <div align="center">
 
-# RoboWitness
-
-### The independent referee for AI-generated robotics policies
-
-**The AI proposes. The simulator executes. The independent oracle decides. The evidence explains.**
+<img src="docs/assets/hero.svg" alt="RoboWitness — independent verification for AI-generated robotics policies" width="100%" />
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![PyBullet](https://img.shields.io/badge/Physics-PyBullet%20%7C%2060%20Hz-orange?style=flat-square)](https://pybullet.org/)
-[![Tests](https://img.shields.io/badge/backend%20tests-91%20passed-brightgreen?style=flat-square)](#measured-results)
+[![Tests](https://img.shields.io/badge/backend%20tests-113%20passed-brightgreen?style=flat-square)](#measured-results)
 [![Verdicts](https://img.shields.io/badge/verdicts-never%20manufactured-6f42c1?style=flat-square)](#honest-limitations)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue?style=flat-square)](LICENSE)
 
@@ -276,7 +272,7 @@ All numbers below were measured in this repository. The full log, commands, IDs,
 
 | Check | Measured result (2026-11-02) |
 |---|---|
-| Backend test suite | **91 passed** (unit + integration) |
+| Backend test suite | **113 passed** (unit + integration) |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean |
 | Frontend quality | `npm run lint`, `npm run typecheck`, `npm run build` clean |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats |
