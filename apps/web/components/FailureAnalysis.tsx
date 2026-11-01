@@ -2,10 +2,13 @@
 
 import React, { useState } from "react";
 import { SearchCheck } from "lucide-react";
-import { InvestigationResponse, PolicyPatch } from "../lib/types";
+import { InvestigationResponse, PolicyPatch, RunResult } from "../lib/types";
+import { RunVerdict } from "./RunVerdict";
 
 interface FailureAnalysisProps {
   runId: string | null;
+  runResult: RunResult | null;
+  minClearanceLimitM?: number;
   investigation: InvestigationResponse | null;
   onInvestigate: () => Promise<void>;
   onApplyPatch: (patch: PolicyPatch) => void;
@@ -21,10 +24,19 @@ const PATCH_LABELS: Array<{ key: keyof PolicyPatch; label: string; unit: string 
 
 export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
   runId,
+  runResult,
+  minClearanceLimitM,
   investigation,
   onInvestigate,
   onApplyPatch,
 }) => {
+  const oracleStatus = runResult?.oracle_status ?? null;
+  const runFailed = runResult ? runResult.oracle_status === "FAIL" : null;
+  const nearMiss =
+    runResult !== null &&
+    runResult.oracle_status === "FAIL" &&
+    !runResult.metrics.collision_detected &&
+    runResult.metrics.goal_reached;
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,27 +57,48 @@ export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
     <div className="rw-card">
       <div className="rw-card-head">
         <div>
-          <h3 className="rw-card-title">Hata İnceleme</h3>
-          <p className="rw-card-sub">Robot neden çarptı ya da neden hedefe ulaşamadı?</p>
+          <h3 className="rw-card-title">İnceleme</h3>
+          <p className="rw-card-sub">
+            {nearMiss
+              ? "Çarpışma olmadı ama robot engele çok yakın geçti. Bu yakın geçiş neden oldu?"
+              : "Robot neden çarptı ya da neden hedefe ulaşamadı?"}
+          </p>
         </div>
         {investigation && <span className="rw-badge mono">{investigation.provenance === "LIVE_META" ? "YAPAY ZEKÂ" : "ÇEVRİMDIŞI"}</span>}
       </div>
       <div className="rw-card-body">
+        {runResult && <RunVerdict result={runResult} minClearanceLimitM={minClearanceLimitM} />}
         {!runId && (
           <p className="rw-empty">
             Önce <strong>Test</strong> sekmesinden robotu bir kez çalıştırın. Robot başarısız olursa nedeni burada
             incelenecek.
           </p>
         )}
-        {runId && !investigation && (
+        {runId && runFailed === false && !investigation && (
+          <p className="rw-empty">
+            {oracleStatus === "PASS" ? (
+              <>
+                Bu çalıştırma <strong>kazasız tamamlandı</strong> (bağımsız kontrol: GEÇTİ). İncelenecek bir
+                hata yok. İsterseniz Test sekmesinden başka bir senaryo veya robot seçip tekrar çalıştırın.
+              </>
+            ) : (
+              <>
+                Bu çalıştırmada bağımsız kontrol kesin karar veremedi (BELİRSİZ). İncelenecek kesin bir hata
+                yok; tekrar çalıştırmayı veya başka senaryo denemeyi seçin.
+              </>
+            )}
+          </p>
+        )}
+        {runId && runFailed !== false && !investigation && (
           <>
             <p className="rw-intro">
-              Çalıştırma bitti. Şimdi yapay zekâ, kaydedilen ölçümlere bakarak hatanın muhtemel nedenini açıklasın
-              ve bir düzeltme önersin.
+              {nearMiss
+                ? "Çarpışma olmadı; ancak yukarıda yazdığı gibi robot güvenli mesafeyi koruyamadı. Yapay zekâ ölçümlere bakıp bu yakın geçişin nedenini açıklasın ve bir düzeltme önersin."
+                : "Çalıştırma bitti. Şimdi yapay zekâ, kaydedilen ölçümlere bakarak hatanın muhtemel nedenini açıklasın ve bir düzeltme önersin."}
             </p>
             <button id="btn-investigate" className="rw-btn rw-btn-primary rw-btn-block" onClick={handleInvestigate} disabled={isLoading}>
               <SearchCheck size={16} />
-              {isLoading ? "İnceleniyor…" : "Hatayı İncele"}
+              {isLoading ? "İnceleniyor…" : nearMiss ? "Yakın Geçişi İncele" : "Hatayı İncele"}
             </button>
           </>
         )}

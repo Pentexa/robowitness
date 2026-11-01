@@ -4,7 +4,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 JobStatus = Literal["queued", "running", "completed", "failed", "cancelled"]
-JobKind = Literal["simulation_run", "verification"]
+JobKind = Literal["simulation_run", "verification", "battery_run"]
 
 
 class JobProgress(BaseModel):

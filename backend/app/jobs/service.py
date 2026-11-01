@@ -1,6 +1,7 @@
 """Job execution service implementing simulation and verification workflows."""
 
 import json
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from app.config import settings
@@ -13,6 +14,8 @@ from app.evidence.recorder import (
 )
 from app.evidence.reporter import generate_verification_report
 from app.policies.configurable import configurable_policy
+from app.policies.local_adapter import SubprocessPolicy
+from app.schemas.battery import BatteryEntry, BatteryResult, is_near_miss, summarize
 from app.schemas.jobs import JobProgress, JobRecord
 from app.schemas.policy import PolicyConfig
 from app.schemas.scenario import ScenarioSpec
@@ -36,15 +39,29 @@ class JobExecutionService:
         data = json.loads(job.payload_json)
         scenario = ScenarioSpec.model_validate(data["scenario"])
         policy = PolicyConfig.model_validate(data["policy"])
-        run_id = job.result_id
+        plugin = SubprocessPolicy(data["local_policy"]) if data.get("local_policy") else None
+        try:
+            self._execute_single_run(
+                scenario=scenario,
+                policy=policy,
+                run_id=job.result_id,
+                job_id=job.job_id,
+                created_at=job.created_at,
+                policy_fn=plugin,
+            )
+        finally:
+            if plugin is not None:
+                plugin.close()
 
+    def _execute_single_run(self, scenario, policy, run_id, job_id, created_at, policy_fn=None):
+        """Run one scenario, persist run row + artifacts, return measured verdict."""
         # Single shared navigation law for baseline and candidate; only params differ.
-        runner = SimulationRunner(scenario, policy, configurable_policy)
+        # A local user policy (İş 3B) replaces the law only when explicitly chosen.
+        runner = SimulationRunner(scenario, policy, policy_fn or configurable_policy)
         frames, metrics, raw_reasons = runner.run()
 
         oracle_status, final_reasons = evaluate_oracle(metrics, scenario.oracle, raw_reasons)
 
-        # Save evidence artifacts
         art_dir = save_run_artifacts(
             artifacts_root=self.artifacts_root,
             run_id=run_id,
@@ -72,16 +89,88 @@ class JobExecutionService:
                 """,
                 (
                     run_id,
-                    job.job_id,
+                    job_id,
                     scenario_hash,
                     policy_hash,
                     oracle_status,
                     json.dumps(final_reasons),
                     metrics.model_dump_json(),
                     str(art_dir),
-                    job.created_at,
+                    created_at,
                     now,
                 ),
+            )
+            conn.commit()
+        return oracle_status, final_reasons, metrics
+
+    def execute_battery_run(self, job: JobRecord, progress_callback=None) -> None:
+        """Run a whole scenario battery for one robot and store the report card."""
+        data = json.loads(job.payload_json)
+        policy = PolicyConfig.model_validate(data["policy"])
+        battery_id = job.result_id
+        items = data["scenarios"]  # [{scenario, title}] with robot already applied
+        entries: list[BatteryEntry] = []
+        total = len(items)
+
+        for idx, item in enumerate(items):
+            scenario = ScenarioSpec.model_validate(item["scenario"])
+            if progress_callback:
+                progress_callback(
+                    JobProgress(
+                        pct=round(idx / max(total, 1) * 100.0, 1),
+                        current_step=idx + 1,
+                        total_steps=total,
+                        message=f"Running {scenario.id} ({idx + 1}/{total})",
+                    )
+                )
+            run_id = f"run-{uuid.uuid4().hex[:12]}"
+            plugin = (
+                SubprocessPolicy(data["local_policy"]) if data.get("local_policy") else None
+            )
+            try:
+                status_, reasons, metrics = self._execute_single_run(
+                    scenario=scenario,
+                    policy=policy,
+                    run_id=run_id,
+                    job_id=job.job_id,
+                    created_at=job.created_at,
+                    policy_fn=plugin,
+                )
+            finally:
+                if plugin is not None:
+                    plugin.close()
+            entries.append(
+                BatteryEntry(
+                    scenario_id=scenario.id,
+                    title=item.get("title", scenario.id),
+                    run_id=run_id,
+                    oracle_status=status_,
+                    reason_codes=reasons,
+                    metrics=metrics,
+                    near_miss=is_near_miss(status_, reasons, metrics),
+                )
+            )
+
+        if progress_callback:
+            progress_callback(
+                JobProgress(pct=100.0, current_step=total, total_steps=total, message="Done")
+            )
+
+        result = BatteryResult(
+            battery_id=battery_id,
+            robot_id=data["robot_id"],
+            robot_label=data.get("robot_label", data["robot_id"]),
+            policy_id=policy.id,
+            entries=entries,
+            summary=summarize(entries),
+            created_at=job.created_at,
+            completed_at=datetime.now(timezone.utc).isoformat(),
+        )
+        with get_db() as conn:
+            conn.execute(
+                "INSERT INTO battery_runs (battery_id, robot_id, result_json, created_at) "
+                "VALUES (?, ?, ?, ?)",
+                (battery_id, result.robot_id, result.model_dump_json(), job.created_at),
             )
             conn.commit()
 

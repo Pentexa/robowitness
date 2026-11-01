@@ -1,7 +1,13 @@
 import {
+  BatteryResult,
+  ImportResult,
+  LocalPolicyInfo,
   PolicyConfig,
+  PolicyProfile,
+  PolicyProfileInput,
   RobotProfile,
   RobotProfileInput,
+  RunResult,
   ScenarioCatalogEntry,
   ScenarioSpec,
   TelemetryFrame,
@@ -103,13 +109,25 @@ export async function generateScenario(objective?: string): Promise<{
   return res.json();
 }
 
-export async function createRun(scenario: ScenarioSpec, policy: PolicyConfig) {
+export async function createRun(
+  scenario: ScenarioSpec,
+  policy: PolicyConfig,
+  localPolicy?: string | null
+) {
   const res = await fetch(`${API_BASE}/api/runs`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scenario, policy }),
+    body: JSON.stringify({ scenario, policy, local_policy: localPolicy || null }),
   });
+  if (res.status === 403) throw new Error("Yerel politika sunucuda kapalı (RW_ALLOW_LOCAL_POLICY=off).");
+  if (res.status === 404) throw new Error("Yerel politika dosyası bulunamadı.");
   if (!res.ok) throw new Error("Failed to queue simulation run");
+  return res.json();
+}
+
+export async function fetchLocalPolicies(): Promise<LocalPolicyInfo> {
+  const res = await fetch(`${API_BASE}/api/local-policies`);
+  if (!res.ok) throw new Error("Failed to load local policies");
   return res.json();
 }
 
@@ -119,7 +137,7 @@ export async function fetchJob(jobId: string) {
   return res.json();
 }
 
-export async function fetchRun(runId: string) {
+export async function fetchRun(runId: string): Promise<RunResult> {
   const res = await fetch(`${API_BASE}/api/runs/${runId}`);
   if (!res.ok) throw new Error("Failed to fetch run results");
   return res.json();
@@ -155,6 +173,7 @@ export async function investigateFailure(runId: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
+  if (res.status === 409) throw new Error("Bu çalıştırma başarısız olmadı; incelenecek hata yok.");
   if (!res.ok) throw new Error("Failed to execute failure investigation");
   return res.json();
 }
@@ -186,6 +205,83 @@ export interface VerificationSummary {
 export async function fetchVerifications(limit = 10): Promise<VerificationSummary[]> {
   const res = await fetch(`${API_BASE}/api/verifications?limit=${limit}`);
   if (!res.ok) throw new Error("Failed to load verification history");
+  return res.json();
+}
+
+export async function fetchPolicyProfiles(): Promise<PolicyProfile[]> {
+  const res = await fetch(`${API_BASE}/api/policy-profiles`);
+  if (!res.ok) throw new Error("Failed to load policy profiles");
+  return res.json();
+}
+
+export async function createPolicyProfile(input: PolicyProfileInput): Promise<PolicyProfile> {
+  const res = await fetch(`${API_BASE}/api/policy-profiles`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (res.status === 409) throw new Error("Bu isimde bir profil zaten var.");
+  if (!res.ok) throw new Error("Profil kaydedilemedi");
+  return res.json();
+}
+
+export async function deletePolicyProfile(profileId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/policy-profiles/${profileId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Profil silinemedi");
+}
+
+export async function createBattery(
+  robotId: string,
+  policy: PolicyConfig,
+  scenarioIds?: string[],
+  localPolicy?: string | null
+): Promise<{ job_id: string; result_id: string; status: string }> {
+  const res = await fetch(`${API_BASE}/api/batteries`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      robot_id: robotId,
+      policy,
+      scenario_ids: scenarioIds ?? [],
+      local_policy: localPolicy || null,
+    }),
+  });
+  if (res.status === 403) throw new Error("Yerel politika sunucuda kapalı (RW_ALLOW_LOCAL_POLICY=off).");
+  if (res.status === 422) throw new Error("Bu robot veya senaryo bataryada çalıştırılamaz.");
+  if (!res.ok) throw new Error("Batarya başlatılamadı");
+  return res.json();
+}
+
+export async function fetchBattery(batteryId: string): Promise<BatteryResult> {
+  const res = await fetch(`${API_BASE}/api/batteries/${batteryId}`);
+  if (!res.ok) throw new Error("Karne yüklenemedi");
+  return res.json();
+}
+
+export async function fetchBatteries(limit = 5): Promise<BatteryResult[]> {
+  const res = await fetch(`${API_BASE}/api/batteries?limit=${limit}`);
+  if (!res.ok) throw new Error("Karne geçmişi yüklenemedi");
+  return res.json();
+}
+
+export function batteryReportUrl(batteryId: string): string {
+  return `${API_BASE}/api/batteries/${batteryId}/report.md`;
+}
+
+export async function importTelemetry(payload: {
+  name: string;
+  robot_label: string;
+  format: "csv" | "json";
+  content: string;
+  goal?: { x_m: number; y_m: number } | null;
+}): Promise<ImportResult> {
+  const res = await fetch(`${API_BASE}/api/imports/telemetry`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (res.status === 422) throw new Error("Dosya okunamadı. CSV başlıkları: t_s,x_m,y_m,yaw_rad,min_obstacle_distance_m");
+  if (!res.ok) throw new Error("Gerçek sürüş yüklenemedi");
   return res.json();
 }
 

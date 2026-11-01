@@ -3,11 +3,13 @@
 import json
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
 from app.config import settings
 from app.db import get_db
 from app.errors import RoboWitnessException
+from app.policies.local_adapter import LocalPolicyError, local_policy_path
 from app.schemas.jobs import JobCreateResponse, JobProgress, JobResponse
 from app.schemas.policy import PolicyConfig
 from app.schemas.scenario import ScenarioSpec
@@ -19,10 +21,32 @@ router = APIRouter(tags=["Runs and Jobs"])
 class CreateRunRequest(BaseModel):
     scenario: ScenarioSpec
     policy: PolicyConfig
+    local_policy: Optional[str] = None
+
+
+def validate_local_policy(name: Optional[str]) -> None:
+    """Gate for İş 3B: feature flag + file must exist in the local folder."""
+    if not name:
+        return
+    if not settings.local_policy_enabled:
+        raise RoboWitnessException(
+            status_code=403,
+            code="LOCAL_POLICY_DISABLED",
+            message=(
+                "Local policy execution is disabled (RW_ALLOW_LOCAL_POLICY=off). "
+                "Only the user's own trusted code may ever be enabled here; "
+                "AI-generated code is forbidden."
+            ),
+        )
+    try:
+        local_policy_path(name)
+    except LocalPolicyError as exc:
+        raise RoboWitnessException(status_code=404, code="LOCAL_POLICY_NOT_FOUND", message=str(exc))
 
 
 @router.post("/runs", response_model=JobCreateResponse, status_code=status.HTTP_202_ACCEPTED)
 def create_run(req: CreateRunRequest):
+    validate_local_policy(req.local_policy)
     job_id = f"job-{uuid.uuid4().hex[:12]}"
     run_id = f"run-{uuid.uuid4().hex[:12]}"
     now = datetime.now(timezone.utc).isoformat()
@@ -32,6 +56,7 @@ def create_run(req: CreateRunRequest):
             "scenario": req.scenario.model_dump(),
             "policy": req.policy.model_dump(),
             "run_id": run_id,
+            "local_policy": req.local_policy,
         }
     )
 

@@ -107,6 +107,75 @@ export interface ScenarioCatalogEntry {
   tags: string[];
 }
 
+export interface LocalPolicyInfo {
+  enabled: boolean;
+  policies: Array<{ name: string; file: string; description: string }>;
+}
+
+export interface PolicyProfileInput {
+  name: string;
+  description: string;
+  policy: PolicyConfig;
+}
+
+export interface PolicyProfile extends PolicyProfileInput {
+  profile_id: string;
+  source: "builtin" | "user";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BatteryEntry {
+  scenario_id: string;
+  title: string;
+  run_id: string;
+  oracle_status: OracleStatus;
+  reason_codes: string[];
+  metrics: RunMetrics;
+  near_miss: boolean;
+}
+
+export interface BatterySummary {
+  total: number;
+  passed: number;
+  failed: number;
+  inconclusive: number;
+  collisions: number;
+  near_misses: number;
+  worst_clearance_m: number | null;
+}
+
+export interface BatteryResult {
+  battery_id: string;
+  robot_id: string;
+  robot_label: string;
+  policy_id: string;
+  entries: BatteryEntry[];
+  summary: BatterySummary;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface ImportResult {
+  import_id: string;
+  name: string;
+  robot_label: string;
+  provenance: "REAL_LOG";
+  oracle_status: OracleStatus;
+  reason_codes: string[];
+  near_miss: boolean;
+  metrics: {
+    frame_count: number;
+    duration_s: number;
+    min_clearance_m: number | null;
+    collision_detected: boolean;
+    goal_reached: boolean | null;
+    final_goal_distance_m: number | null;
+    path_length_m: number;
+  };
+  created_at: string;
+}
+
 export interface PolicyConfig {
   schema_version: "1.0";
   id: string;
@@ -169,6 +238,23 @@ export interface TelemetryFrame {
   };
   clearance_m: number;
   events: EventRecord[];
+}
+
+export type OracleStatus = "PASS" | "FAIL" | "INCONCLUSIVE";
+
+export interface RunResult {
+  run_id: string;
+  scenario_id: string;
+  scenario_hash: string;
+  policy_hash: string;
+  job_status: string;
+  oracle_status: OracleStatus;
+  reason_codes: string[];
+  metrics: RunMetrics;
+  artifact_path: string;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
 }
 
 export interface RunMetrics {

@@ -48,7 +48,8 @@ def create_robot(data: RobotProfileCreate) -> RobotProfile:
     profile = build_profile(data, f"robot-{uuid.uuid4().hex[:12]}", "user", now, now)
     with get_db() as conn:
         conn.execute(
-            "INSERT INTO robots (robot_id, profile_json, created_at, updated_at) VALUES (?, ?, ?, ?)",
+            "INSERT INTO robots (robot_id, profile_json, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?)",
             (profile.robot_id, profile.model_dump_json(), now, now),
         )
         conn.commit()
@@ -88,7 +89,9 @@ def apply_profile_to_scenario(profile: RobotProfile, scenario):
     robot = scenario.robot.model_copy(
         update={
             "body_radius_m": profile.body_radius_m,
-            "wheel_base_m": profile.wheel_base_m if profile.wheel_base_m is not None else scenario.robot.wheel_base_m,
+            "wheel_base_m": profile.wheel_base_m
+            if profile.wheel_base_m is not None
+            else scenario.robot.wheel_base_m,
             "wheel_radius_m": profile.wheel_radius_m
             if profile.wheel_radius_m is not None
             else scenario.robot.wheel_radius_m,

@@ -31,7 +31,10 @@ _SEEDS: list[tuple[str, dict]] = [
             sensor_noise_std_m=0.01,
             compute_unit="Raspberry Pi 3",
             operating_system="ROS 1 / Ubuntu",
-            notes="Eğitim ve araştırma için yaygın, küçük diferansiyel sürüşlü robot (örnek katalog değeri).",
+            notes=(
+                "Eğitim ve araştırma için yaygın, küçük diferansiyel "
+                "sürüşlü robot (örnek katalog değeri)."
+            ),
         ),
     ),
     (
@@ -52,7 +55,10 @@ _SEEDS: list[tuple[str, dict]] = [
             sensor_noise_std_m=0.01,
             compute_unit="Raspberry Pi 3",
             operating_system="ROS 1 / Ubuntu",
-            notes="Gövde yarıçapı simülatör alt sınırının (0.15 m) altında; testte kullanılamaz, katalogda bilgi amaçlı durur.",
+            notes=(
+                "Gövde yarıçapı simülatör alt sınırının (0.15 m) altında; "
+                "testte kullanılamaz, katalogda bilgi amaçlı durur."
+            ),
         ),
     ),
     (
@@ -91,7 +97,10 @@ _SEEDS: list[tuple[str, dict]] = [
             sensor_range_m=8.0,
             sensor_latency_ms=80,
             sensor_noise_std_m=0.01,
-            notes="Endüstriyel otonom mobil robot. Gövde yarıçapı simülatör üst sınırının (0.40 m) üstünde; katalogda bilgi amaçlı durur.",
+            notes=(
+                "Endüstriyel otonom mobil robot. Gövde yarıçapı simülatör üst "
+                "sınırının (0.40 m) üstünde; katalogda bilgi amaçlı durur."
+            ),
         ),
     ),
     (
@@ -108,7 +117,10 @@ _SEEDS: list[tuple[str, dict]] = [
             sensor_range_m=4.0,
             sensor_latency_ms=100,
             sensor_noise_std_m=0.02,
-            notes="Dört bacaklı robot. Simülatör yalnızca diferansiyel sürüşü desteklediği için testte kullanılamaz.",
+            notes=(
+                "Dört bacaklı robot. Simülatör yalnızca diferansiyel sürüşü "
+                "desteklediği için testte kullanılamaz."
+            ),
         ),
     ),
     (
@@ -125,7 +137,10 @@ _SEEDS: list[tuple[str, dict]] = [
             sensor_range_m=10.0,
             sensor_latency_ms=80,
             sensor_noise_std_m=0.02,
-            notes="Dört bacaklı robot. Simülatör yalnızca diferansiyel sürüşü desteklediği için testte kullanılamaz.",
+            notes=(
+                "Dört bacaklı robot. Simülatör yalnızca diferansiyel sürüşü "
+                "desteklediği için testte kullanılamaz."
+            ),
         ),
     ),
 ]

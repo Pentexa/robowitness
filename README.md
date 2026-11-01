@@ -57,6 +57,7 @@ robowitness/
 ├── scenarios/
 │   ├── reference/                    # Canonical RW-REF-001 scenario
 │   ├── regression/                   # 3 critical regression cases
+│   ├── library/                      # 10 selectable test scenarios + catalog.json
 │   └── holdout/                      # Frozen 20-scenario manifest
 ├── scripts/
 │   ├── bootstrap.ps1 / bootstrap.sh  # Environment bootstrap scripts
@@ -136,6 +137,50 @@ $env:DISTUTILS_USE_SDK=1; $env:MSSdk=1
 python -m pip install wheel setuptools
 python -m pip install --no-build-isolation pybullet==3.2.5
 ```
+
+## 5b. Robot Catalog & Scenario Library
+
+The Test tab includes a **robot catalog**: pick a robot by brand/model
+(ROBOTIS TurtleBot3, Clearpath Jackal, MiR250, Spot, Go2, …), see its specs
+(drive type, body radius, wheels, weight, payload, sensor type/range/latency/
+noise, compute, OS, battery), or **add your own robot** with the same fields
+(edit/delete supported; brand+model+variant must be unique). Builtin specs are
+nominal example values, not manufacturer-certified measurements. “Seçili Robotu
+Teste Uygula” copies only the physical/sensor fields into the scenario's
+`RobotSpec`; start/goal stay scenario-owned. Robots the differential-drive
+simulator cannot represent (non-differential drive, body radius outside
+0.15–0.40 m) remain catalog-only and are honestly marked incompatible.
+
+Next to it, a **scenario library** offers 10 extra test scenarios
+(`RW-LIB-001…010`: narrow corridor, slalom, head-on, crossing, 800 ms latency,
+noisy sensor, dual moving obstacles, empty-corridor control, slow traffic)
+via `GET /api/scenarios/library`; robot CRUD lives under `/api/robots`.
+Measured baseline results for the library are recorded in
+`docs/IMPLEMENTATION_STATUS.md`.
+
+## 5c. Exam Battery, Policy Profiles, Real-Log Import
+
+- **Robot exam (Karne tab):** pick a catalog robot + a policy profile, run the
+  default battery (reference + 10 library scenarios) with one click, and get a
+  report card — per-scenario PASS/FAIL, collisions, near-misses, worst
+  clearance — with per-run replay and a downloadable Markdown report
+  (`GET /api/batteries/{id}/report.md`). Measured example (TurtleBot3 Waffle Pi,
+  baseline profile): 4/11 passed, 5 collisions, 2 near-misses.
+- **Policy profiles:** named presets for the 5 policy parameters
+  (`/api/policy-profiles`): 4 builtins plus your own saved profiles, selectable
+  in the Düzeltme tab and in the battery.
+- **Your own policy code (opt-in):** with `RW_ALLOW_LOCAL_POLICY=on`, single-file
+  Python policies you wrote in `backend/app/policies/local/` (see
+  `example_policy.py`) can drive single runs and the battery. They execute in a
+  separate subprocess with timeouts and clamped outputs; plugin errors fail the
+  run honestly. This is **not** a security sandbox — trusted own code only, and
+  AI-generated code is forbidden there.
+- **Real-log import:** upload a real robot drive (CSV
+  `t_s,x_m,y_m,yaw_rad,min_obstacle_distance_m` or JSON frames) in the Karne
+  tab; it is judged by the same collision/clearance/goal rules and labeled
+  `REAL_LOG` — measured elsewhere, not simulated here. A passive ROS 2 recorder
+  (`scripts/ros2_bridge.py`, listens only, never publishes) can produce such
+  logs on a ROS machine.
 
 ## 6. Measured verification status (2026-10-30, frozen holdout set v4)
 - **Path A (failure detected):** baseline `RW-REF-001` deterministically `FAIL`s

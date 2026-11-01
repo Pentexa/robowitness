@@ -53,6 +53,26 @@ CREATE TABLE IF NOT EXISTS verifications (
     FOREIGN KEY(baseline_run_id) REFERENCES runs(run_id)
 );
 
+CREATE TABLE IF NOT EXISTS policy_profiles (
+    profile_id TEXT PRIMARY KEY,
+    profile_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS battery_runs (
+    battery_id TEXT PRIMARY KEY,
+    robot_id TEXT NOT NULL,
+    result_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS telemetry_imports (
+    import_id TEXT PRIMARY KEY,
+    result_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS robots (
     robot_id TEXT PRIMARY KEY,
     profile_json TEXT NOT NULL,

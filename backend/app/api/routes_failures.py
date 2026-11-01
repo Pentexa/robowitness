@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import APIRouter, status
 from app.ai.adapter import OfflineReferenceAdapter, get_ai_adapter
 from app.config import settings
+from app.db import get_db
 from app.errors import RoboWitnessException
 from app.schemas.ai import InvestigationResponse
 from app.schemas.policy import PolicyPatch
@@ -71,6 +72,19 @@ def _measured_failure_evidence(run_dir: Path) -> dict:
 )
 def investigate_failure(run_id: str):
     run_dir = _run_dir(run_id)
+    # Oracle gate: only runs the independent oracle marked FAIL have a failure
+    # to investigate. A PASS run must not be sent into failure analysis.
+    with get_db() as conn:
+        row = conn.execute("SELECT oracle_status FROM runs WHERE run_id = ?", (run_id,)).fetchone()
+    if row is not None and row["oracle_status"] != "FAIL":
+        raise RoboWitnessException(
+            status_code=409,
+            code="RUN_DID_NOT_FAIL",
+            message=(
+                f"Run {run_id} finished as {row['oracle_status']} per the independent "
+                "oracle; only FAIL runs can be investigated"
+            ),
+        )
     try:
         ev = _measured_failure_evidence(run_dir)
     except FileNotFoundError:

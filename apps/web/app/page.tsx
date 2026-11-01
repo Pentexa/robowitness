@@ -1,13 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Check, HelpCircle, X } from "lucide-react";
+import { HelpCircle, X } from "lucide-react";
 import { ComparisonReplay } from "../components/ComparisonReplay";
 import { EvidencePanel } from "../components/EvidencePanel";
 import { FailureAnalysis } from "../components/FailureAnalysis";
 import { FixComparison } from "../components/FixComparison";
 import { ReplayControls } from "../components/ReplayControls";
+import { BatteryPanel } from "../components/BatteryPanel";
+import { LocalPolicyPanel } from "../components/LocalPolicyPanel";
+import { PolicyProfiles } from "../components/PolicyProfiles";
 import { RobotPanel } from "../components/RobotPanel";
+import { RunVerdict } from "../components/RunVerdict";
 import { ScenarioLibrary } from "../components/ScenarioLibrary";
 import { ScenarioPanel } from "../components/ScenarioPanel";
 import { SimulationCanvas } from "../components/SimulationCanvas";
@@ -20,7 +24,9 @@ import {
   fetchAllFrames,
   fetchHealth,
   fetchJob,
+  fetchLocalPolicies,
   fetchReferenceScenarios,
+  fetchRun,
   fetchScenarioLibrary,
   fetchTelemetry,
   fetchVerification,
@@ -32,8 +38,10 @@ import {
 } from "../lib/api";
 import {
   InvestigationResponse,
+  LocalPolicyInfo,
   PolicyConfig,
   PolicyPatch,
+  RunResult,
   ScenarioCatalogEntry,
   ScenarioSpec,
   TelemetryFrame,
@@ -60,11 +68,11 @@ const DEFAULT_CANDIDATE_POLICY: PolicyConfig = {
   obstacle_prediction_horizon_s: 0.6,
 };
 
-type PanelId = "test" | "hata" | "duzeltme" | "sonuc";
+type PanelId = "test" | "hata" | "duzeltme" | "sonuc" | "karne";
 
 const STEPS: Array<{ panel: PanelId; name: string; desc: string }> = [
   { panel: "test", name: "Testi çalıştır", desc: "Robotu eski ayarlarla bir kez çalıştırın." },
-  { panel: "hata", name: "Hatayı incele", desc: "Robot neden başarısız oldu, öğrenin." },
+  { panel: "hata", name: "İnceleme", desc: "Kaza veya yakın geçiş neden oldu, öğrenin." },
   { panel: "duzeltme", name: "Düzeltmeyi dene", desc: "Yeni ayarları yazın ve test edin." },
   { panel: "sonuc", name: "Sonucu gör", desc: "Kabul mü, ret mi? Raporu indirin." },
 ];
@@ -91,6 +99,9 @@ export default function DashboardPage() {
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
 
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [runResult, setRunResult] = useState<RunResult | null>(null);
+  const [localPolicyInfo, setLocalPolicyInfo] = useState<LocalPolicyInfo | null>(null);
+  const [selectedLocalPolicy, setSelectedLocalPolicy] = useState<string>("");
   const [investigation, setInvestigation] = useState<InvestigationResponse | null>(null);
   const [verification, setVerification] = useState<VerificationRecord | null>(null);
   const [history, setHistory] = useState<VerificationSummary[]>([]);
@@ -119,11 +130,18 @@ export default function DashboardPage() {
       .then((entries) => setLibrary(entries))
       .catch(() => console.warn("Scenario library unavailable"));
 
+    fetchLocalPolicies()
+      .then((info) => setLocalPolicyInfo(info))
+      .catch(() => console.warn("Local policies unavailable"));
+
     try {
       const savedRunId = localStorage.getItem("rw_run_id");
       const savedVerifId = localStorage.getItem("rw_verification_id");
       if (savedRunId) {
         setActiveRunId(savedRunId);
+        fetchRun(savedRunId)
+          .then((r) => setRunResult(r))
+          .catch(() => console.warn("Saved run result unavailable"));
         fetchAllFrames((o, l) => fetchTelemetry(savedRunId, o, l))
           .then((all) => setFrames(all))
           .catch(() => console.warn("Saved run telemetry unavailable"));
@@ -164,6 +182,7 @@ export default function DashboardPage() {
     }
     setVerification(null);
     setInvestigation(null);
+    setRunResult(null);
     setFrames([]);
     setCurrentFrameIndex(0);
     setIsPlaying(false);
@@ -226,13 +245,14 @@ export default function DashboardPage() {
     setCurrentFrameIndex(0);
     setInvestigation(null);
     setVerification(null);
+    setRunResult(null);
     try {
       localStorage.removeItem("rw_verification_id");
     } catch {
       console.warn("localStorage unavailable");
     }
     try {
-      const runJob = await createRun(scenario, baselinePolicy);
+      const runJob = await createRun(scenario, baselinePolicy, selectedLocalPolicy || null);
       const pollInterval = setInterval(async () => {
         try {
           const job = await fetchJob(runJob.job_id);
@@ -248,7 +268,11 @@ export default function DashboardPage() {
             const all = await fetchAllFrames((o, l) => fetchTelemetry(runJob.result_id, o, l));
             setFrames(all);
             setIsPlaying(true);
-            setActivePanel("hata");
+            // Independent oracle decides: only a FAIL goes to failure analysis.
+            // A clean (PASS) run stays here and shows its verdict instead.
+            const result = await fetchRun(runJob.result_id).catch(() => null);
+            setRunResult(result);
+            setActivePanel(result?.oracle_status === "FAIL" ? "hata" : "test");
           } else if (job.status === "failed" || job.status === "cancelled") {
             clearInterval(pollInterval);
             setIsRunningBaseline(false);
@@ -261,6 +285,28 @@ export default function DashboardPage() {
       }, 750);
     } catch (e) {
       setIsRunningBaseline(false);
+      console.error(e);
+    }
+  };
+
+  const handleLoadBatteryRun = async (runId: string) => {
+    try {
+      setActiveRunId(runId);
+      setVerification(null);
+      setInvestigation(null);
+      setRunResult(await fetchRun(runId).catch(() => null));
+      const all = await fetchAllFrames((o, l) => fetchTelemetry(runId, o, l));
+      setFrames(all);
+      setCurrentFrameIndex(0);
+      setIsPlaying(false);
+      setActivePanel("test");
+      try {
+        localStorage.setItem("rw_run_id", runId);
+        localStorage.removeItem("rw_verification_id");
+      } catch {
+        console.warn("localStorage unavailable");
+      }
+    } catch (e) {
       console.error(e);
     }
   };
@@ -336,6 +382,7 @@ export default function DashboardPage() {
       const record = await fetchVerification(verificationId);
       setVerification(record);
       setActiveRunId(record.baseline_run_id);
+      setRunResult(await fetchRun(record.baseline_run_id).catch(() => null));
       setInvestigation(null);
       const all = await fetchAllFrames((o, l) => fetchTelemetry(record.baseline_run_id, o, l));
       setFrames(all);
@@ -355,15 +402,32 @@ export default function DashboardPage() {
   const currentSimTime = frames[currentFrameIndex]?.sim_time_s ?? 0.0;
   const totalDuration = frames[frames.length - 1]?.sim_time_s ?? 0.0;
 
-  // Şu an kaçıncı adımdayız? (0-3)
-  const currentStep = verification ? 3 : investigation ? 2 : activeRunId ? 1 : 0;
+  // Adım, bağımsız kontrolün (oracle) kararına göre ilerler: yalnızca FAIL
+  // çalıştırma "Hatayı incele" adımına geçer. Kazasız (PASS) çalıştırmada
+  // incelenecek hata yoktur; kullanıcı yeni senaryo/robot seçip tekrar dener.
+  const runFailed = runResult?.oracle_status === "FAIL";
+  // Near-miss: hedefe ulaştı, çarpışma yok, ama güvenli mesafe aşıldı.
+  const nearMiss =
+    runResult !== null &&
+    runResult.oracle_status === "FAIL" &&
+    !runResult.metrics.collision_detected &&
+    runResult.metrics.goal_reached;
+  const currentStep = verification ? 3 : investigation ? 2 : runFailed ? 1 : 0;
   const busy = isRunningBaseline || isVerifying || isGenerating;
-  const nextText = [
-    "Hazır test yüklü. Robotu eski ayarlarla bir kez çalıştırın.",
-    "Çalıştırma bitti. Aşağıdan tekrarını izleyebilir, sonra hatayı inceleyebilirsiniz.",
-    "Yeni ayarları kaydırıcılarla değiştirin (ya da öneriyi kullandınız), sonra test edin.",
-    "Sonuç hazır. Kararı okuyun, isterseniz mühürlü raporu indirin.",
-  ][currentStep];
+  const nextText = runResult && !verification && !investigation
+    ? runResult.oracle_status === "PASS"
+      ? "Test kazasız tamamlandı. Yeni bir senaryo veya robot seçip tekrar çalıştırabilirsiniz."
+      : runResult.oracle_status === "FAIL"
+        ? nearMiss
+          ? `Çarpışma olmadı ama robot engele ${runResult.metrics.min_clearance_m} m yaklaştı (güvenli sınır: ${scenario?.oracle.min_clearance_m ?? 0.25} m). Bu yüzden test başarısız sayıldı; yakın geçişi inceleyebilirsiniz.`
+          : "Çalıştırma başarısız oldu. Tekrarı izleyip incelemeyi açabilirsiniz."
+        : "Sonuç belirlenemedi. Tekrarı izleyip yeniden çalıştırmayı deneyin."
+    : [
+        "Hazır test yüklü. Robotu eski ayarlarla bir kez çalıştırın.",
+        "Çalıştırma bitti. Aşağıdan tekrarını izleyebilir, sonra hatayı inceleyebilirsiniz.",
+        "Yeni ayarları kaydırıcılarla değiştirin (ya da öneriyi kullandınız), sonra test edin.",
+        "Sonuç hazır. Kararı okuyun, isterseniz mühürlü raporu indirin.",
+      ][currentStep];
 
   return (
     <div className="rw-app">
@@ -375,28 +439,10 @@ export default function DashboardPage() {
             RoboWitness <span className="dim">— Robot Test Programı</span>
           </span>
         </div>
-        <div className="rw-wincontrols" aria-hidden="true">
-          <span title="Küçült">—</span>
-          <span title="Büyüt">▢</span>
-          <span title="Kapat">✕</span>
-        </div>
+        <button className="rw-btn rw-btn-ghost rw-btn-sm" id="btn-help" onClick={() => setHelpOpen(true)}>
+          <HelpCircle size={14} /> Yardım
+        </button>
       </div>
-
-      {/* Menü çubuğu */}
-      <nav className="rw-menubar" aria-label="Program menüsü">
-        <button className="rw-menuitem" onClick={handleSelectReference} disabled={busy}>
-          <u>D</u>osya: Hazır Testi Aç
-        </button>
-        <button className="rw-menuitem" onClick={() => setViewMode("2d")} disabled={viewMode === "2d"}>
-          Görünüm: <u>2</u>B (üstten)
-        </button>
-        <button className="rw-menuitem" onClick={() => setViewMode("3d")} disabled={viewMode === "3d"}>
-          Görünüm: <u>3</u>B
-        </button>
-        <button className="rw-menuitem" id="btn-help" onClick={() => setHelpOpen(true)}>
-          <HelpCircle size={14} /> <u>Y</u>ardım: Nasıl Kullanılır?
-        </button>
-      </nav>
 
       {/* Araç çubuğu: sıradaki adım */}
       <div className="rw-toolbar">
@@ -420,7 +466,7 @@ export default function DashboardPage() {
               handleInvestigate().catch(() => console.error("Investigation failed"));
             }}
           >
-            Hatayı İncele
+            {nearMiss ? "Yakın Geçişi İncele" : "Hatayı İncele"}
           </button>
         )}
         {currentStep === 2 && (
@@ -437,53 +483,15 @@ export default function DashboardPage() {
 
       {/* Çalışma alanı */}
       <main className="rw-workspace">
-        {/* Sol: adım listesi */}
-        <aside className="rw-sidebar" aria-label="Adımlar">
-          <div className="rw-steps-title">Adım adım ilerleyin</div>
-          {STEPS.map((s, i) => {
-            const state = i < currentStep || (currentStep === 3 && i === 3 && verification) ? "done" : i === currentStep ? "current" : "locked";
-            return (
-              <button
-                key={s.panel}
-                className={`rw-step is-${state}`}
-                onClick={() => setActivePanel(s.panel)}
-                aria-current={i === currentStep ? "step" : undefined}
-              >
-                <span className="rw-step-num">{state === "done" ? <Check size={13} /> : i + 1}</span>
-                <span className="rw-step-body">
-                  <span className="rw-step-name">{s.name}</span>
-                  <span className="rw-step-desc">{s.desc}</span>
-                  <span className="rw-step-state">
-                    {state === "done" ? "Tamamlandı" : state === "current" ? "Şimdi bunu yapın" : "Sıradaki"}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-          <div className="rw-sidehelp">
-            <strong>Bu program ne yapar?</strong>
-            Bir robotun hedefe çarpmadan gidip gidemediğini bilgisayarda test eder. Yapay zekâ sadece öneri
-            verir; “geçti / kaldı” kararını bağımsız bir kontrol programı verir.
-          </div>
-          <div className="rw-sidehelp">
-            <strong>Ortadaki siyah alanda:</strong>
-            Beyaz top = robot, kesikli halka = hedef, gri halkalar = engeller. Çizgi, robotun gittiği yoldur.
-          </div>
-        </aside>
-
-        {/* Orta: simülasyon görünümü */}
+        {/* Simülasyon görünümü */}
         <section className="rw-viewport-area" aria-label="Test alanı">
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {runResult && (
+              <RunVerdict result={runResult} minClearanceLimitM={scenario?.oracle.min_clearance_m} />
+            )}
             <div className="rw-card">
               <div className="rw-card-head">
-                <div>
-                  <h2 className="rw-card-title">Test Alanı</h2>
-                  <p className="rw-card-sub">
-                    {frames.length > 0
-                      ? "Çalıştırmanın tekrarını izliyorsunuz. Kaydırıcıyla çarpma anına gidin."
-                      : "Robot, hedef, engeller bu alanda görünür."}
-                  </p>
-                </div>
+                <h2 className="rw-card-title">Test Alanı</h2>
                 <div className="rw-row">
                   <div className="rw-btn-group" role="group" aria-label="Görünüm">
                     <button
@@ -506,12 +514,7 @@ export default function DashboardPage() {
               </div>
               <div className="rw-card-body">
                 {frames.length === 0 && (
-                  <div className="rw-welcome">
-                    <strong>İlk kez mi kullanıyorsunuz?</strong>
-                    Soldaki 1. adımdasınız. Sağdaki <b>Test</b> sekmesinde (ya da üstteki){" "}
-                    <b>“Robotu Çalıştır”</b> düğmesine basın. Robot hareket edecek; çarparsa burada{" "}
-                    <b>ÇARPTI!</b> yazacak. Sonra adım adım devam edin.
-                  </div>
+                  <p className="rw-summary">Başlamak için sağdan senaryo ve robot seçip “Robotu Çalıştır”a basın.</p>
                 )}
                 {viewMode === "2d" ? (
                   <SimulationCanvas scenario={scenario} frames={frames} currentFrameIndex={currentFrameIndex} />
@@ -523,6 +526,20 @@ export default function DashboardPage() {
                   <span><b>◎ Kesikli halka:</b> Hedef</span>
                   <span><b>○ Gri halkalar:</b> Engeller</span>
                   <span><b>— Çizgi:</b> Robotun yolu</span>
+                  {frames.length > 0 && scenario && (
+                    <span>
+                      <b>Engel mesafesi:</b>{" "}
+                      <span className="mono">{frames[currentFrameIndex]?.clearance_m.toFixed(2)} m</span>
+                      {frames[currentFrameIndex] &&
+                      frames[currentFrameIndex].clearance_m < scenario.oracle.min_clearance_m ? (
+                        <span className="rw-badge is-fail">
+                          Güvenli sınırın altında ({scenario.oracle.min_clearance_m} m)
+                        </span>
+                      ) : (
+                        <span> (güvenli sınır: {scenario.oracle.min_clearance_m} m)</span>
+                      )}
+                    </span>
+                  )}
                 </div>
                 <ReplayControls
                   isPlaying={isPlaying}
@@ -577,10 +594,17 @@ export default function DashboardPage() {
                 className={`rw-tab ${activePanel === s.panel ? "is-active" : ""}`}
                 onClick={() => setActivePanel(s.panel)}
               >
-                <span className="rw-tab-num">{i + 1}. ADIM</span>
-                {s.panel === "test" ? "Test" : s.panel === "hata" ? "Hata" : s.panel === "duzeltme" ? "Düzeltme" : "Sonuç"}
+                {i + 1}. {s.panel === "test" ? "Test" : s.panel === "hata" ? "İncele" : s.panel === "duzeltme" ? "Düzeltme" : "Sonuç"}
               </button>
             ))}
+            <button
+              role="tab"
+              aria-selected={activePanel === "karne"}
+              className={`rw-tab ${activePanel === "karne" ? "is-active" : ""}`}
+              onClick={() => setActivePanel("karne")}
+            >
+              Karne
+            </button>
           </div>
           <div className="rw-inspector-body">
             <div className={`rw-tabpage ${activePanel === "test" ? "is-active" : ""}`}>
@@ -607,23 +631,31 @@ export default function DashboardPage() {
                 disabled={busy}
               />
               <RobotPanel scenario={scenario} onScenarioChange={handleRobotApplied} />
+              <LocalPolicyPanel
+                info={localPolicyInfo}
+                selected={selectedLocalPolicy}
+                onSelect={setSelectedLocalPolicy}
+              />
             </div>
             <div className={`rw-tabpage ${activePanel === "hata" ? "is-active" : ""}`}>
               <FailureAnalysis
                 runId={activeRunId}
+                runResult={runResult}
+                minClearanceLimitM={scenario?.oracle.min_clearance_m}
                 investigation={investigation}
                 onInvestigate={handleInvestigate}
                 onApplyPatch={handleApplyPatch}
               />
             </div>
             <div className={`rw-tabpage ${activePanel === "duzeltme" ? "is-active" : ""}`}>
+              <PolicyProfiles candidatePolicy={candidatePolicy} onSelectProfile={setCandidatePolicy} />
               <FixComparison
                 baselinePolicy={baselinePolicy}
                 candidatePolicy={candidatePolicy}
                 onUpdateCandidate={setCandidatePolicy}
                 onVerify={handleVerify}
                 isVerifying={isVerifying}
-                hasBaseline={activeRunId !== null}
+                hasBaseline={runFailed}
                 provenance={provenance}
               />
             </div>
@@ -648,6 +680,9 @@ export default function DashboardPage() {
                   }
                 }}
               />
+            </div>
+            <div className={`rw-tabpage ${activePanel === "karne" ? "is-active" : ""}`}>
+              <BatteryPanel onLoadRun={handleLoadBatteryRun} />
             </div>
           </div>
         </aside>

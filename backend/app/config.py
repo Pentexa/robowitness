@@ -32,9 +32,18 @@ class Settings(BaseSettings):
     RW_AI_MAX_OUTPUT_TOKENS: int = 1000
     RW_AI_MAX_CALLS_PER_WORKFLOW: int = 3
     RW_AI_MAX_ESTIMATED_COST_USD: float = 1.00
+    # Local user policy plugins (İş 3B): OFF by default. When "on", the user may
+    # run THEIR OWN single-file Python policy in an isolated subprocess during
+    # simulation. AI-generated code must never be used with this; it is not a
+    # security sandbox — only run code you wrote and trust.
+    RW_ALLOW_LOCAL_POLICY: str = "off"
     RW_DB_PATH: str = "./artifacts/robowitness.sqlite3"
     RW_ARTIFACTS_DIR: str = "./artifacts"
     RW_CORS_ORIGINS: str = "http://localhost:3000"
+
+    @property
+    def local_policy_enabled(self) -> bool:
+        return self.RW_ALLOW_LOCAL_POLICY.strip().lower() in ("on", "true", "1", "yes")
 
     @property
     def cors_origins_list(self) -> List[str]:

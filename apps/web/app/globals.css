@@ -64,6 +64,7 @@ body {
   user-select: none;
 }
 .rw-titlebar-left { display: flex; align-items: center; gap: 8px; padding: 0 10px; min-width: 0; }
+.rw-titlebar > .rw-btn { align-self: center; margin-right: 8px; }
 .rw-mark {
   width: 22px; height: 22px; flex: none;
   background: var(--accent); color: #fff;
@@ -114,15 +115,14 @@ body {
 .rw-next span { color: var(--text-1); }
 .rw-toolbar-spacer { flex: 1; }
 
-/* ---------- Çalışma alanı: 3 sütunlu program düzeni ---------- */
+/* ---------- Çalışma alanı: 2 sütunlu sade düzen ---------- */
 .rw-workspace {
   flex: 1; min-height: 0;
   display: grid;
-  grid-template-columns: 236px minmax(0, 1fr) 348px;
+  grid-template-columns: minmax(0, 1fr) 380px;
   gap: 1px;
   background: var(--line);
 }
-.rw-sidebar { background: var(--panel-3); overflow-y: auto; padding: 12px 10px; min-width: 0; }
 .rw-viewport-area { background: #d9d9d9; overflow-y: auto; padding: 12px; min-width: 0; }
 .rw-inspector { background: var(--panel); display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 
@@ -177,8 +177,16 @@ body {
 .rw-tab.is-active { background: var(--panel); color: var(--text-0); border-bottom-color: var(--accent); }
 .rw-tab .rw-tab-num { display: block; font-size: 0.64rem; font-weight: 700; color: var(--text-1); }
 .rw-inspector-body { flex: 1; min-height: 0; overflow-y: auto; }
-.rw-tabpage { display: none; padding: 14px; flex-direction: column; gap: 14px; }
+.rw-tabpage { display: none; padding: 14px; flex-direction: column; gap: 0; }
 .rw-tabpage.is-active { display: flex; }
+
+/* Sade bölüm düzeni (sağ panel) */
+.rw-section { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.rw-section:first-child { padding-top: 0; }
+.rw-section:last-child { border-bottom: none; }
+.rw-section-title { font-size: 0.82rem; font-weight: 700; }
+.rw-summary { font-size: 0.8rem; color: var(--text-1); line-height: 1.5; }
+.rw-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* Durum çubuğu (programın altı) */
 .rw-statusbar {
@@ -332,25 +340,18 @@ select.rw-input option { background: #fff; }
 .rw-modal-body dt { font-weight: 700; }
 .rw-modal-body dd { color: var(--text-1); margin-left: 0; }
 
-/* Orta boy pencerede de program düzeni korunur: adımlar solda,
-   simülasyon üstte, işlem paneli onun altında. */
+/* Orta boy pencerede simülasyon üstte, işlem paneli altında */
 @media (max-width: 1200px) {
   .rw-workspace {
-    grid-template-columns: 204px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) minmax(230px, 42%);
-    grid-template-areas: "sidebar viewport" "sidebar inspector";
   }
-  .rw-sidebar { grid-area: sidebar; }
-  .rw-viewport-area { grid-area: viewport; }
-  .rw-inspector { grid-area: inspector; }
 }
 /* Çok dar ekranda tek sütuna düş */
 @media (max-width: 640px) {
   body { overflow: auto; }
   .rw-app { height: auto; min-height: 100vh; }
-  .rw-workspace { grid-template-columns: 1fr; grid-template-rows: none; grid-template-areas: none; }
-  .rw-sidebar, .rw-viewport-area, .rw-inspector { grid-area: auto; }
-  .rw-viewport-area, .rw-sidebar { overflow: visible; }
+  .rw-workspace { grid-template-columns: 1fr; grid-template-rows: none; }
+  .rw-viewport-area { overflow: visible; }
   .rw-inspector-body { overflow: visible; }
-  .rw-wincontrols { display: none; }
 }

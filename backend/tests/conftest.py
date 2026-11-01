@@ -25,6 +25,8 @@ def temp_workspace():
         # blank credentials for the whole test session, regardless of the
         # developer's local .env (which may contain real keys).
         settings.RW_AI_MODE = "offline"
+        # Local policy execution must start OFF in tests; tests opt in explicitly.
+        settings.RW_ALLOW_LOCAL_POLICY = "off"
         settings.RW_META_API_KEY = ""
         settings.RW_META_BASE_URL = ""
         settings.RW_META_MODEL = ""

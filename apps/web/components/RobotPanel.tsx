@@ -188,124 +188,79 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
   );
 
   return (
-    <div className="rw-card">
-      <div className="rw-card-head">
-        <div>
-          <h3 className="rw-card-title">Robot Seçimi ve Kataloğu</h3>
-          <p className="rw-card-sub">
-            Test edilecek robotun marka/modelini ve özelliklerini seçin ya da yeni robot ekleyin.
-            Seçili robotu teste uygularsanız simülasyon o robotun gövde ve sensör ölçüleriyle çalışır.
-          </p>
-        </div>
-      </div>
-      <div className="rw-card-body">
-        <label className="rw-field">
-          <span>Kayıtlı robotlar</span>
-          <select
-            id="select-robot"
-            className="rw-input"
-            value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
-          >
-            {robots.map((r) => (
-              <option key={r.robot_id} value={r.robot_id}>
-                {r.brand} {r.model}
-                {r.variant ? ` (${r.variant})` : ""} — {r.source === "builtin" ? "hazır katalog" : "benim robotum"}
-                {r.simulation_compatible ? "" : " — testte kullanılamaz"}
-              </option>
-            ))}
-          </select>
-        </label>
+    <section className="rw-section">
+      <h3 className="rw-section-title">Robot</h3>
+      <select
+        id="select-robot"
+        className="rw-input"
+        aria-label="Kayıtlı robotlar"
+        value={selectedId}
+        onChange={(e) => setSelectedId(e.target.value)}
+      >
+        {robots.map((r) => (
+          <option key={r.robot_id} value={r.robot_id}>
+            {r.brand} {r.model}
+            {r.variant ? ` (${r.variant})` : ""}
+            {r.simulation_compatible ? "" : " — kullanılamaz"}
+          </option>
+        ))}
+      </select>
 
-        {selected && (
-          <div className="rw-spec">
-            <div className="rw-spec-item">
-              <span className="rw-spec-label">Marka / Model</span>
-              <span className="rw-spec-value">
-                {selected.brand} {selected.model}
-                {selected.year ? ` (${selected.year})` : ""}
-              </span>
-            </div>
-            <div className="rw-spec-item">
-              <span className="rw-spec-label">Sürüş tipi</span>
-              <span className="rw-spec-value">{DRIVE_LABELS[selected.drive_type]}</span>
-            </div>
-            <div className="rw-spec-item">
-              <span className="rw-spec-label">Gövde yarıçapı</span>
-              <span className="rw-spec-value mono">{selected.body_radius_m} m</span>
-            </div>
-            <div className="rw-spec-item">
-              <span className="rw-spec-label">Sensör</span>
-              <span className="rw-spec-value">
-                {selected.sensor_type} · {selected.sensor_range_m} m · {selected.sensor_latency_ms} ms gecikme
-              </span>
-            </div>
-            {selected.weight_kg !== null && (
-              <div className="rw-spec-item">
-                <span className="rw-spec-label">Ağırlık / Taşıma</span>
-                <span className="rw-spec-value mono">
-                  {selected.weight_kg} kg{selected.max_payload_kg !== null ? ` / ${selected.max_payload_kg} kg` : ""}
-                </span>
-              </div>
-            )}
-            <div className="rw-spec-item">
-              <span className="rw-spec-label">Testte kullanılabilir mi?</span>
-              <span className="rw-spec-value">
-                {selected.simulation_compatible
-                  ? "Evet — diferansiyel sürüş ve gövde ölçüsü simülatöre uygun"
-                  : `Hayır — ${selected.compatibility_issues.map((i) => ISSUE_LABELS[i] ?? i).join("; ")}`}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {error && <p className="rw-err">{error}</p>}
-        {notice && <p className="rw-hint">{notice}</p>}
-
-        <div className="rw-actions">
-          <button
-            id="btn-apply-robot"
-            className="rw-btn rw-btn-primary"
-            onClick={handleApply}
-            disabled={busy || !selected || !scenario || !selected.simulation_compatible}
-            title={
-              selected && !selected.simulation_compatible
-                ? "Bu robot simülatörle uyumlu değil"
-                : undefined
-            }
-          >
-            <Bot size={15} /> Seçili Robotu Teste Uygula
-          </button>
-          {selected?.source === "user" && (
-            <>
-              <button
-                id="btn-edit-robot"
-                className="rw-btn rw-btn-ghost"
-                disabled={busy}
-                onClick={() => {
-                  setForm(toInput(selected));
-                  setEditingId(selected.robot_id);
-                }}
-              >
-                <Pencil size={14} /> Düzenle
-              </button>
-              <button
-                id="btn-delete-robot"
-                className="rw-btn rw-btn-ghost"
-                disabled={busy}
-                onClick={() => handleDelete(selected)}
-              >
-                <Trash2 size={14} /> Sil
-              </button>
-            </>
+      {selected && (
+        <p className="rw-summary">
+          {DRIVE_LABELS[selected.drive_type]} · gövde {selected.body_radius_m} m · {selected.sensor_type}{" "}
+          {selected.sensor_range_m} m / {selected.sensor_latency_ms} ms
+          {selected.weight_kg !== null ? ` · ${selected.weight_kg} kg` : ""}
+          <br />
+          {selected.simulation_compatible ? (
+            <span className="rw-badge is-live">Testte kullanılabilir</span>
+          ) : (
+            <span className="rw-badge is-fail">
+              Kullanılamaz: {selected.compatibility_issues.map((i) => ISSUE_LABELS[i] ?? i).join("; ")}
+            </span>
           )}
-        </div>
-        <p className="rw-hint">
-          Hazır katalogdaki değerler örnek değerlerdir, üretici ölçümü değildir. Kendi robotunuzun gerçek
-          değerlerini aşağıdan ekleyebilirsiniz.
         </p>
+      )}
 
-        <details className="rw-details" open={editingId !== null}>
+      {error && <p className="rw-err">{error}</p>}
+      {notice && <p className="rw-summary">{notice}</p>}
+
+      <div className="rw-btn-row">
+        <button
+          id="btn-apply-robot"
+          className="rw-btn rw-btn-primary"
+          onClick={handleApply}
+          disabled={busy || !selected || !scenario || !selected.simulation_compatible}
+          title={selected && !selected.simulation_compatible ? "Bu robot simülatörle uyumlu değil" : undefined}
+        >
+          <Bot size={15} /> Teste Uygula
+        </button>
+        {selected?.source === "user" && (
+          <>
+            <button
+              id="btn-edit-robot"
+              className="rw-btn rw-btn-ghost rw-btn-sm"
+              disabled={busy}
+              onClick={() => {
+                setForm(toInput(selected));
+                setEditingId(selected.robot_id);
+              }}
+            >
+              <Pencil size={14} /> Düzenle
+            </button>
+            <button
+              id="btn-delete-robot"
+              className="rw-btn rw-btn-ghost rw-btn-sm"
+              disabled={busy}
+              onClick={() => handleDelete(selected)}
+            >
+              <Trash2 size={14} /> Sil
+            </button>
+          </>
+        )}
+      </div>
+
+      <details className="rw-details" open={editingId !== null}>
           <summary>{editingId ? "Robotu düzenliyorsunuz" : "Yeni robot ekle"}</summary>
           <div className="rw-form">
             {textField("Marka *", "brand", "örn. ROBOTIS")}
@@ -368,7 +323,6 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
             </div>
           </div>
         </details>
-      </div>
-    </div>
+    </section>
   );
 };

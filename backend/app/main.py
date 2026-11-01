@@ -8,6 +8,10 @@ from fastapi.responses import JSONResponse
 from app.api.routes_evidence import router as evidence_router
 from app.api.routes_failures import router as failures_router
 from app.api.routes_health import router as health_router
+from app.api.routes_batteries import router as batteries_router
+from app.api.routes_imports import router as imports_router
+from app.api.routes_local_policies import router as local_policies_router
+from app.api.routes_policies import router as policies_router
 from app.api.routes_robots import router as robots_router
 from app.api.routes_runs import router as runs_router
 from app.api.routes_scenarios import router as scenarios_router
@@ -54,6 +58,10 @@ def create_app() -> FastAPI:
     app.include_router(verifications_router, prefix="/api")
     app.include_router(evidence_router, prefix="/api")
     app.include_router(robots_router, prefix="/api")
+    app.include_router(policies_router, prefix="/api")
+    app.include_router(batteries_router, prefix="/api")
+    app.include_router(imports_router, prefix="/api")
+    app.include_router(local_policies_router, prefix="/api")
 
     # Custom Error Handlers
     @app.exception_handler(RoboWitnessException)

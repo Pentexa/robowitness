@@ -69,6 +69,10 @@ def run_worker_loop(poll_interval_s: float = 0.5):
 
             if job.kind == "simulation_run":
                 service.execute_simulation_run(job)
+            elif job.kind == "battery_run":
+                service.execute_battery_run(
+                    job, progress_callback=lambda p: update_job_progress(job.job_id, p)
+                )
             elif job.kind == "verification":
                 service.execute_verification(
                     job, progress_callback=lambda p: update_job_progress(job.job_id, p)
