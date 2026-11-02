@@ -43,7 +43,7 @@ RoboWitness, yapay zekânın önerdiği robot politikası düzeltmelerini bağı
 
 <video src="docs/assets/robowitness-intro.mp4" controls width="100%"></video>
 
-🎬 **RoboWitness Tanıtım ve Doğrulama Videosu (90 sn):** [docs/assets/robowitness-intro.mp4](docs/assets/robowitness-intro.mp4)
+🎬 **RoboWitness Tanıtım ve Doğrulama Videosu (90 sn):**
 
 </div>
 
