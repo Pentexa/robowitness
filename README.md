@@ -29,6 +29,30 @@ RoboWitness, yapay zekânın önerdiği robot politikası düzeltmelerini bağı
 
 </details>
 
+## For hackathon judges (60 seconds)
+
+RoboWitness exists because "the AI fixed my robot" is usually self-graded
+homework. Here the fix must pass an exam it cannot see:
+
+1. **It fails first, on camera:** the baseline policy collides at tick 358
+   with 0.0016 m clearance — deterministically, every run.
+2. **It was rejected, honestly, five times:** across five frozen holdout
+   sets, good-looking fixes scored 17/20, 17/20, 18/20, 18/20, 18/20 and were
+   REJECTED with sealed evidence. We never lowered the bar.
+3. **Then it earned it:** a pre-registered MPC candidate (registered before
+   its exam set existed) went **20/20** on the fresh v6 set —
+   `verif-6b2bfd8e0501`, **VERIFIED_IN_SIMULATION**, seal independently
+   re-verified. An over-cautious control was still rejected in the same run.
+
+Run the whole story offline in ~5 seconds:
+
+```powershell
+python scripts\run_hackathon_demo.py
+```
+
+Full submission text, demo script and judge notes:
+[`docs/HACKATHON_SUBMISSION.md`](docs/HACKATHON_SUBMISSION.md).
+
 ## At a glance
 
 | Aspect | Detail |
