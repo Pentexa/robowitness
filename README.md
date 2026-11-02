@@ -18,7 +18,7 @@ https://github.com/user-attachments/assets/47551613-189a-487e-986c-ae2f856d1104
 [![Verdicts](https://img.shields.io/badge/verdicts-never%20manufactured-6f42c1?style=flat-square)](#honest-limitations)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue?style=flat-square)](LICENSE)
 
-[Demo Video](#demo-video) · [Quick start](#quick-start) · [How it works](#how-it-works) · [The five gates](#the-five-gates) · [Measured results](#measured-results) · [API](#api-surface) · [Documentation](#documentation)
+[Quick start](#quick-start) · [How it works](#how-it-works) · [The five gates](#the-five-gates) · [Measured results](#measured-results) · [API](#api-surface) · [Documentation](#documentation)
 
 </div>
 
