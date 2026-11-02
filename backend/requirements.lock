@@ -1,5 +1,7 @@
 # RoboWitness backend lock — versions ACTUALLY VERIFIED in this environment.
-# Generated 2026-10-30 on CPython 3.11.0 / Windows-AMD64.
+# Generated 2026-10-30 on CPython 3.11.0 / Windows-AMD64; cryptography line
+# re-verified 2026-11-02 in a fresh venv (129/129 tests; it is required by
+# OIDC RS256 verification and was found undeclared during release hardening).
 # pybullet 3.2.5 has no cp311 Windows wheel on PyPI: build from source with
 # MSVC 2019+ (`vcvarsall.bat x64`, DISTUTILS_USE_SDK=1, MSSdk=1) and
 # `python -m pip install --no-build-isolation pybullet==3.2.5`.
@@ -12,6 +14,8 @@ pydantic-settings==2.2.1
 uvicorn==0.41.0
 pybullet==3.2.5
 httpx==0.28.1
+cryptography==46.0.5
+numpy==2.4.6
 pytest==9.1.1
 starlette==1.0.0
 anyio==4.12.1

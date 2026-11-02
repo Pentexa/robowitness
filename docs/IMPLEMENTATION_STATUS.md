@@ -369,6 +369,17 @@ Verification for this round: backend **129 passed** (new MPC/stateful/waypoint
 tests), `ruff check --select E,F` clean, `ruff format --check` clean
 (112 files).
 
+## Release 1.0.0 Stabilization (2026-11-02, user decision: freeze features)
+
+Full record: `docs/RELEASE_1.0.0.md`. Summary: versions bumped to 1.0.0
+(pyproject, package.json, API title). Suite stable twice (129/129), ruff +
+web gates clean, smoke + offline demo measured. Fresh-venv install went
+129/129 after fixing two real defects found only by stabilization:
+undeclared `cryptography` dependency (OIDC would silently fail) and missing
+`numpy` in the Docker image (worker import crash). Compose triple verified
+end-to-end (battery 1/1 inside containers), then torn down; local services
+restored. No new features added in this round. Suggested tag: `v1.0.0`.
+
 ## Execution State Details
 
 - **Current phase:** PHASE 12 (hardening; Phases 07/10/12 partially open, see below)
