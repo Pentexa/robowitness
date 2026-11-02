@@ -6,7 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![PyBullet](https://img.shields.io/badge/Physics-PyBullet%20%7C%2060%20Hz-orange?style=flat-square)](https://pybullet.org/)
-[![Tests](https://img.shields.io/badge/backend%20tests-113%20passed-brightgreen?style=flat-square)](#measured-results)
+[![Tests](https://img.shields.io/badge/backend%20tests-129%20passed-brightgreen?style=flat-square)](#measured-results)
 [![Verdicts](https://img.shields.io/badge/verdicts-never%20manufactured-6f42c1?style=flat-square)](#honest-limitations)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue?style=flat-square)](LICENSE)
 
@@ -25,7 +25,7 @@
 
 <br />
 
-RoboWitness, yapay zekânın önerdiği robot politikası düzeltmelerini bağımsız olarak doğrulayan, tamamen yerelde çalışan bir yazılım doğrulama motorudur. Politika yalnızca gecikmeli ve gürültülü sensör verisi görür; PyBullet simülasyonu deterministik 60 Hz'de çalıştırır; bağımsız oracle gerçek geometriye göre `PASS` / `FAIL` / `INCONCLUSIVE` karar verir; beş kapı ve SHA-256 mühürlü kanıt paketi sonucu değiştirilemez hale getirir. Path B (tam doğrulanmış iyileştirme) henüz karşılanmadı: en iyi aday 20 donmuş senaryonun 18'ini geçti ve dürüstçe `REJECTED` aldı. Bu depo, doğrulanmamış bir sonucu asla `VERIFIED` gibi göstermez.
+RoboWitness, yapay zekânın önerdiği robot politikası düzeltmelerini bağımsız olarak doğrulayan, tamamen yerelde çalışan bir yazılım doğrulama motorudur. Politika yalnızca gecikmeli ve gürültülü sensör verisi görür; PyBullet simülasyonu deterministik 60 Hz'de çalıştırır; bağımsız oracle gerçek geometriye göre `PASS` / `FAIL` / `INCONCLUSIVE` karar verir; beş kapı ve SHA-256 mühürlü kanıt paketi sonucu değiştirilemez hale getirir. Path B 2026-11-02'de kapandı: ön kayıtlı **MPC-lite** adayı taze v6 setinde **20/20** ile `VERIFIED_IN_SIMULATION` aldı. Varsayılan yasa `shared` olarak kaldı; MPC açıkça etkinleştirilen (`RW_CANDIDATE_LAW=mpc`) doğrulanmış aday konfigürasyonudur. Bu depo, doğrulanmamış bir sonucu asla `VERIFIED` gibi göstermez.
 
 </details>
 
@@ -111,17 +111,19 @@ The oracle uses objective reason codes: `COLLISION`, `MIN_CLEARANCE_VIOLATION`, 
 | **4 — Regression suite** | Did the fix break what already worked? | Clear-corridor, stationary-obstacle, and goal-reachability cases still pass. |
 | **5 — Evidence sealing** | Can the result be trusted after the fact? | Every artifact is hashed, packaged, and re-verified independently; tampering yields `INCONCLUSIVE`. |
 
-A real measured verdict from this repository:
+A real measured verdict from this repository — the first pre-registered candidate to pass every gate:
 
 ```text
-verif-90bfa84ad648
+verif-6b2bfd8e0501
   GATE 1  baseline reproduction ......... PASS
   GATE 2  paired comparison ............. PASS
-  GATE 3  frozen holdout (20) ........... FAIL  18/20
+  GATE 3  frozen holdout (20) ........... PASS  20/20
   GATE 4  regression suite .............. PASS
   GATE 5  evidence sealing .............. PASS
-  VERDICT ............................... REJECTED
+  VERDICT ............................... VERIFIED_IN_SIMULATION
 ```
+
+The same pipeline still rejects bad candidates: the over-cautious control finished `REJECTED` (`verif-3b370a934cfc`). Earlier holdout attempts were rejected honestly too — v2 and v3 at 17/20, v4 at 18/20, v5 at 18/20.
 
 > **No manufactured verdicts.** If one gate fails, the candidate is rejected. `VERIFIED_IN_SIMULATION` is never hard-coded, never inferred from a nice replay, and never awarded because a demo looked convincing.
 
@@ -133,6 +135,7 @@ verif-90bfa84ad648
 - **Observation honesty** — controllers receive delayed (`0–1000 ms`) and noisy sensor observations, never ground-truth poses.
 - **Independent oracle** — collision, minimum-clearance, goal, timeout, and stuck checks against true geometry, with machine-readable reasons.
 - **Five-gate protocol** — baseline reproduction, paired comparison, frozen holdout, regressions, and cryptographic sealing.
+- **Pluggable candidate law** — the default `shared` law preserves every earlier measurement; the verified **MPC-lite** law (`RW_CANDIDATE_LAW=mpc`) plans over delivered tracks and closed Path B on a fresh pre-registered holdout.
 - **Atomic job system** — SQLite WAL queue with single-owner claims, worker heartbeats, cancellation, and honest failure states.
 - **Paired replay** — baseline and candidate frames side by side under identical conditions.
 - **Sealed evidence** — `manifest.json`, `telemetry.jsonl`, `metrics.json`, `events.jsonl`, `hashes.json`, and an independent verifier.
@@ -272,12 +275,12 @@ All numbers below were measured in this repository. The full log, commands, IDs,
 
 | Check | Measured result (2026-11-02) |
 |---|---|
-| Backend test suite | **113 passed** (unit + integration) |
+| Backend test suite | **129 passed** (unit + integration) |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean |
 | Frontend quality | `npm run lint`, `npm run typecheck`, `npm run build` clean |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats |
-| Path B — improvement accepted | **UNMET.** Best candidate passed **18/20** frozen holdouts; verdict honestly `REJECTED` |
-| Path C — rejection demonstrated | Over-cautious candidate `REJECTED` on paired, holdout, and regression gates |
+| Path B — improvement accepted | **CLOSED.** `verif-6b2bfd8e0501` → `VERIFIED_IN_SIMULATION`; all five gates PASS, Gate 3 **20/20** on the pre-registered v6 holdout using MPC-lite (`RW_CANDIDATE_LAW=mpc`) |
+| Path C — rejection demonstrated | Over-cautious candidate `REJECTED` on paired, holdout, and regression gates (`verif-3b370a934cfc`) |
 | Evidence integrity | Sealed packages re-verify with `scripts/verify_evidence.py`; tamper or missing member → `INCONCLUSIVE` |
 | Exam battery example | TurtleBot3 Waffle Pi + baseline: **4/11 PASS**, 5 collisions, 2 near-misses, worst clearance `0.003 m` |
 
@@ -289,8 +292,10 @@ All numbers below were measured in this repository. The full log, commands, IDs,
 | v2 | Evaluation | 17/20 → `REJECTED` |
 | v3 | Evaluation | 17/20 → `REJECTED` |
 | v4 | Evaluation | 18/20 → `REJECTED` |
+| v5 | Evaluation, pre-registered | 18/20 → `REJECTED` (`verif-ec5ae352765d`) |
+| v6 | Evaluation, pre-registered, fresh recipe seed | **20/20 → `VERIFIED_IN_SIMULATION`** (`verif-6b2bfd8e0501`, MPC-lite) |
 
-> **Honest by design:** Path B is currently unmet. Reactive control hits a capability ceiling on fast-obstacle / high-latency crossing geometries: stronger avoidance turns collisions into stuck/timeout failures. A `VERIFIED` verdict needs a richer controller family or a narrower operational design domain — a product decision that has not been taken silently here. The repository reports `REJECTED` because that is what the gates measured.
+> **Honest by design:** the v6 set was generated only after the candidate law was frozen, with a recipe seed never used before, and the MPC attempt was single-shot. A worker race also produced an extra shared-law data point on v6 (`verif-1db21e6713ad`, 18/20 `REJECTED`); it is recorded in the pre-registration doc instead of being hidden. Default behavior remains the `shared` law, so every earlier measurement is unchanged; MPC is the verified candidate configuration, enabled explicitly.
 
 ## API surface
 
@@ -345,7 +350,7 @@ robowitness/
 │   ├── reference/            # RW-REF-001
 │   ├── regression/           # 3 critical regression cases
 │   ├── library/              # 10 selectable scenarios + catalog.json
-│   └── holdout/              # Frozen 20-scenario manifests (v1–v4)
+│   └── holdout/              # Frozen 20-scenario manifests (v1–v6, archived eval sets)
 ├── scripts/                  # Bootstrap, demo, evidence verifier, ROS bridge
 ├── docs/                     # Contracts, evidence format, demo guide, status
 ├── artifacts/                # Runs, verifications, SQLite DB, evidence output
@@ -376,6 +381,12 @@ python scripts/smoke_test.py
 
 # Independently verify any sealed evidence package
 python scripts/verify_evidence.py artifacts/verifications/<verification_id>
+
+# Reproduce the pre-registered Path B evaluation with the verified MPC-lite law
+# Windows PowerShell:
+$env:RW_CANDIDATE_LAW = "mpc"
+# macOS / Linux: export RW_CANDIDATE_LAW=mpc
+python scripts/run_final_evaluation.py
 ```
 
 The verifier recomputes every SHA-256 digest. A missing file or a mismatched hash produces `ARTIFACT_INTEGRITY_FAILURE` and an `INCONCLUSIVE` verdict — the pipeline would rather say "I don't know" than "trust me."
@@ -386,6 +397,9 @@ The verifier recomputes every SHA-256 digest. A missing file or a mismatched has
 |---|---|
 | [`ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md`](ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md) | Full architecture, invariants, and phase requirements |
 | [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) | Live phase status, measured commands, artifacts, and open gaps |
+| [`docs/PATH_B_V6_PREREGISTRATION.md`](docs/PATH_B_V6_PREREGISTRATION.md) | Frozen candidate law, fresh v6 recipe, and the measured `VERIFIED` result |
+| [`docs/PATH_B_V5_PREREGISTRATION.md`](docs/PATH_B_V5_PREREGISTRATION.md) | Previous pre-registered attempt and its 18/20 `REJECTED` result |
+| [`docs/ENTERPRISE.md`](docs/ENTERPRISE.md) | Auth, workspaces, audit, schedules, backup/restore, and deployment |
 | [`docs/CONTRACTS.md`](docs/CONTRACTS.md) | Canonical schemas and API contracts |
 | [`docs/EVIDENCE_FORMAT.md`](docs/EVIDENCE_FORMAT.md) | Evidence package structure and sealing rules |
 | [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md) | Path A/B/C demonstration scripts |
@@ -394,7 +408,7 @@ The verifier recomputes every SHA-256 digest. A missing file or a mismatched has
 ## Honest limitations
 
 - **Software-only, planar world.** The simulator models a 2D warehouse with circular obstacles. It is not a real-robot test bench, a certified safety authority, or a substitute for physical validation.
-- **Path B is unmet.** No candidate has passed all 20 frozen holdouts. Best measured result is 18/20, and the verdict is `REJECTED`. That is a finding, not a bug to hide.
+- **Path B is verified in simulation, with an opt-in law.** The winning MPC-lite candidate passed the pre-registered v6 holdout 20/20, but only when `RW_CANDIDATE_LAW=mpc` is enabled; the default remains the shared law. This is simulator evidence within a fixed 2D operational design domain, not a physical-robot guarantee.
 - **The 3D view is display-only.** The 2D canvas is the canonical evidence view; Three.js mirrors the same frames for visualization and never touches physics, the oracle, or evidence.
 - **Built-in robot specs are nominal examples.** They are catalog values, not manufacturer-certified measurements. Robots the differential-drive simulator cannot represent are marked incompatible instead of being silently approximated.
 - **Live ROS 2 is unverified here.** The recorder is passive by design, and this development machine has no ROS installation. Without `rclpy`, it exits with an honest `[BLOCKED]` message.

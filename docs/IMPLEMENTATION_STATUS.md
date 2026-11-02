@@ -15,7 +15,7 @@ measured in this session — no unattended claims, no fabricated verdicts.
 | PHASE 06 | PASS (v3 desktop-program rewrite 2026-11-01) | apps/web masaüstü programı düzenine çevrildi: pencere başlık/menü/araç çubuğu + sol adım listesi + sekmeli sağ panel + durum çubuğu, sayfa kayması yok, sade Türkçe arayüz, teknik terimler katlı "Teknik detaylar" altında; aynı doğrulanmış bağlantılar ve buton kimlikleri korundu, katı siyah/beyaz/gri palet korundu | npm run lint+typecheck+build + live browser proof |
 | PHASE 07 | PASS | Grounded investigation + candidate UI | `test_jobs.py::test_investigation_grounded_in_measured_telemetry` | Investigate reads recorded `telemetry.jsonl`/`metrics.json`: measured tick 358 + real clearance numbers; unknown run → 404. UI FailureAnalysis wired with provenance + apply-patch. |
 | PHASE 08 | PASS | Paired comparison + reproduction gate | `test_verification.py` (hash tests) + measured runs | Gate 1 reproduces baseline FAIL from immutable scenario; Gate 2 compares identical scenario_hash with distinct policy hashes. Same-policy repeat stable. |
-| PHASE 09 | PASS (gates honest; Path B UNMET) | Frozen 20 holdouts, regressions, sealed verdict | `run_final_evaluation.py` + `test_verification.py` | v1 set used for dev tuning → archived as `manifest_v1_dev.json`; fresh frozen v2 set generated (`generate_holdout_v2.py`, 20/20 valid). Candidate-final-v1: 17/20 → REJECTED. Candidate-B-v1: 17/20 → REJECTED. Over-cautious: REJECTED (gates 2,3,4). No VERIFIED manufactured. |
+| PHASE 09 | PASS — Path B CLOSED 2026-11-02 | Frozen 20 holdouts, regressions, sealed verdict | `run_final_evaluation.py` + `test_verification.py` | v2–v5 sets: candidate-final-v1 (shared law) 17–18/20 → REJECTED each time, honestly. Then MPC candidate law (developed on the 80 burned cases, 80/80) + pre-registered fresh v6: `verif-6b2bfd8e0501` **VERIFIED_IN_SIMULATION** (Gate 3 20/20, all gates PASS, seal re-verified). See `docs/PATH_B_V6_PREREGISTRATION.md`. |
 | PHASE 10 | PASS | Verification UI, paired replay comparison, rejection demo + 3D viewer | In-app browser flow + `test_verification.py` | 2026-10-30 live UI run: baseline (359 FRAMES) → Investigate (measured tick 358) → Apply patch → Verify → REJECTED with real gates. `ComparisonReplay` renders sealed baseline+candidate side-by-side (`BASE 359 / CAND 1340 FRAMES`, delta `0.0016 → 0.7575 m`). Rejection demo: over-cautious + pre-registered candidates honestly REJECTED. Services left running: backend :8000, worker, web :3000. 3D viewer (Three.js, display-only, physics untouched) verified live: WebGL2 canvas, zero console errors. |
 | PHASE 11 | PASS | Sealed evidence, download, independent verification | `python scripts/verify_evidence.py artifacts/verifications/<id>` | 3/3 packages verify (`verif-19161efb3b2c`, `verif-c15a43a8b39a`, `verif-61f504916d9e`). Safe ZIP download tested. Gate-5 reseals + re-verifies sealed bytes; failure → INCONCLUSIVE (implemented + tested structurally). |
 | PHASE 12 | IN_PROGRESS | Fresh install, hardening, final demo | `run_offline_demo.py` PASS; bootstrap updated | Demo runs real sims end-to-end (FAIL/PASS/FAIL). Fresh-install from venv NOT_RUN in this session (env pre-existed); bootstrap.ps1 updated for MSVC/wheel. Worker heartbeat now truthful (`worker_active` from heartbeat file, stale >30 s → false). |
@@ -218,9 +218,10 @@ Closing the gaps honestly listed after the first enterprise round:
   fleet (Waffle+Jackal run, Spot skipped with reasons); trend 7 points;
   browser Karne shows trend + fleet + JWT input, 0 console errors. Backend
   restarted in open local mode (JWT secret was live-check only).
-- **Still honestly open:** SQLite logical tenancy (no sharding), no IdP
+- **Still honestly open at that time:** SQLite logical tenancy (no sharding), no IdP
   session management, kinematic 2D physics (occlusion added; no beam-level
-  LiDAR), Path B unmet (best 18/20 frozen holdouts).
+  LiDAR), Path B then unmet (best 18/20 frozen holdouts). Path B was later
+  closed on 2026-11-02 — see the PATH B CLOSED section below.
 
 ## Enterprise Round 3 — Platform Layer (2026-11-02, user: “durmak yok”)
 
@@ -268,6 +269,106 @@ Closing the gaps honestly listed after the first enterprise round:
 - **Verification:** backend **117 passed** (beam 4 + restore round-trip),
   ruff E,F clean; services on legacy sensor mode.
 
+## Controller Experiment — pass-behind avoidance (2026-11-02, measured, REVERTED)
+
+Goal: fix the two stuck failures (HLD5-008/016). Diagnosis from telemetry:
+in 016 the robot retreats along the obstacle sweep at creep speed for ~9 s
+with no goal progress — radial escape is the stall. Experiments (candidate
+F1 params, 80 burned cases v1+v2+v3+v5):
+
+| Law variant | Total | Failures |
+|---|---|---|
+| Original (current) | 77/80 | 017 collision, 008, 016 stuck |
+| Progress creep floor | 77/80 | same set (008 clearance worse) — reverted |
+| Pass-behind bias 0.4 | 76/80 | 017, 008, 013, 016 — reverted |
+| Pass-behind bias 0.7 | 77/80 | 017, 008, 013 collision (016 fixed) — reverted |
+| Pass-behind bias 1.0 | 77/80 | 017, 008 collision, 013 — reverted |
+
+No variant dominates; failures rotate among {017, 008, 013, 016}. This law
+family + 350-400 ms latency has hit its ceiling. The law is left byte-identical
+to the measured baseline (offline demo: FAIL tick class unchanged, 117 tests
+green). Also noted: the v5 set's geometry turned out identical to v4's (same
+recipe seed sequence; only sensor-noise seeds differed) — recorded here so
+nobody mistakes v5 for fully independent geometry. A future attempt needs a
+structurally different controller (e.g., timed gap-crossing planner), a new
+pre-registration, and a genuinely fresh recipe seed for v6.
+
+## Controller Experiment Round 2 — timed gap-crossing planner (2026-11-02, REVERTED)
+
+Implemented and measured three structural variants on the same 80 burned
+cases (candidate F1 params; original law = 77/80):
+
+| Variant | Total | Note |
+|---|---|---|
+| Timed gap-rush (speed floor only) | 77/80 | fired 129 ticks in 016, still stuck (wrong heading) |
+| Gap-rush + committed goal heading | 77/80 | identical failures {017, 008, 016} |
+| Stall-gated pass-behind (0.7 @ low speed) | 74/80 | new collisions (HLD3-016, HLD5-013) |
+
+Diagnosis (016): stuck first trips at tick 679 with the robot south of the
+sweeping obstacle — a pass-side commitment problem, and every steering bias
+tried either does nothing or trades a stuck for a collision. All variants
+reverted: `configurable.py` is byte-identical to the measured baseline
+(offline demo FAIL class unchanged; policy/simulation tests green).
+Conclusion stands: this needs a stateful planner (side commitment with
+memory), which the current stateless policy contract does not allow —
+that is a contract change, to be pre-registered separately if attempted.
+
+## Stateful Candidate Planner (2026-11-02, opt-in experimental, NOT an improvement claim)
+
+Contract change, kept: `SimulationRunner` calls `policy_fn.reset()` per run;
+candidate policy selection is centralized in `app/policies/candidate_law.py`
+(`RW_CANDIDATE_LAW=shared|stateful`, default **shared** — every frozen result
+unchanged). Holdout/regression/paired-candidate paths use the selector;
+baseline always uses the shared law.
+
+Measured on the same 80 burned cases (candidate F1 params):
+- Proactive side-commitment planner: **65/80** (virtual-goal shift dragged
+  healthy runs into stalls) — rejected.
+- Reactive variant (detour shift + creep floor only after ~1–1.5 s of stall):
+  **77/80**, failures identical to the shared law {017 collision, 008, 016};
+  no regression, no gain (008 clearance 0.116 → 0.170, still FAIL).
+
+Verdict: shipped as an experimental opt-in (`stateful_candidate.py`, 5 unit
+tests) because the contract plumbing is the honest prerequisite for future
+controller research — but Path B is NOT advanced by it, so no v6 set was
+generated: running a fresh set with an unimproved candidate would be set
+shopping. Backend 122 passed; default behavior byte-identical.
+
+## Waypoint Candidate Planner (2026-11-02, opt-in experimental, NOT an improvement claim)
+
+`RW_CANDIDATE_LAW=waypoint`: picks one world-frame waypoint beside the
+blocking obstacle (vacating side), steers there via the shared core law,
+resumes to goal on reach; v2 added stale/unsafe waypoint re-planning
+(300-tick expiry, obstacle-swept-back detection). Measured on the same 80
+burned cases: **68/80** both versions (shared law: 77/80). Failure mode:
+core-law braking near the waypoint lets the oracle's 3 s stuck window close
+before the waypoint is reached — the same wall every candidate-side idea
+hits. Kept as a tested, opt-in experimental law; default remains `shared`.
+Backend 126 passed. Honest summary across all controller attempts: with
+350–400 ms latency and this oracle, the shared law's 77/80 (best frozen
+result 18/20) is the current ceiling; beating it likely needs prediction
+quality (track fidelity under latency), not more steering heuristics.
+
+## PATH B CLOSED — First VERIFIED (2026-11-02)
+
+`verif-6b2bfd8e0501` → **VERIFIED_IN_SIMULATION** (all 5 gates PASS, Gate 3
+20/20 on the fresh, pre-registered v6 set; independent seal re-check OK).
+Pre-registration: `docs/PATH_B_V6_PREREGISTRATION.md` (written before the
+set existed). Winning change: **MPC-lite candidate law**
+(`app/policies/mpc_candidate.py`, `RW_CANDIDATE_LAW=mpc`): receding-horizon
+rollouts over delivered tracks with a preferred-clearance tier (0.28 m).
+Development was on the 80 burned cases (80/80 there: v1-dev 20, v2 19→20,
+v3 20, v5 19→20), regressions 3/3. Over-cautious control still REJECTED
+(`verif-3b370a934cfc`). A worker race produced an extra shared-law data
+point on v6 (`verif-1db21e6713ad`, 18/20 REJECTED) — recorded in the
+pre-registration doc; the MPC shot itself was single and pre-registered.
+Default law remains `shared`; MPC is the verified candidate configuration
+to enable explicitly. Path B is no longer an open gap.
+
+Verification for this round: backend **129 passed** (new MPC/stateful/waypoint
+tests), `ruff check --select E,F` clean, `ruff format --check` clean
+(112 files).
+
 ## Execution State Details
 
 - **Current phase:** PHASE 12 (hardening; Phases 07/10/12 partially open, see below)
@@ -283,7 +384,7 @@ Closing the gaps honestly listed after the first enterprise round:
   - `verif-61f504916d9e` (candidate-B-v1 0.55/0.90/0.15/3.5/0.80): REJECTED — GATE_3 17/20 (HLD2-004/006/017); gates 1,2,4,5 PASS
   - `verif-c15a43a8b39a` (over-cautious): REJECTED — gates 2,3,4 FAIL (measured)
 - **Open issues / honest gaps:**
-  1. Path B UNMET after 4 frozen eval sets + 60-case grids (best 59/60 twice: F1 and k07 0.65/1.0/1.0/4.0; HLD2-017 fails under every law/param — max-difficulty corner: 0.5 m/s + 350 ms + noise). VERIFIED needs a richer controller family or narrower holdout ODD.
+  1. Path B CLOSED: `verif-6b2bfd8e0501` is `VERIFIED_IN_SIMULATION` on the pre-registered v6 set (20/20, MPC-lite, opt-in `RW_CANDIDATE_LAW=mpc`). Remaining gap is physical-world validation, not simulation verification; default law stays `shared`.
   2. Full-stack live flow re-verified after redesign: new baseline clears stale verification (no ghost pairs); NEW `GET /api/verifications` + history picker restores any past verification explicitly (`verif-58fc387d` → BASE 359 / CAND 1333, zero console errors).
   3. Fresh-venv install: PASS 2026-10-30 — clean venv `C:\Temp\rw-venv-test`, `pip install -e backend[dev]` (after pyproject `packages.find` fix), pybullet 3.2.7 source-built, **51 passed** on newest deps. Live Meta UNVERIFIED (endpoint+model unknown; provided key NOT used — no invented URLs).
 - **Decisions/deviations:**

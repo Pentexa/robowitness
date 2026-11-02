@@ -29,6 +29,10 @@ class SimulationRunner:
         self.max_ticks = int(scenario.world.duration_limit_s / self.dt)
 
     def run(self) -> Tuple[List[TelemetryFrame], RunMetrics, List[str]]:
+        # Stateful policies (opt-in candidate law) get a clean slate per run.
+        reset = getattr(self.policy_fn, "reset", None)
+        if callable(reset):
+            reset()
         world = SimulationWorld(self.scenario.world)
         client_id = world.connect()
 

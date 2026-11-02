@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from app.policies.configurable import configurable_policy
+from app.policies.candidate_law import get_candidate_policy_fn
 from app.schemas.policy import PolicyConfig
 from app.schemas.scenario import ScenarioSpec
 from app.schemas.verification import GateResult
@@ -29,7 +29,7 @@ def evaluate_regressions(candidate_policy: PolicyConfig, regression_dir: Path) -
             data = json.load(f)
         spec = ScenarioSpec.model_validate(data)
 
-        runner = SimulationRunner(spec, candidate_policy, configurable_policy)
+        runner = SimulationRunner(spec, candidate_policy, get_candidate_policy_fn())
         frames, metrics, raw_reasons = runner.run()
         oracle_status, reasons = evaluate_oracle(metrics, spec.oracle, raw_reasons)
 

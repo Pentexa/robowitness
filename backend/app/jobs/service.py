@@ -13,6 +13,7 @@ from app.evidence.recorder import (
     save_verification_artifacts,
 )
 from app.evidence.reporter import generate_verification_report
+from app.policies.candidate_law import get_candidate_policy_fn
 from app.policies.configurable import configurable_policy
 from app.policies.local_adapter import SubprocessPolicy
 from app.schemas.battery import BatteryEntry, BatteryResult, is_near_miss, summarize
@@ -243,7 +244,7 @@ class JobExecutionService:
                 )
             )
 
-        c_runner = SimulationRunner(scenario, candidate_policy, configurable_policy)
+        c_runner = SimulationRunner(scenario, candidate_policy, get_candidate_policy_fn())
         c_frames, c_metrics, c_raw_reasons = c_runner.run()
         c_status, c_reasons = evaluate_oracle(c_metrics, scenario.oracle, c_raw_reasons)
 

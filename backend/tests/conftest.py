@@ -33,6 +33,7 @@ def temp_workspace():
         settings.RW_OIDC_ISSUER = ""
         settings.RW_OIDC_AUDIENCE = ""
         settings.RW_SENSOR_MODEL = "legacy"
+        settings.RW_CANDIDATE_LAW = "shared"
         settings.RW_META_API_KEY = ""
         settings.RW_META_BASE_URL = ""
         settings.RW_META_MODEL = ""
