@@ -1,3 +1,11 @@
+
+
+https://github.com/user-attachments/assets/c79c6d78-3461-40df-992b-6364f0d0aee1
+
+
+
+https://github.com/user-attachments/assets/47551613-189a-487e-986c-ae2f856d1104
+
 <div align="center">
 
 <img src="docs/assets/hero.svg" alt="RoboWitness — independent verification for AI-generated robotics policies" width="100%" />
