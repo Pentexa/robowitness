@@ -31,6 +31,8 @@
 <br />
 
 [![Tests — 159 Passed](https://img.shields.io/badge/tests-159_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
+[![E2E — 8 Passed](https://img.shields.io/badge/e2e-8_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
+[![UI — English + Türkçe](https://img.shields.io/badge/ui-english_%2B_turkish-2F6BFF?style=flat-square)](#-at-a-glance)
 [![Verdicts — Never Manufactured](https://img.shields.io/badge/verdicts-never_manufactured-6f42c1?style=flat-square&logo=shieldsdotio&logoColor=white)](#-honest-limitations)
 [![Physics — 60 Hz Deterministic](https://img.shields.io/badge/physics-60_Hz_deterministic-FF6F00?style=flat-square)](#how-it-works)
 [![Evidence — SHA-256 Sealed](https://img.shields.io/badge/evidence-SHA--256_sealed-2E7D32?style=flat-square&logo=letsencrypt&logoColor=white)](#-evidence-sealing)
@@ -456,6 +458,7 @@ python -m pip install --no-build-isolation pybullet==3.2.5
 | Frontend E2E (Playwright, live stack) | **8 passed** — incl. a no-Turkish-characters UI leak guard | ✅ |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean | ✅ |
 | Frontend quality | `npm run lint`, `npm run typecheck`, `npm run build` clean | ✅ |
+| Frontend E2E (Playwright, live stack) | **8 passed** — incl. a no-Turkish-characters UI leak guard | ✅ |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats | ✅ |
 | Path B — improvement accepted | **CLOSED.** `verif-6b2bfd8e0501` → `VERIFIED_IN_SIMULATION`; all five gates PASS, Gate 3 **20/20** on the pre-registered v6 holdout using MPC-lite | ✅ |
 | Path C — rejection demonstrated | Over-cautious candidate `REJECTED` on paired, holdout, and regression gates (`verif-3b370a934cfc`) | ✅ |
