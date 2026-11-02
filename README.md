@@ -1,6 +1,5 @@
-<div align="center">
+<img width="2048" height="1530" alt="WhatsApp Image 2026-11-02 at 20 09 46" src="https://github.com/user-attachments/assets/a471feb9-36b2-4ce6-8f4f-df02cedb1e30" />
 
-<img src="docs/assets/hero.svg" alt="RoboWitness" width="100%" />
 
 <br />
 
