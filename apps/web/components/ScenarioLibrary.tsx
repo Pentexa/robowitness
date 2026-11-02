@@ -17,6 +17,11 @@ export const ScenarioLibrary: React.FC<ScenarioLibraryProps> = ({
   disabled,
 }) => {
   const active = entries.find((e) => e.scenario.id === activeScenarioId) ?? null;
+  const groups = new Map<string, ScenarioCatalogEntry[]>();
+  for (const entry of entries) {
+    const key = entry.category || "Diğer";
+    groups.set(key, [...(groups.get(key) ?? []), entry]);
+  }
   return (
     <section className="rw-section">
       <h3 className="rw-section-title">Senaryo Kütüphanesi ({entries.length})</h3>
@@ -32,13 +37,27 @@ export const ScenarioLibrary: React.FC<ScenarioLibraryProps> = ({
         }}
       >
         <option value="">— Kütüphaneden seçin —</option>
-        {entries.map((e) => (
-          <option key={e.scenario.id} value={e.scenario.id}>
-            {e.title} ({e.difficulty})
-          </option>
+        {Array.from(groups.entries()).map(([category, group]) => (
+          <optgroup key={category} label={`${category} (${group.length})`}>
+            {group.map((e) => (
+              <option key={e.scenario.id} value={e.scenario.id}>
+                {e.title} — {e.scenario.obstacles.length} engel
+              </option>
+            ))}
+          </optgroup>
         ))}
       </select>
-      {active && <p className="rw-summary">{active.description}</p>}
+      {active && (
+        <p className="rw-summary">
+          {active.description} <strong>({active.scenario.obstacles.length} engel)</strong>
+        </p>
+      )}
+      {!active && (
+        <p className="rw-summary">
+          Kalabalık insan trafiği için <strong>Kalabalık Trafik</strong> grubundan, en zor sınavlar için{" "}
+          <strong>Ultra Zor</strong> grubundan seçin.
+        </p>
+      )}
     </section>
   );
 };

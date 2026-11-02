@@ -564,7 +564,10 @@ export default function DashboardPage() {
                       3B
                     </button>
                   </div>
-                  <span className="rw-badge mono">{frames.length > 0 ? `${frames.length} ADIM KAYDEDİLDİ` : "HENÜZ ÇALIŞTIRILMADI"}</span>
+                  <span className="rw-badge mono">
+                    {scenario ? `${scenario.obstacles.length} ENGEL` : "—"}
+                    {frames.length > 0 ? ` · ${frames.length} ADIM` : ""}
+                  </span>
                 </div>
               </div>
               <div className="rw-card-body">
