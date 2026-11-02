@@ -67,18 +67,6 @@ RoboWitness, yapay zekânın önerdiği robot politikası düzeltmelerini bağı
 
 <br />
 
-## 🎬 Demo Video
-
-<div align="center">
-
-<video src="docs/assets/robowitness-intro.mp4" controls width="100%"></video>
-
-🎬 **RoboWitness Tanıtım ve Doğrulama Videosu (90 sn)**
-
-</div>
-
-<br />
-
 ## ⚡ For Hackathon Judges — 60 Seconds
 
 RoboWitness exists because **"the AI fixed my robot"** is usually self-graded homework. Here the fix must pass an exam it cannot see:
