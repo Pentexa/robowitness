@@ -55,8 +55,8 @@ class Settings(BaseSettings):
     # bearing). Beam mode is experimental and changes outcomes by design.
     RW_SENSOR_MODEL: str = "legacy"
     # Candidate law: "shared" (stateless, default; all frozen results),
-    # "mpc" (verified MPC-lite, opt-in), or the experimental "stateful" /
-    # "waypoint" planners (candidate-only).
+    # "mpc" (verified MPC-lite, opt-in), "mpc-crowd" (crowd-tuned variant),
+    # or the experimental "stateful" / "waypoint" planners (candidate-only).
     RW_CANDIDATE_LAW: str = "shared"
     RW_DB_PATH: str = "./artifacts/robowitness.sqlite3"
     RW_ARTIFACTS_DIR: str = "./artifacts"

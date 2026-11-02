@@ -26,6 +26,19 @@ _ENGAGE_DISTANCE_M = 3.5
 
 
 class MpcCandidatePolicy:
+    # Rollout parameters as class attributes so crowd-tuned variants can
+    # subclass without touching the verified configuration's behavior.
+    DT = _DT
+    STEPS = _STEPS
+    SPEED_FRACTIONS = _SPEED_FRACTIONS
+    OMEGAS = _OMEGAS
+    UNCERTAINTY_BASE_M = 0.0  # extra predicted-radius inflation at t=0
+    UNCERTAINTY_RATE_MPS = 0.0  # growth per second of prediction horizon
+    ENGAGE_DISTANCE_M = _ENGAGE_DISTANCE_M
+    SAFE_CAP_M: float | None = None  # cap on the penalty distance (crowd variant)
+    STILL_PENALTY = 0.25
+    CLEARANCE_WEIGHT = 1.6
+
     def __init__(self) -> None:
         self.reset()
 
@@ -36,7 +49,7 @@ class MpcCandidatePolicy:
         if obs.observed_pose is None or not obs.obstacles:
             return _core_navigation_law(obs, config)
         nearest = min(o.distance_m for o in obs.obstacles)
-        if nearest > _ENGAGE_DISTANCE_M:
+        if nearest > self.ENGAGE_DISTANCE_M:
             return _core_navigation_law(obs, config)
         planned = self._plan(obs, config)
         if planned is None:
@@ -71,33 +84,41 @@ class MpcCandidatePolicy:
             )
 
         safe = config.safe_distance_m + config.reaction_margin_m
+        if self.SAFE_CAP_M is not None:
+            safe = min(safe, self.SAFE_CAP_M)
         start_goal_dist = math.hypot(goal_x - rx, goal_y - ry)
         best: tuple[float, float, float] | None = None  # (cost, v, omega)
         best_relaxed: tuple[float, float, float] | None = None
 
-        for fraction in _SPEED_FRACTIONS:
+        for fraction in self.SPEED_FRACTIONS:
             v = fraction * config.max_speed_mps
-            for omega in _OMEGAS:
+            for omega in self.OMEGAS:
                 x, y, heading = rx, ry, yaw
                 min_clearance = float("inf")
                 clearance_penalty = 0.0
                 rejected = False
-                for step in range(1, _STEPS + 1):
-                    t = step * _DT
-                    heading += omega * _DT
-                    x += v * math.cos(heading) * _DT
-                    y += v * math.sin(heading) * _DT
+                for step in range(1, self.STEPS + 1):
+                    t = step * self.DT
+                    heading += omega * self.DT
+                    x += v * math.cos(heading) * self.DT
+                    y += v * math.sin(heading) * self.DT
+                    uncertainty = self.UNCERTAINTY_BASE_M + self.UNCERTAINTY_RATE_MPS * t
                     for obstacle in obstacles:
                         ox = obstacle["x"] + obstacle["vx"] * t
                         oy = obstacle["y"] + obstacle["vy"] * t
-                        surface = math.hypot(ox - x, oy - y) - obstacle["r"] - obstacle["body"]
+                        surface = (
+                            math.hypot(ox - x, oy - y)
+                            - obstacle["r"]
+                            - obstacle["body"]
+                            - uncertainty
+                        )
                         if surface < min_clearance:
                             min_clearance = surface
                         if surface < _CRITICAL_CLEARANCE_M:
                             rejected = True
                             break
                         if surface < safe:
-                            clearance_penalty += (safe - surface) * _DT
+                            clearance_penalty += (safe - surface) * self.DT
                     if rejected:
                         break
                 if rejected:
@@ -107,9 +128,9 @@ class MpcCandidatePolicy:
                 cost = (
                     final_goal_dist
                     - 0.35 * progress
-                    + 1.6 * clearance_penalty
+                    + self.CLEARANCE_WEIGHT * clearance_penalty
                     + 0.05 * abs(omega)
-                    + (0.25 if v == 0.0 else 0.0)  # sitting still must earn its keep
+                    + (self.STILL_PENALTY if v == 0.0 else 0.0)  # sitting still must earn its keep
                 )
                 candidate = (cost, v, omega)
                 if best_relaxed is None or cost < best_relaxed[0]:

@@ -407,6 +407,22 @@ HTTP + real worker service + oracle + sealed evidence (no mocks):
 Suite total: **136 passed** (~100 s). Plus `scripts/e2e_live_stack.py`
 against the running stack: ALL PASSED (investigation answered LIVE_META).
 
+## Crowd Pack + Crowd MPC (2026-11-02, user: crowded traffic/people)
+
+5 crowd scenarios (`scenarios/crowd/`, in the library; battery now 21):
+crossing streams, two-way corridor, goal guards, market chaos, fast
+pedestrians (0.8-0.9 m/s, 500 ms latency). New law `mpc-crowd`
+(`RW_CANDIDATE_LAW=mpc-crowd`): closed-loop rollouts (heading re-aimed
+every simulated step), prediction-uncertainty inflation, 3.6 s horizon.
+Frozen contract (`tests/unit/test_crowd_scenarios.py`): baseline fails
+5/5; champion (candidate-final-v1 params + crowd law) passes 5/5 with
+0.36-0.76 m clearances. The verified `mpc` law is untouched (v6 re-check
+still 20/20). Live: Pazar Yeri baseline collision → verification with the
+crowd configuration → `verif-b9ce2a55155e` **VERIFIED_IN_SIMULATION**
+(all gates incl. Gate 3 on v6 also pass under the crowd law).
+Caught in passing: a stale pre-crowd worker process was stealing jobs —
+killed; worker restarted on the default shared law. Suite: 138 passed.
+
 ## Execution State Details
 
 - **Current phase:** PHASE 12 (hardening; Phases 07/10/12 partially open, see below)

@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "entries": [
+    {"scenario_id": "RW-CROWD-001", "file": "karsidan_karsiya.json", "title": "Kalabalık: Karşıdan Karşıya", "description": "Üç yaya şeridi art arda yolu keser; eski ayarlar güvenli mesafeyi çiğner, kalabalık zekâsı boşluklardan süzülür.", "difficulty": "Kalabalık", "category": "Kalabalık Trafik", "tags": ["yaya akışı", "boşluk"]},
+    {"scenario_id": "RW-CROWD-002", "file": "cift_yonlu_koridor.json", "title": "Kalabalık: Çift Yönlü Koridor", "description": "İki şeritte zıt yönlü yaya trafiği; robot ortadaki ince koridordan geçmek zorunda.", "difficulty": "Kalabalık", "category": "Kalabalık Trafik", "tags": ["koridor", "çift yön"]},
+    {"scenario_id": "RW-CROWD-003", "file": "hedef_onu.json", "title": "Kalabalık: Hedef Önü", "description": "Hedefin önünde nöbet tutan yayalar; zamanlama tutmazsa çarpışma kaçınılmaz.", "difficulty": "Kalabalık", "category": "Kalabalık Trafik", "tags": ["hedef", "nöbetçi"]},
+    {"scenario_id": "RW-CROWD-004", "file": "pazar_yeri.json", "title": "Kalabalık: Pazar Yeri", "description": "Beş yaya çapraz rotalarla pazar kalabalığı oluşturur; eski ayarlar ilk dakikalarda çarpışır.", "difficulty": "Kalabalık", "category": "Kalabalık Trafik", "tags": ["pazar", "kaos"]},
+    {"scenario_id": "RW-CROWD-005", "file": "acele_kalabalik.json", "title": "Kalabalık: Acele Kalabalık", "description": "0,8-0,9 m/sn koşan yayalar ve yarım saniye sensör gecikmesi; refleks sınavı.", "difficulty": "Kalabalık", "category": "Kalabalık Trafik", "tags": ["hızlı yaya", "refleks"]}
+  ]
+}

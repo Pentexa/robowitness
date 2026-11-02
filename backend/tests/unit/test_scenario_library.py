@@ -12,15 +12,17 @@ def test_library_endpoint_lists_ten_scenarios_with_metadata(client):
     res = client.get("/api/scenarios/library")
     assert res.status_code == 200
     entries = res.json()
-    assert len(entries) == 15  # 10 library + 5 ultra
+    assert len(entries) == 20  # 10 library + 5 ultra + 5 crowd
     ids = [e["scenario"]["id"] for e in entries]
-    assert len(set(ids)) == 15
+    assert len(set(ids)) == 20
     for entry in entries:
         assert entry["title"]
-        assert entry["difficulty"] in ("Kolay", "Orta", "Zor", "Ultra")
+        assert entry["difficulty"] in ("Kolay", "Orta", "Zor", "Ultra", "Kalabalık")
         assert entry["category"]
     ultra = [e for e in entries if e["difficulty"] == "Ultra"]
     assert len(ultra) == 5
+    crowd = [e for e in entries if e["difficulty"] == "Kalabalık"]
+    assert len(crowd) == 5
 
 
 def test_library_files_on_disk_all_validate():

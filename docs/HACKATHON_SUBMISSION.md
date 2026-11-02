@@ -23,7 +23,7 @@ exam it cannot see, graded by a judge that never reads its reasoning?
   scenarios and investigates failures from measured tick-level evidence;
   an offline reference mode keeps everything runnable without a key.
 - Product surface: robot catalog (brand/model/specs, custom robots),
-  16-scenario exam battery (including 5 ultra-hard cases) with report cards,
+  21-scenario exam battery (including 5 ultra-hard and 5 crowd cases) with report cards,
   battery comparison/trends,
   fleets, policy profiles, your own Python policy (subprocess, opt-in),
   real-drive log judging, your own map → scenario, ROS 2 passive recorder.
@@ -44,7 +44,7 @@ manufacture success; it makes success mean something.
 ## How we built it
 FastAPI + SQLite atomic job worker + PyBullet DIRECT simulation, Next.js
 dashboard (Turkish UI designed for non-experts), Pydantic contracts,
-SHA-256 evidence packages with an independent verifier. 136 backend tests
+SHA-256 evidence packages with an independent verifier. 138 backend tests
 pass, including in a fresh venv; Docker images built and run-verified.
 Controller research (shared law → pass-behind/stateful/waypoint/MPC) was
 run under a strict protocol: develop only on burned sets, pre-register,
@@ -76,6 +76,15 @@ patch. RoboWitness then examined *that* solution:
   (RW-HLD6-013) kept it from VERIFIED. Even a great Meta answer does not
   get a free pass; the pre-registered champion (`verif-6b2bfd8e0501`,
   20/20) is what earning it looks like.
+
+## Crowd mode (when the judge asks "but what about people?")
+Five crowd scenarios (pedestrian streams, a two-way corridor, goal
+guards, a market square, 0.9 m/s runners at 500 ms latency) ship in the
+library. The baseline fails all five. A crowd-tuned MPC variant
+(closed-loop rollouts + prediction-uncertainty inflation) passes all
+five — and live-verified the market scenario end-to-end
+(`verif-b9ce2a55155e`, VERIFIED with the crowd configuration).
+Frozen expectations: `tests/unit/test_crowd_scenarios.py`.
 
 ## 3-minute demo script
 - **0:00–0:30** Problem: "AI fixed my robot" is self-graded homework. Show

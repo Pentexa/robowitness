@@ -74,7 +74,11 @@ def _load_catalog_dir(directory: Path) -> List[ScenarioCatalogEntry]:
 @router.get("/library", response_model=List[ScenarioCatalogEntry], status_code=status.HTTP_200_OK)
 def list_library_scenarios():
     root = get_scenarios_root()
-    return _load_catalog_dir(root / "library") + _load_catalog_dir(root / "ultra")
+    return (
+        _load_catalog_dir(root / "library")
+        + _load_catalog_dir(root / "ultra")
+        + _load_catalog_dir(root / "crowd")
+    )
 
 
 @router.post("/generate", response_model=ScenarioGenerateResponse, status_code=status.HTTP_200_OK)

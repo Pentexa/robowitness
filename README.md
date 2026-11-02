@@ -6,7 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![PyBullet](https://img.shields.io/badge/Physics-PyBullet%20%7C%2060%20Hz-orange?style=flat-square)](https://pybullet.org/)
-[![Tests](https://img.shields.io/badge/backend%20tests-136%20passed-brightgreen?style=flat-square)](#measured-results)
+[![Tests](https://img.shields.io/badge/backend%20tests-138%20passed-brightgreen?style=flat-square)](#measured-results)
 [![Verdicts](https://img.shields.io/badge/verdicts-never%20manufactured-6f42c1?style=flat-square)](#honest-limitations)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue?style=flat-square)](LICENSE)
 
@@ -180,9 +180,9 @@ The web app is a five-tab Turkish-language workflow designed for non-experts:
 
 - **Robot catalog** — six built-in profiles (ROBOTIS TurtleBot3 Waffle Pi/Burger, Clearpath Jackal, MiR250, Boston Dynamics Spot, Unitree Go2) plus user-created robots with full specs.
 - **Honest compatibility gate** — only differential-drive robots with a body radius of `0.15–0.40 m` can enter this simulator. Others stay in the catalog and are explicitly marked incompatible.
-- **Scenario library** — the canonical `RW-REF-001` reference, 15 selectable scenarios (10 `RW-LIB-*` + 5 `RW-ULTRA-*`), 3 regression cases, and a frozen 20-scenario holdout manifest.
+- **Scenario library** — the canonical `RW-REF-001` reference, 20 selectable scenarios (10 `RW-LIB-*`, 5 `RW-ULTRA-*`, 5 `RW-CROWD-*`), 3 regression cases, and a frozen 20-scenario holdout manifest.
 - **Policy profiles** — four built-in presets plus your own saved parameter sets, usable in single runs and batteries.
-- **Exam battery** — one click runs the reference plus all 15 selectable scenarios (16 total) for a chosen robot and policy profile, then produces a report card.
+- **Exam battery** — one click runs the reference plus all 20 selectable scenarios (21 total) for a chosen robot and policy profile, then produces a report card.
 - **Real-log import** — upload a real drive as CSV (`t_s,x_m,y_m,yaw_rad,min_obstacle_distance_m`) or JSON frames; it is judged by the same rules and labeled `REAL_LOG`.
 - **Passive ROS 2 recorder** — `scripts/ros2_bridge.py` listens to `/odom` and `/scan` only and never publishes; without `rclpy` it exits with an honest `[BLOCKED]` message.
 - **Local policy plugins (opt-in)** — your own single-file Python policy can drive runs and batteries in a subprocess with timeouts and output clamping. This is **not** a security sandbox, and AI-generated code is forbidden there.
@@ -299,7 +299,7 @@ All numbers below were measured in this repository. The full log, commands, IDs,
 
 | Check | Measured result (2026-11-02) |
 |---|---|
-| Backend test suite | **136 passed** (unit + integration) |
+| Backend test suite | **138 passed** (unit + integration) |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean |
 | Frontend quality | `npm run lint`, `npm run typecheck`, `npm run build` clean |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats |
@@ -329,7 +329,7 @@ Interactive OpenAPI docs are available at **`http://127.0.0.1:8000/docs`** while
 |---|---|---|
 | `GET` | `/api/health` | Service health and truthful worker heartbeat |
 | `GET` | `/api/scenarios/reference` | Canonical `RW-REF-001` scenario |
-| `GET` | `/api/scenarios/library` | The 15 selectable library scenarios (10 normal + 5 ultra) |
+| `GET` | `/api/scenarios/library` | The 20 selectable library scenarios (10 normal + 5 ultra + 5 crowd) |
 | `POST` | `/api/scenarios/generate` | Generate a scenario (offline reference or live AI) |
 | `POST` | `/api/runs` | Queue a simulation run |
 | `GET` | `/api/runs/{run_id}` | Run result, metrics, and oracle verdict |
@@ -344,7 +344,7 @@ Interactive OpenAPI docs are available at **`http://127.0.0.1:8000/docs`** while
 | `GET` | `/api/evidence/{id}/download` | Safe ZIP download |
 | `GET` / `POST` | `/api/robots` | List / create robot profiles |
 | `GET` / `POST` | `/api/policy-profiles` | List / create policy presets |
-| `POST` | `/api/batteries` | Queue the full exam battery (16 scenarios) |
+| `POST` | `/api/batteries` | Queue the full exam battery (21 scenarios) |
 | `GET` | `/api/batteries/{id}/report.md` | Download the Markdown report card |
 | `POST` | `/api/imports/telemetry` | Import a real drive log (CSV or JSON) |
 | `GET` | `/api/local-policies` | List opt-in local policy plugins |
@@ -375,6 +375,7 @@ robowitness/
 │   ├── regression/           # 3 critical regression cases
 │   ├── library/              # 10 selectable scenarios + catalog.json
 │   ├── ultra/                # 5 ultra-hard showcase scenarios + catalog.json
+│   ├── crowd/                # 5 crowd-traffic scenarios + catalog.json
 │   └── holdout/              # Frozen 20-scenario manifests (v1–v6, archived eval sets)
 ├── scripts/                  # Bootstrap, demo, evidence verifier, ROS bridge
 ├── docs/                     # Contracts, evidence format, demo guide, status
