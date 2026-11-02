@@ -304,8 +304,12 @@ def get_battery(battery_id: str, request: Request):
 
 
 @router.get("/{battery_id}/report.md", status_code=status.HTTP_200_OK)
-def download_battery_report(battery_id: str, request: Request):
-    report = generate_battery_report(_load_battery(battery_id, current_workspace(request)))
+def download_battery_report(
+    battery_id: str, request: Request, lang: str = Query("tr")
+):
+    report = generate_battery_report(
+        _load_battery(battery_id, current_workspace(request)), lang=lang
+    )
     return PlainTextResponse(
         content=report,
         media_type="text/markdown; charset=utf-8",

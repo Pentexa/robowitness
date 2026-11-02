@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Code2 } from "lucide-react";
+import { useLocale } from "../lib/i18n";
 import { LocalPolicyInfo } from "../lib/types";
 
 interface LocalPolicyPanelProps {
@@ -11,28 +12,29 @@ interface LocalPolicyPanelProps {
 }
 
 export const LocalPolicyPanel: React.FC<LocalPolicyPanelProps> = ({ info, selected, onSelect }) => {
+  const { t } = useLocale();
   return (
     <section className="rw-section">
       <h3 className="rw-section-title">
-        <Code2 size={14} /> Kendi Kodum (Yerel Politika)
+        <Code2 size={14} /> {t("Kendi Kodum (Yerel Politika)")}
       </h3>
       {!info ? (
-        <p className="rw-summary">Yükleniyor…</p>
+        <p className="rw-summary">{t("Yükleniyor…")}</p>
       ) : !info.enabled ? (
         <p className="rw-summary">
-          Sunucuda kapalı. Açmak için <span className="mono">.env</span> içinde{" "}
-          <span className="mono">RW_ALLOW_LOCAL_POLICY=on</span> yapıp arka ucu yeniden başlatın.
+          {t("Sunucuda kapalı. Açmak için")} <span className="mono">.env</span> {t("içinde")}{" "}
+          <span className="mono">RW_ALLOW_LOCAL_POLICY=on</span> {t("yapıp arka ucu yeniden başlatın.")}
         </p>
       ) : (
         <>
           <select
             id="select-local-policy"
             className="rw-input"
-            aria-label="Yerel politikalar"
+            aria-label={t("Yerel politikalar")}
             value={selected}
             onChange={(e) => onSelect(e.target.value)}
           >
-            <option value="">— Kullanma (standart ayarlar) —</option>
+            <option value="">{t("— Kullanma (standart ayarlar) —")}</option>
             {info.policies.map((p) => (
               <option key={p.name} value={p.name}>
                 {p.name}.py{p.description ? ` — ${p.description}` : ""}
@@ -40,16 +42,15 @@ export const LocalPolicyPanel: React.FC<LocalPolicyPanelProps> = ({ info, select
             ))}
           </select>
           <p className="rw-summary">
-            Seçersen “Robotu Çalıştır” ve batarya,{" "}
-            <span className="mono">backend/app/policies/local/</span> altındaki senin kodunla çalışır.
-            <strong> Uyarı:</strong> Bu bir güvenlik kum havuzu değildir; yalnızca kendi yazdığın ve
-            güvendiğin kodu koy. Meta AI'ın çözümleri için güvenli yol, yukarıdaki yama ve profil
-            akışıdır. Kod ayrı bir süreçte çalışır; hata verirse veya 5 saniyeyi aşarsa koşu başarısız
-            sayılır, sahte sonuç üretilmez.
+            {t("Seçersen “Robotu Çalıştır” ve batarya,")}{" "}
+            <span className="mono">backend/app/policies/local/</span>{" "}
+            {t("altındaki senin kodunla çalışır.")}{" "}
+            <strong>{t("Uyarı:")}</strong>{" "}
+            {t("Bu bir güvenlik kum havuzu değildir; yalnızca kendi yazdığın ve güvendiğin kodu koy. Meta AI'ın çözümleri için güvenli yol, yukarıdaki yama ve profil akışıdır. Kod ayrı bir süreçte çalışır; hata verirse veya 5 saniyeyi aşarsa koşu başarısız sayılır, sahte sonuç üretilmez.")}
           </p>
           {selected && (
             <p className="rw-summary" role="status">
-              Aktif yerel politika: <strong>{selected}.py</strong>
+              {t("Aktif yerel politika:")} <strong>{selected}.py</strong>
             </p>
           )}
         </>

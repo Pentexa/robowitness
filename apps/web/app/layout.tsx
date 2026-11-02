@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { LocaleProvider } from "../lib/i18n";
 
 export const metadata: Metadata = {
-  title: "RoboWitness — Robot Test Programı",
+  title: "RoboWitness — Robot Verification Console",
   description:
-    "Robot düzeltmelerini bilgisayarda test eden program: robotu çalıştırın, hatayı inceleyin, yeni ayarları deneyin ve bağımsız sonucu görün.",
+    "Verify AI-generated robot policy fixes in simulation: run the baseline, inspect the failure, try the fix, and see the independently measured, sealed verdict.",
 };
 
 export default function RootLayout({
@@ -13,8 +14,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr">
-      <body>{children}</body>
+    <html lang="en">
+      <body>
+        <LocaleProvider>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

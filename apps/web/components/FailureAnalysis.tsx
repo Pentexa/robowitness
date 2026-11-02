@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { SearchCheck } from "lucide-react";
+import { useLocale } from "../lib/i18n";
 import { InvestigationResponse, PolicyPatch, RunResult } from "../lib/types";
 import { RunVerdict } from "./RunVerdict";
 
@@ -37,6 +38,7 @@ export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
     runResult.oracle_status === "FAIL" &&
     !runResult.metrics.collision_detected &&
     runResult.metrics.goal_reached;
+  const { t } = useLocale();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +49,7 @@ export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
     try {
       await onInvestigate();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "İnceleme isteği başarısız oldu");
+      setError(e instanceof Error ? e.message : t("İnceleme isteği başarısız oldu"));
     } finally {
       setIsLoading(false);
     }
@@ -57,16 +59,16 @@ export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
     <div className="rw-card">
       <div className="rw-card-head">
         <div>
-          <h3 className="rw-card-title">İnceleme</h3>
+          <h3 className="rw-card-title">{t("İnceleme")}</h3>
           <p className="rw-card-sub">
             {nearMiss
-              ? "Çarpışma olmadı ama robot engele çok yakın geçti. Bu yakın geçiş neden oldu?"
-              : "Robot neden çarptı ya da neden hedefe ulaşamadı?"}
+              ? t("Çarpışma olmadı ama robot engele çok yakın geçti. Bu yakın geçiş neden oldu?")
+              : t("Robot neden çarptı ya da neden hedefe ulaşamadı?")}
           </p>
         </div>
         {investigation && (
           <span className="rw-badge mono">
-            {investigation.provenance === "LIVE_META" ? "Meta AI · Canlı" : "Çevrimdışı Yedek"}
+            {investigation.provenance === "LIVE_META" ? `Meta AI · ${t("Canlı")}` : t("Çevrimdışı Yedek")}
           </span>
         )}
       </div>
@@ -74,21 +76,18 @@ export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
         {runResult && <RunVerdict result={runResult} minClearanceLimitM={minClearanceLimitM} />}
         {!runId && (
           <p className="rw-empty">
-            Önce <strong>Test</strong> sekmesinden robotu bir kez çalıştırın. Robot başarısız olursa nedeni burada
-            incelenecek.
+            {t("Önce")} <strong>{t("Test")}</strong> {t("sekmesinden robotu bir kez çalıştırın. Robot başarısız olursa nedeni burada incelenecek.")}
           </p>
         )}
         {runId && runFailed === false && !investigation && (
           <p className="rw-empty">
             {oracleStatus === "PASS" ? (
               <>
-                Bu çalıştırma <strong>kazasız tamamlandı</strong> (bağımsız kontrol: GEÇTİ). İncelenecek bir
-                hata yok. İsterseniz Test sekmesinden başka bir senaryo veya robot seçip tekrar çalıştırın.
+                {t("Bu çalıştırma")} <strong>{t("kazasız tamamlandı")}</strong> {t("(bağımsız kontrol: GEÇTİ). İncelenecek bir hata yok. İsterseniz Test sekmesinden başka bir senaryo veya robot seçip tekrar çalıştırın.")}
               </>
             ) : (
               <>
-                Bu çalıştırmada bağımsız kontrol kesin karar veremedi (BELİRSİZ). İncelenecek kesin bir hata
-                yok; tekrar çalıştırmayı veya başka senaryo denemeyi seçin.
+                {t("Bu çalıştırmada bağımsız kontrol kesin karar veremedi (BELİRSİZ). İncelenecek kesin bir hata yok; tekrar çalıştırmayı veya başka senaryo denemeyi seçin.")}
               </>
             )}
           </p>
@@ -97,60 +96,60 @@ export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
           <>
             <p className="rw-intro">
               {nearMiss
-                ? "Çarpışma olmadı; ancak yukarıda yazdığı gibi robot güvenli mesafeyi koruyamadı. Meta AI ölçümlere bakıp bu yakın geçişin nedenini açıklasın ve bir düzeltme önersin."
-                : "Çalıştırma bitti. Şimdi Meta AI, kaydedilen ölçümlere bakarak hatanın nedenini açıklasın ve çözümünü önersin. Meta AI'ın çözümü bağımsız sınavda ölçülerek kanıtlanır; geçen çözüm mühürlü karara dönüşür."}
+                ? t("Çarpışma olmadı; ancak yukarıda yazdığı gibi robot güvenli mesafeyi koruyamadı. Meta AI ölçümlere bakıp bu yakın geçişin nedenini açıklasın ve bir düzeltme önersin.")
+                : t("Çalıştırma bitti. Şimdi Meta AI, kaydedilen ölçümlere bakarak hatanın nedenini açıklasın ve çözümünü önersin. Meta AI'ın çözümü bağımsız sınavda ölçülerek kanıtlanır; geçen çözüm mühürlü karara dönüşür.")}
             </p>
             <button id="btn-investigate" className="rw-btn rw-btn-primary rw-btn-block" onClick={handleInvestigate} disabled={isLoading}>
               <SearchCheck size={16} />
-              {isLoading ? "İnceleniyor…" : nearMiss ? "Yakın Geçişi İncele" : "Hatayı İncele"}
+              {isLoading ? t("İnceleniyor…") : nearMiss ? t("Yakın Geçişi İncele") : t("Hatayı İncele")}
             </button>
           </>
         )}
-        {error && <p className="rw-err">İnceleme yapılamadı: {error}</p>}
+        {error && <p className="rw-err">{t("İnceleme yapılamadı:")} {error}</p>}
         {investigation && (
           <>
             <div className="rw-spec">
               <div className="rw-spec-item">
-                <span className="rw-spec-label">Sorunun olduğu an</span>
-                <span className="rw-spec-value mono">{investigation.failure_tick}. adım</span>
+                <span className="rw-spec-label">{t("Sorunun olduğu an")}</span>
+                <span className="rw-spec-value mono">{investigation.failure_tick}. {t("adım")}</span>
               </div>
               <div className="rw-spec-item">
-                <span className="rw-spec-label">Meta AI'ın rolü</span>
-                <span className="rw-spec-value">Çözümü üretir · sınavda kanıtlanır</span>
+                <span className="rw-spec-label">{t("Meta AI'ın rolü")}</span>
+                <span className="rw-spec-value">{t("Çözümü üretir · sınavda kanıtlanır")}</span>
               </div>
             </div>
             <div>
-              <div className="rw-spec-label">Meta AI'ın açıklaması</div>
+              <div className="rw-spec-label">{t("Meta AI'ın açıklaması")}</div>
               <p className="text-sm">{investigation.hypothesis}</p>
             </div>
             <div>
-              <div className="rw-spec-label">Ölçümlerde ne görüldü?</div>
+              <div className="rw-spec-label">{t("Ölçümlerde ne görüldü?")}</div>
               <p className="text-sm muted">{investigation.evidence_summary}</p>
             </div>
             <div>
-              <div className="rw-spec-label">Önerilen yeni ayarlar</div>
+              <div className="rw-spec-label">{t("Önerilen yeni ayarlar")}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 6 }}>
                 {PATCH_LABELS.filter((f) => investigation.suggested_patch[f.key] !== undefined).map((f) => (
                   <div key={f.key} className="rw-between" style={{ fontSize: "0.84rem" }}>
-                    <span>{f.label}</span>
+                    <span>{t(f.label)}</span>
                     <span className="mono">
                       {investigation.suggested_patch[f.key]} {f.unit}
                     </span>
                   </div>
                 ))}
                 {PATCH_LABELS.every((f) => investigation.suggested_patch[f.key] === undefined) && (
-                  <span className="muted text-sm">Öneride sayısal bir değişiklik yok.</span>
+                  <span className="muted text-sm">{t("Öneride sayısal bir değişiklik yok.")}</span>
                 )}
               </div>
             </div>
             <button id="btn-apply-patch" className="rw-btn rw-btn-primary rw-btn-block" onClick={() => onApplyPatch(investigation.suggested_patch)}>
-              Bu Öneriyi Kullan (Düzeltme sekmesine geç)
+              {t("Bu Öneriyi Kullan (Düzeltme sekmesine geç)")}
             </button>
             <details className="rw-details">
-              <summary>Teknik detaylar (isteğe bağlı)</summary>
+              <summary>{t("Teknik detaylar (isteğe bağlı)")}</summary>
               <div>
-                <span className="mono text-xs">Çalıştırma kodu: {investigation.run_id}</span>
-                <span className="mono text-xs">Kaynak: {investigation.provenance}</span>
+                <span className="mono text-xs">{t("Çalıştırma kodu:")} {investigation.run_id}</span>
+                <span className="mono text-xs">{t("Kaynak:")} {investigation.provenance}</span>
                 <pre className="rw-code">{JSON.stringify(investigation.suggested_patch, null, 2)}</pre>
               </div>
             </details>

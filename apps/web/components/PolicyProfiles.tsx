@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { BookmarkPlus, Trash2 } from "lucide-react";
 import { createPolicyProfile, deletePolicyProfile, fetchPolicyProfiles } from "../lib/api";
+import { useLocale } from "../lib/i18n";
 import { PolicyConfig, PolicyProfile } from "../lib/types";
 
 interface PolicyProfilesProps {
@@ -14,6 +15,7 @@ export const PolicyProfiles: React.FC<PolicyProfilesProps> = ({
   candidatePolicy,
   onSelectProfile,
 }) => {
+  const { t } = useLocale();
   const [profiles, setProfiles] = useState<PolicyProfile[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [newName, setNewName] = useState<string>("");
@@ -69,50 +71,50 @@ export const PolicyProfiles: React.FC<PolicyProfilesProps> = ({
 
   return (
     <section className="rw-section">
-      <h3 className="rw-section-title">Ayar Profilleri</h3>
+      <h3 className="rw-section-title">{t("Ayar Profilleri")}</h3>
       <div className="rw-btn-row">
         <select
           id="select-policy-profile"
           className="rw-input"
           style={{ flex: 1 }}
-          aria-label="Ayar profilleri"
+          aria-label={t("Ayar profilleri")}
           value={selectedId}
           onChange={(e) => {
             const p = profiles.find((x) => x.profile_id === e.target.value);
             if (p) handleSelect(p);
           }}
         >
-          <option value="">— Profil seçin —</option>
+          <option value="">{t("— Profil seçin —")}</option>
           {profiles.map((p) => (
             <option key={p.profile_id} value={p.profile_id}>
-              {p.name}
-              {p.source === "user" ? " (benim)" : ""}
+              {t(p.name)}
+              {p.source === "user" ? ` (${t("benim")})` : ""}
             </option>
           ))}
         </select>
         {selected?.source === "user" && (
           <button className="rw-btn rw-btn-ghost rw-btn-sm" onClick={() => handleDelete(selected)}>
-            <Trash2 size={14} /> Sil
+            <Trash2 size={14} /> {t("Sil")}
           </button>
         )}
       </div>
       {selected && (
         <p className="rw-summary mono">
-          hız {selected.policy.max_speed_mps} · mesafe {selected.policy.safe_distance_m} · tepki{" "}
-          {selected.policy.reaction_margin_m} · fren {selected.policy.brake_gain} · tahmin{" "}
-          {selected.policy.obstacle_prediction_horizon_s} sn
+          {t("hız")} {selected.policy.max_speed_mps} · {t("mesafe")} {selected.policy.safe_distance_m} · {t("tepki")}{" "}
+          {selected.policy.reaction_margin_m} · {t("fren")} {selected.policy.brake_gain} · {t("tahmin")}{" "}
+          {selected.policy.obstacle_prediction_horizon_s} {t("sn")}
         </p>
       )}
       <div className="rw-btn-row">
         <input
           className="rw-input"
           style={{ flex: 1 }}
-          placeholder="Şu anki ayarlara isim verin"
+          placeholder={t("Şu anki ayarlara isim verin")}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
         />
         <button id="btn-save-profile" className="rw-btn rw-btn-ghost rw-btn-sm" onClick={handleSave}>
-          <BookmarkPlus size={14} /> Profil Olarak Kaydet
+          <BookmarkPlus size={14} /> {t("Profil Olarak Kaydet")}
         </button>
       </div>
       {error && <p className="rw-err">{error}</p>}

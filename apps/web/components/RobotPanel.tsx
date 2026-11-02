@@ -9,6 +9,7 @@ import {
   fetchRobots,
   updateRobot,
 } from "../lib/api";
+import { useLocale } from "../lib/i18n";
 import { RobotDriveType, RobotProfile, RobotProfileInput, ScenarioSpec } from "../lib/types";
 
 const DRIVE_LABELS: Record<RobotDriveType, string> = {
@@ -58,6 +59,7 @@ interface RobotPanelProps {
 }
 
 export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChange }) => {
+  const { t } = useLocale();
   const [robots, setRobots] = useState<RobotProfile[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [form, setForm] = useState<RobotProfileInput>(EMPTY_FORM);
@@ -162,7 +164,7 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
     opts: { step?: string; nullable?: boolean; hint?: string } = {}
   ) => (
     <label className="rw-field">
-      <span>{label}</span>
+      <span>{t(label)}</span>
       <input
         className="rw-input"
         type="number"
@@ -170,17 +172,17 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
         value={(form[key] as number | null) ?? ""}
         onChange={(e) => setNum(key, e.target.value, opts.nullable ?? false)}
       />
-      {opts.hint && <span className="rw-field-hint">{opts.hint}</span>}
+      {opts.hint && <span className="rw-field-hint">{t(opts.hint)}</span>}
     </label>
   );
 
   const textField = (label: string, key: keyof RobotProfileInput, placeholder = "") => (
     <label className="rw-field">
-      <span>{label}</span>
+      <span>{t(label)}</span>
       <input
         className="rw-input"
         type="text"
-        placeholder={placeholder}
+        placeholder={t(placeholder)}
         value={(form[key] as string) ?? ""}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
       />
@@ -189,11 +191,11 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
 
   return (
     <section className="rw-section">
-      <h3 className="rw-section-title">Robot</h3>
+      <h3 className="rw-section-title">{t("Robot")}</h3>
       <select
         id="select-robot"
         className="rw-input"
-        aria-label="Kayıtlı robotlar"
+        aria-label={t("Kayıtlı robotlar")}
         value={selectedId}
         onChange={(e) => setSelectedId(e.target.value)}
       >
@@ -201,22 +203,22 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
           <option key={r.robot_id} value={r.robot_id}>
             {r.brand} {r.model}
             {r.variant ? ` (${r.variant})` : ""}
-            {r.simulation_compatible ? "" : " — kullanılamaz"}
+            {r.simulation_compatible ? "" : ` — ${t("kullanılamaz")}`}
           </option>
         ))}
       </select>
 
       {selected && (
         <p className="rw-summary">
-          {DRIVE_LABELS[selected.drive_type]} · gövde {selected.body_radius_m} m · {selected.sensor_type}{" "}
+          {t(DRIVE_LABELS[selected.drive_type])} · {t("gövde")} {selected.body_radius_m} m · {selected.sensor_type}{" "}
           {selected.sensor_range_m} m / {selected.sensor_latency_ms} ms
           {selected.weight_kg !== null ? ` · ${selected.weight_kg} kg` : ""}
           <br />
           {selected.simulation_compatible ? (
-            <span className="rw-badge is-live">Testte kullanılabilir</span>
+            <span className="rw-badge is-live">{t("Testte kullanılabilir")}</span>
           ) : (
             <span className="rw-badge is-fail">
-              Kullanılamaz: {selected.compatibility_issues.map((i) => ISSUE_LABELS[i] ?? i).join("; ")}
+              {t("Kullanılamaz:")} {selected.compatibility_issues.map((i) => t(ISSUE_LABELS[i] ?? i)).join("; ")}
             </span>
           )}
         </p>
@@ -233,7 +235,7 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
           disabled={busy || !selected || !scenario || !selected.simulation_compatible}
           title={selected && !selected.simulation_compatible ? "Bu robot simülatörle uyumlu değil" : undefined}
         >
-          <Bot size={15} /> Teste Uygula
+          <Bot size={15} /> {t("Teste Uygula")}
         </button>
         {selected?.source === "user" && (
           <>
@@ -246,7 +248,7 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
                 setEditingId(selected.robot_id);
               }}
             >
-              <Pencil size={14} /> Düzenle
+              <Pencil size={14} /> {t("Düzenle")}
             </button>
             <button
               id="btn-delete-robot"
@@ -254,21 +256,21 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
               disabled={busy}
               onClick={() => handleDelete(selected)}
             >
-              <Trash2 size={14} /> Sil
+              <Trash2 size={14} /> {t("Sil")}
             </button>
           </>
         )}
       </div>
 
       <details className="rw-details" open={editingId !== null}>
-          <summary>{editingId ? "Robotu düzenliyorsunuz" : "Yeni robot ekle"}</summary>
+          <summary>{editingId ? t("Robotu düzenliyorsunuz") : t("Yeni robot ekle")}</summary>
           <div className="rw-form">
             {textField("Marka *", "brand", "örn. ROBOTIS")}
             {textField("Model *", "model", "örn. TurtleBot3 Waffle Pi")}
             {textField("Varyant", "variant", "örn. Lab sürümü")}
             {numField("Üretim yılı", "year", { step: "1", nullable: true })}
             <label className="rw-field">
-              <span>Sürüş tipi</span>
+              <span>{t("Sürüş tipi")}</span>
               <select
                 className="rw-input"
                 value={form.drive_type}
@@ -276,11 +278,11 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
               >
                 {(Object.keys(DRIVE_LABELS) as RobotDriveType[]).map((d) => (
                   <option key={d} value={d}>
-                    {DRIVE_LABELS[d]}
+                    {t(DRIVE_LABELS[d])}
                   </option>
                 ))}
               </select>
-              <span className="rw-field-hint">Testte yalnızca diferansiyel sürüş kullanılabilir.</span>
+              <span className="rw-field-hint">{t("Testte yalnızca diferansiyel sürüş kullanılabilir.")}</span>
             </label>
             {numField("Gövde yarıçapı (m) *", "body_radius_m", { hint: "Test için 0,15–0,40 m arasında olmalı." })}
             {numField("Tekerlek aralığı / dingil mesafesi (m)", "wheel_base_m", { nullable: true })}
@@ -296,7 +298,7 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
             {textField("İşletim sistemi", "operating_system", "örn. ROS 2 / Ubuntu 22.04")}
             {numField("Batarya (Wh)", "battery_wh", { nullable: true })}
             <label className="rw-field rw-field-wide">
-              <span>Notlar</span>
+              <span>{t("Notlar")}</span>
               <input
                 className="rw-input"
                 type="text"
@@ -306,7 +308,7 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
             </label>
             <div className="rw-actions rw-field-wide">
               <button id="btn-save-robot" className="rw-btn rw-btn-primary" onClick={handleSave} disabled={busy}>
-                <Plus size={15} /> {editingId ? "Değişiklikleri Kaydet" : "Yeni Robot Ekle"}
+                <Plus size={15} /> {editingId ? t("Değişiklikleri Kaydet") : t("Yeni Robot Ekle")}
               </button>
               {editingId && (
                 <button
@@ -317,7 +319,7 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
                     setForm(EMPTY_FORM);
                   }}
                 >
-                  Vazgeç
+                  {t("Vazgeç")}
                 </button>
               )}
             </div>

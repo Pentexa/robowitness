@@ -462,6 +462,26 @@ killed; worker restarted on the default shared law. Suite: 138 passed.
 - Results: backend **158 passed** (full suite, ~3 min), Playwright **5/5**,
   ruff/format/lint clean. Services healthy.
 
+## Full English + i18n (2026-11-02, user decision: project is English-first)
+
+- The whole web UI is now i18n: `LocaleProvider` + dictionary
+  (`apps/web/lib/i18n.tsx`, `lib/locales/en.ts`; Turkish source strings are
+  keys, missing entries fall back visibly). **Default locale: English**;
+  TR/EN switcher in the titlebar, persisted in localStorage.
+- Everything translated: chrome/tabs/status/help, scenario & robot panels,
+  verdict cards (reason labels EN), investigation, fix sliders, gates,
+  evidence/history, replay/timeline, report card (incl. backend scenario
+  titles via `SCENARIO_TEXT_EN`, difficulty/category maps, dates),
+  fleet/trend/import, admin, local policy, map import, canvas labels.
+- The battery Markdown report is bilingual: `GET .../report.md?lang=en`
+  (frontend follows the selected locale; default stays `tr` for API compat,
+  covered by a new test).
+- Verified: Playwright suite updated to English + a language-switch test —
+  **7 passed**; browser proof both directions (EN default → TR switch).
+  Backend battery/library/robot suites still green. (The stale copy in the
+  TR note of the battery report that claimed no approval exists was also
+  corrected: VERIFIED was earned in the meantime.)
+
 ## Execution State Details
 
 - **Current phase:** PHASE 12 (hardening; Phases 07/10/12 partially open, see below)

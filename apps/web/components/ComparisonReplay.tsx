@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { ReplayControls } from "./ReplayControls";
 import { SimulationCanvas } from "./SimulationCanvas";
 import { fetchAllFrames, fetchCandidateTelemetry, fetchTelemetry } from "../lib/api";
+import { useLocale } from "../lib/i18n";
 import { GateResult, ScenarioSpec, TelemetryFrame } from "../lib/types";
 
 interface ComparisonReplayProps {
@@ -13,7 +14,8 @@ interface ComparisonReplayProps {
   gates: GateResult[];
 }
 
-const boolTr = (v: unknown): string => (v === true || v === "true" ? "Evet" : v === false || v === "false" ? "Hayır" : String(v ?? "—"));
+const boolLabel = (v: unknown, yes: string, no: string): string =>
+  v === true || v === "true" ? yes : v === false || v === "false" ? no : String(v ?? "—");
 
 export const ComparisonReplay: React.FC<ComparisonReplayProps> = ({
   scenario,
@@ -21,6 +23,7 @@ export const ComparisonReplay: React.FC<ComparisonReplayProps> = ({
   verificationId,
   gates,
 }) => {
+  const { t } = useLocale();
   const [baseFrames, setBaseFrames] = useState<TelemetryFrame[]>([]);
   const [candFrames, setCandFrames] = useState<TelemetryFrame[]>([]);
   const [index, setIndex] = useState<number>(0);
@@ -75,35 +78,35 @@ export const ComparisonReplay: React.FC<ComparisonReplayProps> = ({
     <div className="rw-card">
       <div className="rw-card-head">
         <div>
-          <h3 className="rw-card-title">Eski ve Yeni Ayarlar Yan Yana</h3>
-          <p className="rw-card-sub">İkisi de birebir aynı testte çalıştı. Solda eski, sağda yeni ayarlar.</p>
+          <h3 className="rw-card-title">{t("Eski ve Yeni Ayarlar Yan Yana")}</h3>
+          <p className="rw-card-sub">{t("İkisi de birebir aynı testte çalıştı. Solda eski, sağda yeni ayarlar.")}</p>
         </div>
         <span className="rw-badge mono">
-          {status === "ready" ? `ESKİ ${baseFrames.length} / YENİ ${candFrames.length} ADIM` : "HAZIRLANIYOR"}
+          {status === "ready" ? `${t("ESKİ")} ${baseFrames.length} / ${t("YENİ")} ${candFrames.length} ${t("ADIM")}` : t("HAZIRLANIYOR")}
         </span>
       </div>
       <div className="rw-card-body">
-        {status === "loading" && <p className="rw-empty">İki çalıştırma da yükleniyor…</p>}
+        {status === "loading" && <p className="rw-empty">{t("İki çalıştırma da yükleniyor…")}</p>}
         {status === "no-candidate" && (
-          <p className="rw-empty">Bu kayıtta yeni ayarların tekrar görüntüsü yok. Kontrol sonuçları yine de geçerlidir.</p>
+          <p className="rw-empty">{t("Bu kayıtta yeni ayarların tekrar görüntüsü yok. Kontrol sonuçları yine de geçerlidir.")}</p>
         )}
-        {status.startsWith("error") && <p className="rw-err">Yüklenemedi: {status}</p>}
+        {status.startsWith("error") && <p className="rw-err">{t("Yüklenemedi:")} {status}</p>}
         {status === "ready" && (
           <>
             {paired && (
               <p className="mono text-xs muted">
-                Engele en yakın mesafe: {String(paired.details.baseline_min_clearance_m)} m →{" "}
-                {String(paired.details.candidate_min_clearance_m)} m · Hedefe ulaştı mı:{" "}
-                {boolTr(paired.details.baseline_goal_reached)} → {boolTr(paired.details.candidate_goal_reached)}
+                {t("Engele en yakın mesafe:")} {String(paired.details.baseline_min_clearance_m)} m →{" "}
+                {String(paired.details.candidate_min_clearance_m)} m · {t("Hedefe ulaştı mı:")}{" "}
+                {boolLabel(paired.details.baseline_goal_reached, t("Evet"), t("Hayır"))} → {boolLabel(paired.details.candidate_goal_reached, t("Evet"), t("Hayır"))}
               </p>
             )}
             <div className="rw-compare">
               <div>
-                <h4>Eski ayarlar · adım {baseFrames[baseIdx]?.tick ?? 0}</h4>
+                <h4>{t("Eski ayarlar")} · {t("adım")} {baseFrames[baseIdx]?.tick ?? 0}</h4>
                 <SimulationCanvas scenario={scenario} frames={baseFrames} currentFrameIndex={baseIdx} />
               </div>
               <div>
-                <h4>Yeni ayarlar · adım {candFrames[candIdx]?.tick ?? 0}</h4>
+                <h4>{t("Yeni ayarlar")} · {t("adım")} {candFrames[candIdx]?.tick ?? 0}</h4>
                 <SimulationCanvas scenario={scenario} frames={candFrames} currentFrameIndex={candIdx} />
               </div>
             </div>
@@ -122,10 +125,10 @@ export const ComparisonReplay: React.FC<ComparisonReplayProps> = ({
               totalDuration={baseFrames[baseFrames.length - 1]?.sim_time_s ?? 0}
             />
             <details className="rw-details">
-              <summary>Teknik detaylar (isteğe bağlı)</summary>
+              <summary>{t("Teknik detaylar (isteğe bağlı)")}</summary>
               <div>
                 <span className="mono text-xs">
-                  Eski çalıştırma: {baselineRunId} · Kayıt: {verificationId}
+                  {t("Eski çalıştırma:")} {baselineRunId} · {t("Kayıt:")} {verificationId}
                 </span>
               </div>
             </details>

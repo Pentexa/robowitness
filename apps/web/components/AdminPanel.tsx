@@ -17,9 +17,11 @@ import {
   type AdminApiKey,
   type BatterySchedule,
 } from "../lib/api";
+import { useLocale } from "../lib/i18n";
 import { PolicyProfile, RobotProfile } from "../lib/types";
 
 export const AdminPanel: React.FC = () => {
+  const { t, dateLocale } = useLocale();
   const [metrics, setMetrics] = useState<Record<string, unknown> | null>(null);
   const [audit, setAudit] = useState<Array<Record<string, unknown>>>([]);
   const [keys, setKeys] = useState<AdminApiKey[]>([]);
@@ -49,7 +51,7 @@ export const AdminPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    refresh().catch(() => setError("Yönetim verileri yüklenemedi."));
+    refresh().catch(() => setError(t("Yönetim verileri yüklenemedi.")));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -57,16 +59,16 @@ export const AdminPanel: React.FC = () => {
     <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
       <section className="rw-section">
         <h3 className="rw-section-title">
-          <ShieldCheck size={14} /> Sistem Durumu
+          <ShieldCheck size={14} /> {t("Sistem Durumu")}
         </h3>
         {metrics ? (
           <p className="rw-summary mono">
-            alan: {String(metrics.workspace_id)} · karneler: {String(metrics.batteries)} · loglar:{" "}
-            {String(metrics.telemetry_imports)} (geçen {String(metrics.telemetry_imports_pass)}) ·
-            koşular: {String(metrics.runs_total)} · doğrulamalar: {String(metrics.verifications_total)}
+            {t("alan:")} {String(metrics.workspace_id)} · {t("karneler:")} {String(metrics.batteries)} · {t("loglar:")}{" "}
+            {String(metrics.telemetry_imports)} ({t("geçen")} {String(metrics.telemetry_imports_pass)}) ·
+            {t("koşular:")} {String(metrics.runs_total)} · {t("doğrulamalar:")} {String(metrics.verifications_total)}
           </p>
         ) : (
-          <p className="rw-summary">Metrikler yüklenemedi.</p>
+          <p className="rw-summary">{t("Metrikler yüklenemedi.")}</p>
         )}
         <div className="rw-btn-row">
           <button
@@ -75,33 +77,32 @@ export const AdminPanel: React.FC = () => {
             onClick={async () => {
               try {
                 const b = await createBackup();
-                setNotice(`Yedek alındı: ${b.file} (${b.bytes} bayt, sha256 ${b.sha256.slice(0, 12)}…)`);
+                setNotice(`${t("Yedek alındı:")} ${b.file} (${b.bytes} ${t("bayt")}, sha256 ${b.sha256.slice(0, 12)}…)`);
               } catch {
-                setError("Yedek alınamadı (admin gerekli).");
+                setError(t("Yedek alınamadı (admin gerekli)."));
               }
             }}
           >
-            <DatabaseBackup size={14} /> Veritabanı Yedeği Al
+            <DatabaseBackup size={14} /> {t("Veritabanı Yedeği Al")}
           </button>
           <button className="rw-btn rw-btn-ghost rw-btn-sm" onClick={() => refresh()}>
-            Yenile
+            {t("Yenile")}
           </button>
         </div>
       </section>
 
       <section className="rw-section">
         <h3 className="rw-section-title">
-          <KeyRound size={14} /> API Anahtarları
+          <KeyRound size={14} /> {t("API Anahtarları")}
         </h3>
         <p className="rw-summary">
-          Anahtarlar veritabanında yalnızca özet (hash) olarak saklanır. Yeni anahtar bir kez gösterilir.
-          İlk anahtarı oluşturduğunuz anda kimlik doğrulama zorunlu olur — anahtarı kaybetmeyin.
+          {t("Anahtarlar veritabanında yalnızca özet (hash) olarak saklanır. Yeni anahtar bir kez gösterilir. İlk anahtarı oluşturduğunuz anda kimlik doğrulama zorunlu olur — anahtarı kaybetmeyin.")}
         </p>
         <div className="rw-btn-row">
           <input
             className="rw-input"
             style={{ flex: 1 }}
-            placeholder="Etiket (örn. ci-sunucusu)"
+            placeholder={t("Etiket (örn. ci-sunucusu)")}
             value={newKeyLabel}
             onChange={(e) => setNewKeyLabel(e.target.value)}
           />
@@ -122,16 +123,16 @@ export const AdminPanel: React.FC = () => {
                 setNewKeyLabel("");
                 await refresh();
               } catch {
-                setError("Anahtar oluşturulamadı (admin gerekli).");
+                setError(t("Anahtar oluşturulamadı (admin gerekli)."));
               }
             }}
           >
-            Anahtar Üret
+            {t("Anahtar Üret")}
           </button>
         </div>
         {createdKey && (
           <p className="rw-err" role="alert">
-            Yeni anahtar (bir kez gösterilir, hemen kopyalayın): <span className="mono">{createdKey}</span>
+            {t("Yeni anahtar (bir kez gösterilir, hemen kopyalayın):")} <span className="mono">{createdKey}</span>
           </p>
         )}
         {keys.map((k) => (
@@ -139,16 +140,16 @@ export const AdminPanel: React.FC = () => {
             <span>
               {k.label} <span className="muted text-xs">· {k.role_name} · {k.workspace_id}</span>
             </span>
-            <span className="mono text-xs">{k.revoked_at ? "İPTAL" : "AKTİF"}</span>
+            <span className="mono text-xs">{k.revoked_at ? t("İPTAL") : t("AKTİF")}</span>
             {!k.revoked_at && (
               <button
                 className="rw-btn rw-btn-ghost rw-btn-sm"
                 onClick={async () => {
-                  await revokeAdminApiKey(k.key_id).catch(() => setError("Anahtar iptal edilemedi."));
+                  await revokeAdminApiKey(k.key_id).catch(() => setError(t("Anahtar iptal edilemedi.")));
                   await refresh();
                 }}
               >
-                <Trash2 size={13} /> İptal Et
+                <Trash2 size={13} /> {t("İptal Et")}
               </button>
             )}
           </div>
@@ -157,13 +158,13 @@ export const AdminPanel: React.FC = () => {
 
       <section className="rw-section">
         <h3 className="rw-section-title">
-          <Timer size={14} /> Zamanlanmış Bataryalar
+          <Timer size={14} /> {t("Zamanlanmış Bataryalar")}
         </h3>
         <div className="rw-btn-row">
           <input
             className="rw-input"
             style={{ flex: 1 }}
-            placeholder="İsim (örn. Gece sınavı)"
+            placeholder={t("İsim (örn. Gece sınavı)")}
             value={schedName}
             onChange={(e) => setSchedName(e.target.value)}
           />
@@ -179,7 +180,7 @@ export const AdminPanel: React.FC = () => {
           <select className="rw-input" style={{ flex: 1 }} value={schedProfile} onChange={(e) => setSchedProfile(e.target.value)}>
             {profiles.map((p) => (
               <option key={p.profile_id} value={p.profile_id}>
-                {p.name}
+                {t(p.name)}
               </option>
             ))}
           </select>
@@ -190,7 +191,7 @@ export const AdminPanel: React.FC = () => {
             min={5}
             value={schedInterval}
             onChange={(e) => setSchedInterval(e.target.value)}
-            title="Aralık (dakika)"
+            title={t("Aralık (dakika)")}
           />
           <button
             id="btn-create-schedule"
@@ -209,29 +210,29 @@ export const AdminPanel: React.FC = () => {
                 });
                 setSchedName("");
                 await refresh();
-                setNotice("Zamanlama oluşturuldu; worker zamanı gelince bataryayı kuyruğa alır.");
+                setNotice(t("Zamanlama oluşturuldu; worker zamanı gelince bataryayı kuyruğa alır."));
               } catch {
-                setError("Zamanlama oluşturulamadı.");
+                setError(t("Zamanlama oluşturulamadı."));
               }
             }}
           >
-            Ekle
+            {t("Ekle")}
           </button>
         </div>
         {schedules.map((s) => (
           <div key={s.schedule_id} className="rw-table-row" style={{ gridTemplateColumns: "1fr auto auto" }}>
             <span>
-              {s.name} <span className="muted text-xs">· {s.robot_id} · {s.interval_minutes} dk</span>
+              {s.name} <span className="muted text-xs">· {s.robot_id} · {s.interval_minutes} {t("dk")}</span>
             </span>
-            <span className="mono text-xs">sonraki: {new Date(s.next_run_at).toLocaleString("tr-TR")}</span>
+            <span className="mono text-xs">{t("sonraki:")} {new Date(s.next_run_at).toLocaleString(dateLocale)}</span>
             <button
               className="rw-btn rw-btn-ghost rw-btn-sm"
               onClick={async () => {
-                await deleteSchedule(s.schedule_id).catch(() => setError("Zamanlama silinemedi."));
+                await deleteSchedule(s.schedule_id).catch(() => setError(t("Zamanlama silinemedi.")));
                 await refresh();
               }}
             >
-              <Trash2 size={13} /> Sil
+              <Trash2 size={13} /> {t("Sil")}
             </button>
           </div>
         ))}
@@ -239,9 +240,9 @@ export const AdminPanel: React.FC = () => {
 
       <section className="rw-section">
         <h3 className="rw-section-title">
-          <ScrollText size={14} /> Denetim Kaydı (son yazma işlemleri)
+          <ScrollText size={14} /> {t("Denetim Kaydı (son yazma işlemleri)")}
         </h3>
-        {audit.length === 0 && <p className="rw-summary">Kayıt yok veya admin yetkisi gerekli.</p>}
+        {audit.length === 0 && <p className="rw-summary">{t("Kayıt yok veya admin yetkisi gerekli.")}</p>}
         {audit.slice(0, 12).map((entry, i) => (
           <p key={i} className="rw-summary mono text-xs">
             {String(entry.created_at).slice(0, 19)} · {String(entry.actor)} · {String(entry.method)}{" "}

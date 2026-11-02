@@ -2,6 +2,7 @@
 
 import React from "react";
 import { FlaskConical } from "lucide-react";
+import { useLocale } from "../lib/i18n";
 import { PolicyConfig } from "../lib/types";
 
 interface FixComparisonProps {
@@ -69,6 +70,7 @@ export const FixComparison: React.FC<FixComparisonProps> = ({
   hasBaseline,
   provenance,
 }) => {
+  const { t } = useLocale();
   const handleChange = (field: keyof PolicyConfig, value: number) => {
     if (!Number.isFinite(value)) return;
     onUpdateCandidate({ ...candidatePolicy, [field]: value });
@@ -78,13 +80,13 @@ export const FixComparison: React.FC<FixComparisonProps> = ({
     <div className="rw-card">
       <div className="rw-card-head">
         <div>
-          <h3 className="rw-card-title">Düzeltmeyi Dene</h3>
-          <p className="rw-card-sub">“Eski” değerler ilk çalıştırmadaki ayarlardır. Kaydırıcılarla “Yeni” değerleri değiştirin.</p>
+          <h3 className="rw-card-title">{t("Düzeltmeyi Dene")}</h3>
+          <p className="rw-card-sub">{t("“Eski” değerler ilk çalıştırmadaki ayarlardır. Kaydırıcılarla “Yeni” değerleri değiştirin.")}</p>
         </div>
       </div>
       <div className="rw-card-body">
         {!hasBaseline && (
-          <p className="rw-empty">Önce <strong>Test</strong> sekmesinden robotu eski ayarlarla bir kez çalıştırın. Sonra burada yeni ayarları deneyebilirsiniz.</p>
+          <p className="rw-empty">{t("Önce")} <strong>{t("Test")}</strong> {t("sekmesinden robotu eski ayarlarla bir kez çalıştırın. Sonra burada yeni ayarları deneyebilirsiniz.")}</p>
         )}
         {FIELDS.map((f) => {
           const base = baselinePolicy[f.key] as number;
@@ -94,13 +96,13 @@ export const FixComparison: React.FC<FixComparisonProps> = ({
             <div className="rw-param" key={f.key}>
               <div className="rw-param-top">
                 <span className="rw-param-name">
-                  {f.label} <span className="muted text-xs">({f.unit})</span>
+                  {t(f.label)} <span className="muted text-xs">({f.unit})</span>
                 </span>
-                {changed && <span className="rw-changed">DEĞİŞTİ</span>}
+                {changed && <span className="rw-changed">{t("DEĞİŞTİ")}</span>}
               </div>
-              <p className="rw-hint">{f.help}</p>
+              <p className="rw-hint">{t(f.help)}</p>
               <div className="rw-param-vals">
-                <span className="rw-param-old">Eski: {Number(base).toFixed(2)}</span>
+                <span className="rw-param-old">{t("Eski:")} {Number(base).toFixed(2)}</span>
                 <input
                   id={`slider-${f.key.replace(/_/g, "-")}`}
                   type="range"
@@ -131,20 +133,19 @@ export const FixComparison: React.FC<FixComparisonProps> = ({
           className="rw-btn rw-btn-primary rw-btn-big"
           onClick={onVerify}
           disabled={isVerifying || !hasBaseline}
-          title={hasBaseline ? undefined : "Önce robotu bir kez çalıştırın"}
+          title={hasBaseline ? undefined : t("Önce robotu bir kez çalıştırın")}
         >
           <FlaskConical size={16} />
-          {isVerifying ? "Testler çalışıyor, bekleyin…" : "Düzeltmeyi Test Et"}
+          {isVerifying ? t("Testler çalışıyor, bekleyin…") : t("Düzeltmeyi Test Et")}
         </button>
         <p className="rw-hint">
-          Bu buton yeni ayarları aynı testte, ayrıca robotun görmediği 20 yeni testte ve önemli eski testlerde
-          dener. Biraz sürebilir; pencereyi kapatmayın. Geçen çözüm, Meta AI'ın başarısı olarak mühürlü karara dönüşür.
+          {t("Bu buton yeni ayarları aynı testte, ayrıca robotun görmediği 20 yeni testte ve önemli eski testlerde dener. Biraz sürebilir; pencereyi kapatmayın. Geçen çözüm, Meta AI'ın başarısı olarak mühürlü karara dönüşür.")}
         </p>
         <details className="rw-details">
-          <summary>Teknik detaylar (isteğe bağlı)</summary>
+          <summary>{t("Teknik detaylar (isteğe bağlı)")}</summary>
           <div>
-            <span className="mono text-xs">Kaynak: {provenance}</span>
-            <span className="mono text-xs">Eski ayar kodu: {baselinePolicy.id} · Yeni ayar kodu: {candidatePolicy.id}</span>
+            <span className="mono text-xs">{t("Kaynak:")} {provenance}</span>
+            <span className="mono text-xs">{t("Eski ayar kodu:")} {baselinePolicy.id} · {t("Yeni ayar kodu:")} {candidatePolicy.id}</span>
           </div>
         </details>
       </div>

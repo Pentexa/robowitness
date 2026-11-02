@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { CATEGORY_EN, DIFFICULTY_EN, SCENARIO_TEXT_EN, useLocale } from "../lib/i18n";
 import { ScenarioCatalogEntry } from "../lib/types";
 
 interface ScenarioLibraryProps {
@@ -16,19 +17,29 @@ export const ScenarioLibrary: React.FC<ScenarioLibraryProps> = ({
   onSelect,
   disabled,
 }) => {
+  const { locale, t } = useLocale();
   const active = entries.find((e) => e.scenario.id === activeScenarioId) ?? null;
   const groups = new Map<string, ScenarioCatalogEntry[]>();
   for (const entry of entries) {
     const key = entry.category || "Diğer";
     groups.set(key, [...(groups.get(key) ?? []), entry]);
   }
+  const titleOf = (e: ScenarioCatalogEntry) =>
+    locale === "en" ? (SCENARIO_TEXT_EN[e.scenario.id]?.title ?? e.title) : e.title;
+  const descOf = (e: ScenarioCatalogEntry) =>
+    locale === "en" ? (SCENARIO_TEXT_EN[e.scenario.id]?.description ?? e.description) : e.description;
+  const categoryOf = (category: string) =>
+    locale === "en" ? (CATEGORY_EN[category] ?? category) : category;
+
   return (
     <section className="rw-section">
-      <h3 className="rw-section-title">Senaryo Kütüphanesi ({entries.length})</h3>
+      <h3 className="rw-section-title">
+        {t("Senaryo Kütüphanesi")} ({entries.length})
+      </h3>
       <select
         id="select-library-scenario"
         className="rw-input"
-        aria-label="Kütüphaneden senaryo seçin"
+        aria-label={t("Kütüphaneden senaryo seçin")}
         value={active?.scenario.id ?? ""}
         disabled={disabled || entries.length === 0}
         onChange={(e) => {
@@ -36,12 +47,12 @@ export const ScenarioLibrary: React.FC<ScenarioLibraryProps> = ({
           if (entry) onSelect(entry);
         }}
       >
-        <option value="">— Kütüphaneden seçin —</option>
+        <option value="">{t("— Kütüphaneden seçin —")}</option>
         {Array.from(groups.entries()).map(([category, group]) => (
-          <optgroup key={category} label={`${category} (${group.length})`}>
+          <optgroup key={category} label={`${categoryOf(category)} (${group.length})`}>
             {group.map((e) => (
               <option key={e.scenario.id} value={e.scenario.id}>
-                {e.title} — {e.scenario.obstacles.length} engel
+                {titleOf(e)} — {e.scenario.obstacles.length} {t("engel")}
               </option>
             ))}
           </optgroup>
@@ -49,13 +60,21 @@ export const ScenarioLibrary: React.FC<ScenarioLibraryProps> = ({
       </select>
       {active && (
         <p className="rw-summary">
-          {active.description} <strong>({active.scenario.obstacles.length} engel)</strong>
+          {descOf(active)}{" "}
+          <strong>
+            ({active.scenario.obstacles.length} {t("engel")}
+            {locale === "en" && DIFFICULTY_EN[active.difficulty]
+              ? ` · ${DIFFICULTY_EN[active.difficulty]}`
+              : ""}
+            )
+          </strong>
         </p>
       )}
       {!active && (
         <p className="rw-summary">
-          Kalabalık insan trafiği için <strong>Kalabalık Trafik</strong> grubundan, en zor sınavlar için{" "}
-          <strong>Ultra Zor</strong> grubundan seçin.
+          {t("Kalabalık insan trafiği için")} <strong>{t("Kalabalık Trafik")}</strong>{" "}
+          {t("grubundan, en zor sınavlar için")} <strong>{t("Ultra Zor")}</strong>{" "}
+          {t("grubundan seçin.")}
         </p>
       )}
     </section>

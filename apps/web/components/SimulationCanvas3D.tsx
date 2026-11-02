@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { useLocale } from "../lib/i18n";
 import { ScenarioSpec, TelemetryFrame } from "../lib/types";
 
 interface SimulationCanvas3DProps {
@@ -20,6 +21,7 @@ export const SimulationCanvas3D: React.FC<SimulationCanvas3DProps> = ({
   frames,
   currentFrameIndex,
 }) => {
+  const { t } = useLocale();
   const mountRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<{
     renderer: THREE.WebGLRenderer;
@@ -187,7 +189,7 @@ export const SimulationCanvas3D: React.FC<SimulationCanvas3DProps> = ({
   }, [scenario, frames, currentFrameIndex]);
 
   if (failed) {
-    return <p className="rw-err">3B görünüm açılamadı (WebGL yok) — 2B görünümü kullanın.</p>;
+    return <p className="rw-err">{t("3B görünüm açılamadı (WebGL yok) — 2B görünümü kullanın.")}</p>;
   }
   return <div ref={mountRef} style={{ width: "100%", aspectRatio: `${VIEW_W} / ${VIEW_H}` }} />;
 };

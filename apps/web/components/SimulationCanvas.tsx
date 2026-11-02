@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { computeCanvasTransform, worldToCanvas } from "../lib/geometry";
+import { useLocale } from "../lib/i18n";
 import { ScenarioSpec, TelemetryFrame } from "../lib/types";
 
 interface SimulationCanvasProps {
@@ -24,6 +25,7 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   frames,
   currentFrameIndex,
 }) => {
+  const { t } = useLocale();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -80,7 +82,7 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
     ctx.setLineDash([]);
     ctx.fillStyle = "rgba(255,255,255,0.65)";
     ctx.font = "600 11px 'JetBrains Mono', monospace";
-    ctx.fillText("HEDEF", goalPos.px - 17, goalPos.py + 4);
+    ctx.fillText(t("HEDEF"), goalPos.px - 17, goalPos.py + 4);
 
     scenario.obstacles.forEach((obs) => {
       const s = worldToCanvas(obs.start.x_m, obs.start.y_m, scenario.world.height_m, transform);
@@ -148,10 +150,10 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
         ctx.stroke();
         ctx.fillStyle = C_HIT;
         ctx.font = "700 13px 'JetBrains Mono', monospace";
-        ctx.fillText("ÇARPTI!", robotPos.px - 26, robotPos.py - robotRadiusPx - 10);
+        ctx.fillText(t("ÇARPTI!"), robotPos.px - 26, robotPos.py - robotRadiusPx - 10);
       }
     }
-  }, [scenario, frames, currentFrameIndex]);
+  }, [scenario, frames, currentFrameIndex, t]);
 
   return (
     <div className="rw-canvas-wrap">

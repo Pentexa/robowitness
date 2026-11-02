@@ -74,3 +74,11 @@ def test_battery_report_markdown_download(client):
     assert "Robot Sınav Karnesi" in res.text
     assert "RW-LIB-009" in res.text
     assert client.get("/api/batteries/battery-yok").status_code == 404
+
+
+def test_battery_report_english_download(client):
+    battery_id = _run_battery(client, scenario_ids=["RW-LIB-009"])
+    res = client.get(f"/api/batteries/{battery_id}/report.md?lang=en")
+    assert res.status_code == 200
+    assert "Robot Exam Report Card" in res.text
+    assert "## Summary" in res.text

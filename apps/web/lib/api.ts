@@ -292,7 +292,13 @@ export function batteryReportUrl(batteryId: string): string {
 }
 
 export async function downloadBatteryReport(batteryId: string): Promise<void> {
-  const res = await apiFetch(batteryReportUrl(batteryId));
+  let lang = "tr";
+  try {
+    lang = localStorage.getItem("rw_locale") === "en" ? "en" : "tr";
+  } catch {
+    /* default tr */
+  }
+  const res = await apiFetch(`${batteryReportUrl(batteryId)}?lang=${lang}`);
   if (!res.ok) throw new Error("Karne indirilemedi");
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);

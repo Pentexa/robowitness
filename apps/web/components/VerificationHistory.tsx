@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Check } from "lucide-react";
+import { useLocale } from "../lib/i18n";
 
 interface VerificationHistoryProps {
   history: Array<{ verification_id: string; verdict: string; baseline_run_id: string; created_at: string }>;
@@ -22,15 +23,16 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
   onSelect,
   onClear,
 }) => {
+  const { t } = useLocale();
   if (history.length === 0) return null;
   return (
     <div className="rw-card">
       <div className="rw-card-head">
         <div>
-          <h3 className="rw-card-title">Geçmiş Sonuçlar</h3>
-          <p className="rw-card-sub">Eski bir sonuca tıklayarak tekrar açabilirsiniz.</p>
+          <h3 className="rw-card-title">{t("Geçmiş Sonuçlar")}</h3>
+          <p className="rw-card-sub">{t("Eski bir sonuca tıklayarak tekrar açabilirsiniz.")}</p>
         </div>
-        <span className="rw-badge mono">{history.length} KAYIT</span>
+        <span className="rw-badge mono">{history.length} {t("KAYIT")}</span>
       </div>
       <div className="rw-card-body">
         {history.map((h) => {
@@ -54,7 +56,7 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
                 padding: "7px 6px",
               }}
               onClick={() => (isActive ? onClear() : onSelect(h.verification_id))}
-              title={isActive ? "Bu sonucu kapat" : "Bu sonucu aç"}
+              title={isActive ? t("Bu sonucu kapat") : t("Bu sonucu aç")}
             >
               <span className="mono text-xs">
                 {isActive ? "● " : "○ "} {h.created_at.slice(0, 10)} · {h.verification_id.slice(0, 14)}
@@ -65,7 +67,7 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
                     <Check size={12} style={{ display: "inline", verticalAlign: "-2px" }} />{" "}
                   </>
                 ) : null}
-                {VERDICT_SHORT[h.verdict] ?? h.verdict}
+                {t(VERDICT_SHORT[h.verdict] ?? h.verdict)}
               </span>
             </button>
           );

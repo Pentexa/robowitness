@@ -9,6 +9,7 @@ import { FixComparison } from "../components/FixComparison";
 import { ReplayControls } from "../components/ReplayControls";
 import { AdminPanel } from "../components/AdminPanel";
 import { BatteryPanel } from "../components/BatteryPanel";
+import { useLocale } from "../lib/i18n";
 import { LocalPolicyPanel } from "../components/LocalPolicyPanel";
 import { MapImport } from "../components/MapImport";
 import { PolicyProfiles } from "../components/PolicyProfiles";
@@ -80,6 +81,7 @@ const STEPS: Array<{ panel: PanelId; name: string; desc: string }> = [
 ];
 
 export default function DashboardPage() {
+  const { locale, setLocale, t } = useLocale();
   const [scenario, setScenario] = useState<ScenarioSpec | null>(null);
   const [library, setLibrary] = useState<ScenarioCatalogEntry[]>([]);
   const [appliedRobotLabel, setAppliedRobotLabel] = useState<string | null>(null);
@@ -431,17 +433,19 @@ export default function DashboardPage() {
   const busy = isRunningBaseline || isVerifying || isGenerating;
   const nextText = runResult && !verification && !investigation
     ? runResult.oracle_status === "PASS"
-      ? "Test kazasız tamamlandı. Yeni bir senaryo veya robot seçip tekrar çalıştırabilirsiniz."
+      ? t("Test kazasız tamamlandı. Yeni bir senaryo veya robot seçip tekrar çalıştırabilirsiniz.")
       : runResult.oracle_status === "FAIL"
         ? nearMiss
-          ? `Çarpışma olmadı ama robot engele ${runResult.metrics.min_clearance_m} m yaklaştı (güvenli sınır: ${scenario?.oracle.min_clearance_m ?? 0.25} m). Bu yüzden test başarısız sayıldı; yakın geçişi inceleyebilirsiniz.`
-          : "Çalıştırma başarısız oldu. Tekrarı izleyip incelemeyi açabilirsiniz."
-        : "Sonuç belirlenemedi. Tekrarı izleyip yeniden çalıştırmayı deneyin."
+          ? t("Çarpışma olmadı ama robot engele {m} m yaklaştı (güvenli sınır: {s} m). Bu yüzden test başarısız sayıldı; yakın geçişi inceleyebilirsiniz.")
+              .replace("{m}", String(runResult.metrics.min_clearance_m))
+              .replace("{s}", String(scenario?.oracle.min_clearance_m ?? 0.25))
+          : t("Çalıştırma başarısız oldu. Tekrarı izleyip incelemeyi açabilirsiniz.")
+        : t("Sonuç belirlenemedi. Tekrarı izleyip yeniden çalıştırmayı deneyin.")
     : [
-        "Hazır test yüklü. Robotu eski ayarlarla bir kez çalıştırın.",
-        "Çalıştırma bitti. Aşağıdan tekrarını izleyebilir, sonra hatayı inceleyebilirsiniz.",
-        "Yeni ayarları kaydırıcılarla değiştirin (ya da öneriyi kullandınız), sonra test edin.",
-        "Sonuç hazır. Kararı okuyun, isterseniz mühürlü raporu indirin.",
+        t("Hazır test yüklü. Robotu eski ayarlarla bir kez çalıştırın."),
+        t("Çalıştırma bitti. Aşağıdan tekrarını izleyebilir, sonra hatayı inceleyebilirsiniz."),
+        t("Yeni ayarları kaydırıcılarla değiştirin (ya da öneriyi kullandınız), sonra test edin."),
+        t("Sonuç hazır. Kararı okuyun, isterseniz mühürlü raporu indirin."),
       ][currentStep];
 
   return (
@@ -451,17 +455,17 @@ export default function DashboardPage() {
         <div className="rw-titlebar-left">
           <div className="rw-mark">RW</div>
           <span className="rw-appname">
-            RoboWitness <span className="dim">— Robot Test Programı</span>
+            RoboWitness <span className="dim">— {t("Robot Test Programı")}</span>
           </span>
           <span
             className={`rw-badge ${provenance === "LIVE_META" ? "is-live" : "is-dim"}`}
             title={
               provenance === "LIVE_META"
-                ? "Senaryo üretimi ve hata incelemesi Meta AI ile canlı çalışıyor"
-                : "Meta AI anahtarı yok: çevrimdışı yedek mod"
+                ? t("Senaryo üretimi ve hata incelemesi Meta AI ile canlı çalışıyor")
+                : t("Meta AI anahtarı yok: çevrimdışı yedek mod")
             }
           >
-            Meta AI{provenance === "LIVE_META" ? ` · ${metaModel ?? "Canlı"}` : " · Çevrimdışı"}
+            Meta AI{provenance === "LIVE_META" ? ` · ${metaModel ?? t("Canlı")}` : ` · ${t("Çevrimdışı")}`}
           </span>
         </div>
         <div className="rw-row">
@@ -469,7 +473,7 @@ export default function DashboardPage() {
             id="input-api-key"
             className="rw-input"
             type="password"
-            placeholder="API anahtarı (varsa)"
+            placeholder={t("API anahtarı (varsa)")}
             style={{ width: 160 }}
             defaultValue={typeof window !== "undefined" ? (localStorage.getItem("rw_api_key") ?? "") : ""}
             onBlur={(e) => {
@@ -480,7 +484,7 @@ export default function DashboardPage() {
                 console.warn("localStorage unavailable");
               }
             }}
-            title="Sunucu RW_API_KEYS ile korunuyorsa anahtarınızı yazın; tarayıcıda saklanır"
+            title={t("Sunucu RW_API_KEYS ile korunuyorsa anahtarınızı yazın; tarayıcıda saklanır")}
           />
           <input
             id="input-jwt"
@@ -497,12 +501,12 @@ export default function DashboardPage() {
                 console.warn("localStorage unavailable");
               }
             }}
-            title="OIDC/JWT erişim belirteci (Authorization: Bearer); tarayıcıda saklanır"
+            title={t("OIDC/JWT erişim belirteci (Authorization: Bearer); tarayıcıda saklanır")}
           />
           <input
             id="input-workspace"
             className="rw-input"
-            placeholder="Çalışma alanı"
+            placeholder={t("Çalışma alanı")}
             style={{ width: 120 }}
             defaultValue={typeof window !== "undefined" ? (localStorage.getItem("rw_workspace") ?? "") : ""}
             onBlur={(e) => {
@@ -514,10 +518,26 @@ export default function DashboardPage() {
                 console.warn("localStorage unavailable");
               }
             }}
-            title="Çalışma alanı (workspace): verileriniz bu alanda izole edilir; değişince sayfa yenilenir"
+            title={t("Çalışma alanı (workspace): verileriniz bu alanda izole edilir; değişince sayfa yenilenir")}
           />
+          <div className="rw-btn-group" role="group" aria-label="Language / Dil">
+            <button
+              id="btn-lang-en"
+              className={`rw-btn rw-btn-sm ${locale === "en" ? "rw-btn-primary" : "rw-btn-ghost"}`}
+              onClick={() => setLocale("en")}
+            >
+              EN
+            </button>
+            <button
+              id="btn-lang-tr"
+              className={`rw-btn rw-btn-sm ${locale === "tr" ? "rw-btn-primary" : "rw-btn-ghost"}`}
+              onClick={() => setLocale("tr")}
+            >
+              TR
+            </button>
+          </div>
           <button className="rw-btn rw-btn-ghost rw-btn-sm" id="btn-help" onClick={() => setHelpOpen(true)}>
-            <HelpCircle size={14} /> Yardım
+            <HelpCircle size={14} /> {t("Yardım")}
           </button>
         </div>
       </div>
@@ -525,13 +545,13 @@ export default function DashboardPage() {
       {/* Araç çubuğu: sıradaki adım */}
       <div className="rw-toolbar">
         <div className="rw-next" role="status">
-          <strong>{busy ? "Çalışıyor…" : `Sıradaki adım (${currentStep + 1}/4):`}</strong>
-          <span>{busy ? "Lütfen bekleyin, pencereyi kapatmayın." : nextText}</span>
+          <strong>{busy ? t("Çalışıyor…") : `${t("Sıradaki adım")} (${currentStep + 1}/4):`}</strong>
+          <span>{busy ? t("Lütfen bekleyin, pencereyi kapatmayın.") : nextText}</span>
         </div>
         <div className="rw-toolbar-spacer" />
         {currentStep === 0 && (
           <button id="btn-toolbar-run" className="rw-btn rw-btn-primary" onClick={handleRunBaseline} disabled={busy || !scenario}>
-            ▶ Robotu Çalıştır
+            ▶ {t("Robotu Çalıştır")}
           </button>
         )}
         {currentStep === 1 && (
@@ -544,17 +564,17 @@ export default function DashboardPage() {
               handleInvestigate().catch(() => console.error("Investigation failed"));
             }}
           >
-            {nearMiss ? "Yakın Geçişi İncele" : "Hatayı İncele"}
+            {nearMiss ? t("Yakın Geçişi İncele") : t("Hatayı İncele")}
           </button>
         )}
         {currentStep === 2 && (
           <button id="btn-toolbar-verify" className="rw-btn rw-btn-primary" onClick={handleVerify} disabled={busy}>
-            Düzeltmeyi Test Et
+            {t("Düzeltmeyi Test Et")}
           </button>
         )}
         {currentStep === 3 && (
           <button id="btn-toolbar-result" className="rw-btn rw-btn-primary" onClick={() => setActivePanel("sonuc")}>
-            Sonucu Gör
+            {t("Sonucu Gör")}
           </button>
         )}
       </div>
@@ -569,15 +589,15 @@ export default function DashboardPage() {
             )}
             <div className="rw-card">
               <div className="rw-card-head">
-                <h2 className="rw-card-title">Test Alanı</h2>
+                <h2 className="rw-card-title">{t("Test Alanı")}</h2>
                 <div className="rw-row">
-                  <div className="rw-btn-group" role="group" aria-label="Görünüm">
+                  <div className="rw-btn-group" role="group" aria-label="View">
                     <button
                       id="btn-view-2d"
                       className={`rw-btn rw-btn-sm ${viewMode === "2d" ? "rw-btn-primary" : "rw-btn-ghost"}`}
                       onClick={() => setViewMode("2d")}
                     >
-                      2B Üstten
+                      {t("2B Üstten")}
                     </button>
                     <button
                       id="btn-view-3d"
@@ -588,36 +608,36 @@ export default function DashboardPage() {
                     </button>
                   </div>
                   <span className="rw-badge mono">
-                    {scenario ? `${scenario.obstacles.length} ENGEL` : "—"}
-                    {frames.length > 0 ? ` · ${frames.length} ADIM` : ""}
+                    {scenario ? `${scenario.obstacles.length} ${t("ENGEL")}` : "—"}
+                    {frames.length > 0 ? ` · ${frames.length} ${t("ADIM")}` : ""}
                   </span>
                 </div>
               </div>
               <div className="rw-card-body">
                 {frames.length === 0 && (
-                  <p className="rw-summary">Başlamak için sağdan senaryo ve robot seçip “Robotu Çalıştır”a basın.</p>
+                  <p className="rw-summary">{t("Başlamak için sağdan senaryo ve robot seçip “Robotu Çalıştır”a basın.")}</p>
                 )}
                 {viewMode === "2d" ? (
                   <SimulationCanvas scenario={scenario} frames={frames} currentFrameIndex={currentFrameIndex} />
                 ) : (
                   <SimulationCanvas3D scenario={scenario} frames={frames} currentFrameIndex={currentFrameIndex} />
                 )}
-                <div className="rw-legend" aria-label="İşaretler">
-                  <span><b>● Beyaz top:</b> Robot</span>
-                  <span><b>◎ Kesikli halka:</b> Hedef</span>
-                  <span><b>○ Gri halkalar:</b> Engeller</span>
-                  <span><b>— Çizgi:</b> Robotun yolu</span>
+                <div className="rw-legend" aria-label="Legend">
+                  <span><b>● {t("Beyaz top:")}</b> {t("Robot")}</span>
+                  <span><b>◎ {t("Kesikli halka:")}</b> {t("Hedef")}</span>
+                  <span><b>○ {t("Gri halkalar:")}</b> {t("Engeller")}</span>
+                  <span><b>— {t("Çizgi:")}</b> {t("Robotun yolu")}</span>
                   {frames.length > 0 && scenario && (
                     <span>
-                      <b>Engel mesafesi:</b>{" "}
+                      <b>{t("Engel mesafesi:")}</b>{" "}
                       <span className="mono">{frames[currentFrameIndex]?.clearance_m.toFixed(2)} m</span>
                       {frames[currentFrameIndex] &&
                       frames[currentFrameIndex].clearance_m < scenario.oracle.min_clearance_m ? (
                         <span className="rw-badge is-fail">
-                          Güvenli sınırın altında ({scenario.oracle.min_clearance_m} m)
+                          {t("Güvenli sınırın altında")} ({scenario.oracle.min_clearance_m} m)
                         </span>
                       ) : (
-                        <span> (güvenli sınır: {scenario.oracle.min_clearance_m} m)</span>
+                        <span> ({t("güvenli sınır:")} {scenario.oracle.min_clearance_m} m)</span>
                       )}
                     </span>
                   )}
@@ -675,7 +695,7 @@ export default function DashboardPage() {
                 className={`rw-tab ${activePanel === s.panel ? "is-active" : ""}`}
                 onClick={() => setActivePanel(s.panel)}
               >
-                {i + 1}. {s.panel === "test" ? "Test" : s.panel === "hata" ? "İncele" : s.panel === "duzeltme" ? "Düzeltme" : "Sonuç"}
+                {i + 1}. {s.panel === "test" ? t("Test") : s.panel === "hata" ? t("İncele") : s.panel === "duzeltme" ? t("Düzeltme") : t("Sonuç")}
               </button>
             ))}
             <button
@@ -684,7 +704,7 @@ export default function DashboardPage() {
               className={`rw-tab ${activePanel === "karne" ? "is-active" : ""}`}
               onClick={() => setActivePanel("karne")}
             >
-              Karne
+              {t("Karne")}
             </button>
             <button
               role="tab"
@@ -692,7 +712,7 @@ export default function DashboardPage() {
               className={`rw-tab ${activePanel === "yonetim" ? "is-active" : ""}`}
               onClick={() => setActivePanel("yonetim")}
             >
-              Yönetim
+              {t("Yönetim")}
             </button>
           </div>
           <div className="rw-inspector-body">
@@ -709,8 +729,8 @@ export default function DashboardPage() {
               />
               {appliedRobotLabel && (
                 <p className="rw-hint" role="status">
-                  Uygulanan robot: <strong>{appliedRobotLabel}</strong> — gövde yarıçapı ve sensör değerleri
-                  bu robotunkilerle değiştirildi.
+                  {t("Uygulanan robot:")} <strong>{appliedRobotLabel}</strong> —{" "}
+                  {t("gövde yarıçapı ve sensör değerleri bu robotunkilerle değiştirildi.")}
                 </p>
               )}
               <ScenarioLibrary
@@ -794,17 +814,17 @@ export default function DashboardPage() {
       <footer className="rw-statusbar">
         <span className="rw-status-cell">
           <span className={`dot ${backendUp ? "is-on" : "is-off"}`} />
-          {backendUp ? "Program bağlantısı: Çalışıyor" : "Bağlantı yok — arka uç programı açık değil"}
+          {backendUp ? t("Program bağlantısı: Çalışıyor") : t("Bağlantı yok — arka uç programı açık değil")}
         </span>
         <span className="rw-status-cell">
           Meta AI:{" "}
           {provenance === "LIVE_META"
-            ? `Canlı${metaModel ? ` (${metaModel})` : ""}`
-            : "Çevrimdışı yedek"}
+            ? `${t("Canlı")}${metaModel ? ` (${metaModel})` : ""}`
+            : t("Çevrimdışı yedek")}
         </span>
-        <span className="rw-status-cell">Adım: {currentStep + 1} / 4 — {STEPS[currentStep].name}</span>
+        <span className="rw-status-cell">{t("Adım:")} {currentStep + 1} / 4 — {t(STEPS[currentStep].name)}</span>
         <span className="rw-status-cell">
-          {busy ? "Çalışıyor…" : frames.length > 0 ? `İzleniyor: ${currentFrameIndex + 1}. adım` : "Hazır"}
+          {busy ? t("Çalışıyor…") : frames.length > 0 ? `${t("İzleniyor:")} ${currentFrameIndex + 1}. ${t("adım")}` : t("Hazır")}
         </span>
         <span className="rw-status-cell rw-status-right">RoboWitness</span>
       </footer>
@@ -812,38 +832,35 @@ export default function DashboardPage() {
       {/* Yardım penceresi */}
       {helpOpen && (
         <div className="rw-modal-backdrop" onClick={() => setHelpOpen(false)}>
-          <div className="rw-modal" role="dialog" aria-modal="true" aria-label="Nasıl kullanılır?" onClick={(e) => e.stopPropagation()}>
+          <div className="rw-modal" role="dialog" aria-modal="true" aria-label={t("Nasıl kullanılır?")} onClick={(e) => e.stopPropagation()}>
             <div className="rw-modal-head">
-              <span className="rw-modal-title">Nasıl Kullanılır?</span>
-              <button className="rw-btn rw-btn-icon" onClick={() => setHelpOpen(false)} aria-label="Kapat">
+              <span className="rw-modal-title">{t("Nasıl Kullanılır?")}</span>
+              <button className="rw-btn rw-btn-icon" onClick={() => setHelpOpen(false)} aria-label={t("Kapat")}>
                 <X size={15} />
               </button>
             </div>
             <div className="rw-modal-body">
-              <p>
-                Bu program, bir robotun hedefe çarpmadan gidip gidemediğini bilgisayarda test eder. Gerçek robota
-                dokunmadan, güvenli bir şekilde deneme yaparsınız.
-              </p>
+              <p>{t("Bu program, bir robotun hedefe çarpmadan gidip gidemediğini bilgisayarda test eder. Gerçek robota dokunmadan, güvenli bir şekilde deneme yaparsınız.")}</p>
               <div>
-                <h4>Yapmanız gerekenler (sırayla)</h4>
+                <h4>{t("Yapmanız gerekenler (sırayla)")}</h4>
                 <ol>
-                  <li><strong>Testi çalıştırın:</strong> “Robotu Çalıştır”a basın. Robot eski ayarlarla hareket eder; ortadaki alanda tekrarını izleyin.</li>
-                  <li><strong>Hatayı inceleyin:</strong> Robot çarparsa ya da hedefe ulaşamazsa “Hatayı İncele”ye basın. Meta AI ölçümlere bakıp nedeni açıklar ve yeni ayarlar önerir. (Bağlı değilse çevrimdışı yedek aynı işi yapar.)</li>
-                  <li><strong>Düzeltmeyi deneyin:</strong> Öneriyi kullanın ya da kaydırıcılarla ayarları kendiniz değiştirin. “Düzeltmeyi Test Et”e basın.</li>
-                  <li><strong>Sonucu görün:</strong> Program yeni ayarları aynı testte + görmediği 20 yeni testte dener. Karar: <strong>KABUL EDİLDİ</strong> ya da <strong>REDDEDİLDİ</strong>. Raporu indirip saklayabilirsiniz.</li>
+                  <li><strong>{t("Testi çalıştırın:")}</strong> {t("“Robotu Çalıştır”a basın. Robot eski ayarlarla hareket eder; ortadaki alanda tekrarını izleyin.")}</li>
+                  <li><strong>{t("Hatayı inceleyin:")}</strong> {t("Robot çarparsa ya da hedefe ulaşamazsa “Hatayı İncele”ye basın. Meta AI ölçümlere bakıp nedeni açıklar ve yeni ayarlar önerir. (Bağlı değilse çevrimdışı yedek aynı işi yapar.)")}</li>
+                  <li><strong>{t("Düzeltmeyi deneyin:")}</strong> {t("Öneriyi kullanın ya da kaydırıcılarla ayarları kendiniz değiştirin. “Düzeltmeyi Test Et”e basın.")}</li>
+                  <li><strong>{t("Sonucu görün:")}</strong> {t("Program yeni ayarları aynı testte + görmediği 20 yeni testte dener. Karar:")} <strong>{t("KABUL EDİLDİ")}</strong> {t("ya da")} <strong>{t("REDDEDİLDİ")}</strong>. {t("Raporu indirip saklayabilirsiniz.")}</li>
                 </ol>
               </div>
               <div>
-                <h4>Kelimeler ne demek?</h4>
+                <h4>{t("Kelimeler ne demek?")}</h4>
                 <dl>
-                  <div><dt>Eski ayarlar</dt><dd>Robotun ilk çalıştırıldığı ayarlar.</dd></div>
-                  <div><dt>Yeni ayarlar</dt><dd>Denemek istediğiniz düzeltme.</dd></div>
-                  <div><dt>Kontrol (1–5)</dt><dd>Karar vermeden önce yapılan zorunlu sınavlar. Biri bile kalırsa düzeltme reddedilir.</dd></div>
-                  <div><dt>Mühürlü rapor</dt><dd>Sonuç dosyası. Sonradan değiştirilirse anlaşılır; kanıt olarak saklanır.</dd></div>
+                  <div><dt>{t("Eski ayarlar")}</dt><dd>{t("Robotun ilk çalıştırıldığı ayarlar.")}</dd></div>
+                  <div><dt>{t("Yeni ayarlar")}</dt><dd>{t("Denemek istediğiniz düzeltme.")}</dd></div>
+                  <div><dt>{t("Kontrol (1–5)")}</dt><dd>{t("Karar vermeden önce yapılan zorunlu sınavlar. Biri bile kalırsa düzeltme reddedilir.")}</dd></div>
+                  <div><dt>{t("Mühürlü rapor")}</dt><dd>{t("Sonuç dosyası. Sonradan değiştirilirse anlaşılır; kanıt olarak saklanır.")}</dd></div>
                 </dl>
               </div>
               <button className="rw-btn rw-btn-primary rw-btn-block" onClick={() => setHelpOpen(false)}>
-                Anladım, Başlayalım
+                {t("Anladım, Başlayalım")}
               </button>
             </div>
           </div>

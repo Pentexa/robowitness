@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Check, Clock, Minus, X } from "lucide-react";
+import { useLocale } from "../lib/i18n";
 import { VerificationRecord } from "../lib/types";
 
 interface VerificationDecisionProps {
@@ -59,19 +60,20 @@ export const VerificationDecision: React.FC<VerificationDecisionProps> = ({
   verification,
   isVerifying,
 }) => {
+  const { t } = useLocale();
   if (!verification && !isVerifying) {
     return (
       <div className="rw-card">
         <div className="rw-card-head">
           <div>
-            <h3 className="rw-card-title">Sonuç</h3>
-            <p className="rw-card-sub">Düzeltme kabul edildi mi, reddedildi mi?</p>
+            <h3 className="rw-card-title">{t("Sonuç")}</h3>
+            <p className="rw-card-sub">{t("Düzeltme kabul edildi mi, reddedildi mi?")}</p>
           </div>
         </div>
         <div className="rw-card-body">
           <p className="rw-empty">
-            Henüz sonuç yok. Önce <strong>Düzeltme</strong> sekmesinden “Düzeltmeyi Test Et”e basın. Karar burada
-            büyük harflerle gösterilecek.
+            {t("Henüz sonuç yok. Önce")} <strong>{t("Düzeltme")}</strong>{" "}
+            {t("sekmesinden “Düzeltmeyi Test Et”e basın. Karar burada büyük harflerle gösterilecek.")}
           </p>
         </div>
       </div>
@@ -87,20 +89,20 @@ export const VerificationDecision: React.FC<VerificationDecisionProps> = ({
     <div className="rw-card">
       <div className="rw-card-head">
         <div>
-          <h3 className="rw-card-title">Sonuç</h3>
-          <p className="rw-card-sub">Meta AI'ın çözümünün bağımsız ölçümle kanıtlanmış sonucu.</p>
+          <h3 className="rw-card-title">{t("Sonuç")}</h3>
+          <p className="rw-card-sub">{t("Meta AI'ın çözümünün bağımsız ölçümle kanıtlanmış sonucu.")}</p>
         </div>
         <span className={`rw-badge mono ${passed ? "is-solid" : failed ? "is-fail" : ""}`}>
-          {isVerifying ? "TEST ÇALIŞIYOR" : verdictInfo.title}
+          {isVerifying ? t("TEST ÇALIŞIYOR") : t(verdictInfo.title)}
         </span>
       </div>
       <div className="rw-card-body">
         <div className={`rw-verdict ${passed ? "is-solid" : ""} ${failed ? "is-fail" : ""}`}>
-          <span className="rw-verdict-label">Nihai karar</span>
+          <span className="rw-verdict-label">{t("Nihai karar")}</span>
           <span className="rw-verdict-value">
-            {isVerifying ? "Testler çalışıyor…" : `${passed ? "✓ " : failed ? "✕ " : "— "}${verdictInfo.title}`}
+            {isVerifying ? t("Testler çalışıyor…") : `${passed ? "✓ " : failed ? "✕ " : "— "}${t(verdictInfo.title)}`}
           </span>
-          {!isVerifying && <span className="rw-verdict-sub">{verdictInfo.sub}</span>}
+          {!isVerifying && <span className="rw-verdict-sub">{t(verdictInfo.sub)}</span>}
         </div>
         <div className="rw-gates">
           {(verification?.gates ?? []).map((g) => {
@@ -120,13 +122,13 @@ export const VerificationDecision: React.FC<VerificationDecisionProps> = ({
                 </span>
                 <div className="rw-gate-body">
                   <div className="rw-gate-top">
-                    <span className="rw-gate-name">{info ? info.title : g.name}</span>
-                    <span className={`rw-gate-status ${g.status === "FAIL" ? "bad" : ""}`}>{STATUS_TR[g.status] ?? g.status}</span>
+                    <span className="rw-gate-name">{info ? t(info.title) : g.name}</span>
+                    <span className={`rw-gate-status ${g.status === "FAIL" ? "bad" : ""}`}>{t(STATUS_TR[g.status] ?? g.status)}</span>
                   </div>
-                  {info && <span className="rw-gate-desc">{info.desc}</span>}
+                  {info && <span className="rw-gate-desc">{t(info.desc)}</span>}
                   {g.reason_codes.length > 0 && (
                     <details className="rw-details">
-                      <summary>Teknik neden kodları</summary>
+                      <summary>{t("Teknik neden kodları")}</summary>
                       <div>
                         <span className="rw-gate-reasons">{g.reason_codes.join(" · ")}</span>
                       </div>
@@ -139,10 +141,10 @@ export const VerificationDecision: React.FC<VerificationDecisionProps> = ({
         </div>
         {verification && (
           <details className="rw-details">
-            <summary>Teknik detaylar (isteğe bağlı)</summary>
+            <summary>{t("Teknik detaylar (isteğe bağlı)")}</summary>
             <div>
-              <span className="mono text-xs">Karar kodu: {verification.verdict}</span>
-              <span className="mono text-xs">Kayıt: {verification.verification_id}</span>
+              <span className="mono text-xs">{t("Karar kodu:")} {verification.verdict}</span>
+              <span className="mono text-xs">{t("Kayıt:")} {verification.verification_id}</span>
             </div>
           </details>
         )}
