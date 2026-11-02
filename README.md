@@ -7,8 +7,9 @@
 # 🤖 RoboWitness
 
 ### Independent Verification Engine for AI-Generated Robotics Policies
+### ⚡ Powered by Meta AI
 
-*The AI proposes. The simulator executes. The oracle decides. The evidence proves it.*
+*Meta AI proposes. The simulator executes. The oracle decides. The evidence proves it.*
 
 <br />
 
@@ -20,6 +21,7 @@
 [![Three.js r169](https://img.shields.io/badge/Three.js-r169-000000?style=for-the-badge&logo=threedotjs&logoColor=white)](https://threejs.org/)
 [![PyBullet 3.2.7](https://img.shields.io/badge/PyBullet-3.2.7-FF6F00?style=for-the-badge)](https://pybullet.org/)
 [![TypeScript 5.5](https://img.shields.io/badge/TypeScript-5.5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Powered by Meta AI](https://img.shields.io/badge/Powered_by-Meta_AI-0082FB?style=for-the-badge&logo=meta&logoColor=white)](#-powered-by-meta-ai)
 
 <br />
 
@@ -48,13 +50,13 @@
 
 ## 🎯 What is RoboWitness?
 
-**RoboWitness** is a locally runnable, software-only verification engine for AI-generated robotics policy fixes. It does not ask the AI to grade its own homework.
+**RoboWitness** is a locally runnable, software-only verification engine for **Meta AI-generated** robotics policy fixes. Powered by **Meta AI**, it never asks Meta AI to grade its own homework.
 
-A candidate policy is executed in a deterministic PyBullet world, judged by an independent oracle against true geometry, pushed through five verification gates, and sealed into SHA-256 evidence that anyone can re-check.
+**Meta AI** proposes a candidate policy fix → it is executed in a deterministic PyBullet world → judged by an independent oracle against true geometry → pushed through five verification gates → sealed into SHA-256 evidence that anyone can re-check.
 
 > [!IMPORTANT]
 > **Core Invariant:** The policy only ever sees delayed, noisy sensor observations — never ground truth.
-> The simulator executes. The oracle decides. The evidence explains.
+> **Meta AI proposes. The simulator executes. The oracle decides. The evidence explains.**
 
 <details>
 <summary><strong>🇹🇷 Türkçe Özet</strong></summary>
@@ -112,7 +114,7 @@ python scripts\run_hackathon_demo.py
 </tr>
 <tr>
 <td><strong>🤖 AI modes</strong></td>
-<td>Offline reference mode by default; optional live Meta adapter when credentials are configured</td>
+<td><strong>Powered by Meta AI</strong> — offline reference mode by default; optional live Meta AI adapter (`RW_META_MODEL`, `RW_META_BASE_URL`, `RW_META_API_KEY`) for real-time scenario generation, failure investigation & fix proposals</td>
 </tr>
 <tr>
 <td><strong>📦 Evidence</strong></td>
@@ -128,7 +130,7 @@ python scripts\run_hackathon_demo.py
 
 ## 🤔 Why RoboWitness?
 
-Three failure modes make most "AI fixed the robot" claims untrustworthy:
+Three failure modes make most "Meta AI fixed the robot" claims untrustworthy:
 
 ```
   ┌─────────────────────────────────────────────────────────────────────┐
@@ -147,14 +149,28 @@ Three failure modes make most "AI fixed the robot" claims untrustworthy:
   └─────────────────────────────────────────────────────────────────────┘
 ```
 
-RoboWitness separates the four roles that are usually blurred together:
+RoboWitness separates the four roles that are usually blurred together — with **Meta AI** as the brilliant proposer:
 
 | Role | Responsibility | Never Does |
 |:---:|---|---|
-| 🧠 **Proposer** | Suggests policy changes from measured failure data | Touch the simulator or the oracle |
-| ⚙️ **Simulator** | Executes the policy at a fixed 60 Hz timestep | Know the verdict in advance |
-| ⚖️ **Oracle** | Applies collision, clearance, goal, timeout, and stuck rules to true state | Read the AI's rationale or trust its confidence |
+| 🧠 **Proposer — Meta AI** | **Meta AI** suggests policy changes from measured failure data: new scenarios, grounded failure explanations, 5-parameter fix patches | Touch the simulator or the oracle |
+| ⚙️ **Simulator** | Executes the **Meta AI-proposed** policy at a fixed 60 Hz timestep | Know the verdict in advance |
+| ⚖️ **Oracle** | Applies collision, clearance, goal, timeout, and stuck rules to true state | Read Meta AI's rationale or trust its confidence |
 | 📦 **Evidence** | Hashes every artifact with SHA-256 and re-verifies independently | Assume the producer was honest |
+
+<br />
+
+## ⚡ Powered by Meta AI
+
+**Meta AI is the intelligence at the heart of RoboWitness.** Every improvement starts with Meta AI:
+
+- 🗺️ **Scenario generation** — Meta AI creates challenging warehouse scenarios (`POST /api/scenarios/generate`), validated by Pydantic schemas
+- 🔍 **Failure investigation** — Meta AI explains *why* the baseline failed in terms of measured ticks, clearances and testable hypotheses (`POST /api/failures/{run_id}/investigate`)
+- 🔧 **Fix proposals** — Meta AI proposes a patch with only the five allowed numeric `PolicyConfig` fields — never code, never oracle thresholds
+- 🛡️ **Strict separation** — Meta AI never touches physics, never reads ground truth, never declares itself verified. The oracle alone decides
+- 🔌 **Flexible modes** — offline reference mode works with zero keys; set `RW_AI_MODE=live` + `RW_META_API_KEY` + `RW_META_MODEL` to unleash live Meta AI
+
+> Meta AI brings the creativity. RoboWitness brings the proof.
 
 <br />
 
@@ -162,7 +178,7 @@ RoboWitness separates the four roles that are usually blurred together:
 
 ```mermaid
 flowchart TD
-    A["🧠 AI or human proposes a policy fix"] --> B["🔓 Gate 1<br/>Reproduce the baseline failure"]
+    A["🧠 Meta AI proposes a policy fix"] --> B["🔓 Gate 1<br/>Reproduce the baseline failure"]
     B --> C["⚖️ Gate 2<br/>Paired run: same seed, world, obstacle trajectory"]
     C --> D["🎯 Gate 3<br/>20 frozen holdout scenarios"]
     D --> E["🛡️ Gate 4<br/>Critical regression suite"]
@@ -255,6 +271,7 @@ The same pipeline still rejects bad candidates: the over-cautious control finish
 
 | Feature | Description |
 |---|---|
+| **🤖 Meta AI Intelligence** | **Powered by Meta AI** — scenario generation, grounded failure investigation & 5-parameter fix proposals via `MetaAdapter`; offline reference fallback included |
 | **Deterministic 60 Hz Simulation** | PyBullet `DIRECT`, fixed timestep, seeded worlds, bit-identical repeats |
 | **Observation Honesty** | Controllers receive delayed (`0–1000 ms`) and noisy sensor observations, never ground-truth poses |
 | **Independent Oracle** | Collision, minimum-clearance, goal, timeout, and stuck checks against true geometry with machine-readable reasons |
@@ -272,7 +289,7 @@ The web app is a five-tab Turkish-language workflow designed for non-experts:
 |:---:|---|
 | 🧪 **Test** | Pick a scenario and robot, run the baseline, watch the 2D replay (canonical) or 3D view (display-only) |
 | 🔍 **İncele** | Read a grounded failure analysis tied to the measured tick and real clearance numbers |
-| 🔧 **Düzeltme** | Adjust the five policy parameters, apply an AI suggestion, or load a saved policy profile |
+| 🔧 **Düzeltme** | Adjust the five policy parameters, apply a **Meta AI** suggestion, or load a saved policy profile |
 | 📊 **Sonuç** | Inspect gates 1–5, compare baseline vs candidate replay, download sealed evidence ZIP |
 | 📝 **Karne** | Run the full exam battery (16 scenarios), get a per-scenario report card, replay any run, download Markdown report |
 
@@ -407,7 +424,7 @@ Done. Baseline=FAIL Candidate=... OverCautious=...
 ```
 
 > [!TIP]
-> No Meta API key is required. Sealed evidence packages are produced by the API worker
+> No Meta AI API key is required to try it — offline reference mode works out of the box. To enable live **Meta AI**, set `RW_AI_MODE=live` with your `RW_META_BASE_URL`, `RW_META_MODEL` and `RW_META_API_KEY`. Sealed evidence packages are produced by the API worker
 > (`POST /api/runs` → `POST /api/fixes/verify`).
 
 ### 🪟 Windows Note: PyBullet from Source
@@ -466,7 +483,7 @@ Interactive OpenAPI docs are available at **`http://127.0.0.1:8000/docs`** while
 | `GET` | `/api/health` | Service health and truthful worker heartbeat |
 | `GET` | `/api/scenarios/reference` | Canonical `RW-REF-001` scenario |
 | `GET` | `/api/scenarios/library` | 20 selectable library scenarios |
-| `POST` | `/api/scenarios/generate` | Generate a scenario (offline reference or live AI) |
+| `POST` | `/api/scenarios/generate` | Generate a scenario with **Meta AI** (live) or offline reference |
 | `POST` | `/api/runs` | Queue a simulation run |
 | `GET` | `/api/runs/{run_id}` | Run result, metrics, and oracle verdict |
 | `GET` | `/api/jobs/{job_id}` | Job progress |
@@ -479,7 +496,7 @@ Interactive OpenAPI docs are available at **`http://127.0.0.1:8000/docs`** while
 
 | Method | Endpoint | Purpose |
 |:---:|---|---|
-| `POST` | `/api/failures/{run_id}/investigate` | Grounded failure analysis; returns `409` for non-FAIL runs |
+| `POST` | `/api/failures/{run_id}/investigate` | **Meta AI-powered** grounded failure analysis; returns `409` for non-FAIL runs |
 | `POST` | `/api/fixes/verify` | Queue the five-gate verification |
 | `GET` | `/api/verifications` | Verification history |
 | `GET` | `/api/verifications/{id}` | Gate results and comparison |
@@ -613,7 +630,7 @@ python scripts/run_final_evaluation.py
 - 📊 **Built-in robot specs are nominal examples.** They are catalog values, not manufacturer-certified measurements.
 - 📡 **Live ROS 2 is unverified here.** The recorder is passive by design; without `rclpy`, it exits with an honest `[BLOCKED]` message.
 - 🔌 **Local policy plugins are not a sandbox.** They are opt-in, subprocess-isolated, timeout-bounded, and output-clamped — but only trusted, user-written code belongs there.
-- 🌐 **Live Meta connectivity is optional.** Offline reference mode is the default; live AI calls require your own base URL, model, and key.
+- 🌐 **Live Meta AI connectivity is optional — but recommended.** Offline reference mode is the default and fully supported; add your own base URL, model and key (`RW_META_BASE_URL`, `RW_META_MODEL`, `RW_META_API_KEY`) to unlock live Meta AI scenario generation, investigation and fix proposals.
 - 🔐 **Evidence proves integrity, not physical truth.** SHA-256 sealing proves the recorded artifacts were not altered. It does not prove the simulator matches reality.
 
 <br />
@@ -653,12 +670,13 @@ Copyright © 2026, **Ahmet Aras Akyasan**.
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![PyBullet](https://img.shields.io/badge/PyBullet-FF6F00?style=for-the-badge)](https://pybullet.org/)
+[![Meta AI](https://img.shields.io/badge/Meta_AI-0082FB?style=for-the-badge&logo=meta&logoColor=white)](https://ai.meta.com/)
 
 <br />
 
 **If a result cannot survive an independent re-check, it is not a result.**
 
-*Built with an unreasonable commitment to honest verdicts.*
+*Powered by Meta AI. Built with an unreasonable commitment to honest verdicts.*
 
 <br />
 
