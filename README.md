@@ -10,7 +10,7 @@
 [![Verdicts](https://img.shields.io/badge/verdicts-never%20manufactured-6f42c1?style=flat-square)](#honest-limitations)
 [![License](https://img.shields.io/badge/license-BSD--2--Clause-blue?style=flat-square)](LICENSE)
 
-[Quick start](#quick-start) · [How it works](#how-it-works) · [The five gates](#the-five-gates) · [Measured results](#measured-results) · [API](#api-surface) · [Documentation](#documentation)
+[Demo Video](#demo-video) · [Quick start](#quick-start) · [How it works](#how-it-works) · [The five gates](#the-five-gates) · [Measured results](#measured-results) · [API](#api-surface) · [Documentation](#documentation)
 
 </div>
 
@@ -28,6 +28,16 @@
 RoboWitness, yapay zekânın önerdiği robot politikası düzeltmelerini bağımsız olarak doğrulayan, tamamen yerelde çalışan bir yazılım doğrulama motorudur. Politika yalnızca gecikmeli ve gürültülü sensör verisi görür; PyBullet simülasyonu deterministik 60 Hz'de çalıştırır; bağımsız oracle gerçek geometriye göre `PASS` / `FAIL` / `INCONCLUSIVE` karar verir; beş kapı ve SHA-256 mühürlü kanıt paketi sonucu değiştirilemez hale getirir. Path B 2026-11-02'de kapandı: ön kayıtlı **MPC-lite** adayı taze v6 setinde **20/20** ile `VERIFIED_IN_SIMULATION` aldı. Varsayılan yasa `shared` olarak kaldı; MPC açıkça etkinleştirilen (`RW_CANDIDATE_LAW=mpc`) doğrulanmış aday konfigürasyonudur. Bu depo, doğrulanmamış bir sonucu asla `VERIFIED` gibi göstermez.
 
 </details>
+
+## Demo Video
+
+<div align="center">
+
+<video src="docs/assets/robowitness-intro.mp4" controls width="100%"></video>
+
+🎬 **RoboWitness Tanıtım ve Doğrulama Videosu (90 sn):** [docs/assets/robowitness-intro.mp4](docs/assets/robowitness-intro.mp4)
+
+</div>
 
 ## For hackathon judges (60 seconds)
 
