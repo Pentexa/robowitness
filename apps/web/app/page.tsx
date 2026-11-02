@@ -12,6 +12,7 @@ import { BatteryPanel } from "../components/BatteryPanel";
 import { useLocale } from "../lib/i18n";
 import { LocalPolicyPanel } from "../components/LocalPolicyPanel";
 import { MapImport } from "../components/MapImport";
+import { ImageScenarioPanel } from "../components/ImageScenarioPanel";
 import { PolicyProfiles } from "../components/PolicyProfiles";
 import { RobotPanel } from "../components/RobotPanel";
 import { RunVerdict } from "../components/RunVerdict";
@@ -255,8 +256,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleRunBaseline = async () => {
-    if (!scenario) return;
+  const runScenarioBaseline = async (runScenario: ScenarioSpec) => {
     setIsRunningBaseline(true);
     setIsPlaying(false);
     setCurrentFrameIndex(0);
@@ -269,7 +269,7 @@ export default function DashboardPage() {
       console.warn("localStorage unavailable");
     }
     try {
-      const runJob = await createRun(scenario, baselinePolicy, selectedLocalPolicy || null);
+      const runJob = await createRun(runScenario, baselinePolicy, selectedLocalPolicy || null);
       const pollInterval = setInterval(async () => {
         try {
           const job = await fetchJob(runJob.job_id);
@@ -304,6 +304,10 @@ export default function DashboardPage() {
       setIsRunningBaseline(false);
       console.error(e);
     }
+  };
+
+  const handleRunBaseline = async () => {
+    if (scenario) await runScenarioBaseline(scenario);
   };
 
   const handleLoadBatteryRun = async (runId: string) => {
@@ -733,6 +737,17 @@ export default function DashboardPage() {
                   {t("gövde yarıçapı ve sensör değerleri bu robotunkilerle değiştirildi.")}
                 </p>
               )}
+              <ImageScenarioPanel
+                disabled={busy}
+                onScenario={async (s, runNow) => {
+                  setScenario(s);
+                  setScenarioProvenance("LIVE_META_SAM_3_1");
+                  setAppliedRobotLabel(null);
+                  resetRunState(false);
+                  setActivePanel("test");
+                  if (runNow) await runScenarioBaseline(s);
+                }}
+              />
               <ScenarioLibrary
                 entries={library}
                 activeScenarioId={scenario?.id ?? null}

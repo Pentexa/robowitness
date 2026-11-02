@@ -18,6 +18,65 @@ const API_BASE = process.env.NEXT_PUBLIC_RW_API_URL || "http://localhost:8000";
 
 export const API_BASE_URL = API_BASE;
 
+export interface ImageDetectionResult {
+  detection_id: string;
+  image_width: number;
+  image_height: number;
+  provenance: "LIVE_META";
+  model: "sam-3.1";
+  detections: Array<{
+    id: string;
+    concept: string;
+    confidence: number | null;
+    box: { left: number; top: number; right: number; bottom: number };
+  }>;
+}
+
+export interface ImageScenarioInput {
+  detection_id: string;
+  selected_ids: string[];
+  name: string;
+  width_m: number;
+  height_m: number;
+  overhead_confirmed: true;
+  start: { x: number; y: number };
+  goal: { x: number; y: number };
+  save: boolean;
+}
+
+export interface ImageScenarioResult {
+  scenario: ScenarioSpec;
+  name: string;
+  detection_id: string;
+  provenance: "LIVE_META";
+  model: "sam-3.1";
+  saved: boolean;
+  warnings: string[];
+}
+
+async function imageResponse<T>(response: Response): Promise<T> {
+  const body = await response.json();
+  if (!response.ok) throw new Error(body?.error?.message || "Image request failed");
+  return body as T;
+}
+
+export async function detectImage(imageDataUrl: string, concepts: string[]): Promise<ImageDetectionResult> {
+  return imageResponse(await apiFetch(`${API_BASE}/api/scenarios/from-image/detect`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image_data_url: imageDataUrl, concepts }),
+  }));
+}
+
+export async function previewImageScenario(input: ImageScenarioInput): Promise<ImageScenarioResult> {
+  return imageResponse(await apiFetch(`${API_BASE}/api/scenarios/from-image/scenario`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input),
+  }));
+}
+
+export async function fetchSavedImageScenarios(): Promise<ImageScenarioResult[]> {
+  return imageResponse(await apiFetch(`${API_BASE}/api/scenarios/from-image/saved`));
+}
+
 /** Enterprise auth: keys live in localStorage, never in source code. */
 export function authHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};

@@ -1,7 +1,77 @@
 # RoboWitness Implementation Status
 
-Governed by `ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md`. All results below are
-measured in this session — no unattended claims, no fabricated verdicts.
+## Camera/photo SAM 3.1 integration — 2026-11-03
+
+- State: PASS. Existing simulation/oracle/verification contracts preserved.
+- Official contract checked: https://dev.meta.ai/docs/sam/segmenting and Meta's
+  SAM wire protocol. Uses `sam-3.1` on `/v1/responses`, server-side existing key.
+- Actual first live probe: two rendered red squares, authenticated request,
+  strict official mask+box parser, **2 detections**, confidence 0.9416 each.
+  This is a generated calibration image, not a real-world safety test.
+- Implemented camera still capture (tracks released on capture/close/unmount),
+  PNG/JPEG/WebP photo upload with EXIF/size normalization, object selection,
+  required physical floor dimensions, overhead/rectified-view confirmation,
+  start/goal placement, projected preview, workspace-scoped save/reload, and
+  direct execution through the existing run API and worker. No video input.
+- Added `Pillow==12.3.0` and the official `meta-sam-parser==0.1.0` to the lock;
+  live SAM responses are validated including masks, and no offline detections
+  are substituted. Original photos are not persisted by the API.
+
+| Check | Exact command (working directory) | Actual result |
+|---|---|---|
+| Complete backend suite | `python -m pytest -q --tb=line` (`backend`) | **194 passed**, 388.84 s, no skips |
+| Backend lint | `ruff check --select E,F app tests` (`backend`) | PASS |
+| Backend formatting | `ruff format --check app tests` (`backend`) | PASS, 123 files |
+| Smoke-script lint | `ruff check --config pyproject.toml --select E,F ../scripts/sam_live_smoke.py` (`backend`) | PASS |
+| Frontend types | `npm run typecheck` (`apps/web`) | PASS |
+| Frontend lint | `npm run lint` (`apps/web`) | PASS; 3 pre-existing warnings (page image, BatteryPanel/PolicyProfiles hook dependencies) |
+| Production build | `npm run build` (`apps/web`) | PASS, Next.js 14.2.35 |
+| Browser suite | `npm run test:e2e` (`apps/web`) | **12 passed**, 41.5 s; includes capture/track cleanup, denied permission, upload, scale gate and provider error |
+| Existing schema/holdout smoke | `python scripts/smoke_test.py` (root) | PASS; canonical reference and 20 unique holdouts valid |
+| Real SAM → saved scenario → real worker/PyBullet | `python scripts/sam_live_smoke.py` (root) | PASS, 2 detections; `run-ac78b8669196`, 741 ticks, goal reached, no collision, minimum clearance **0.4137 m** |
+| Independent run integrity | `python scripts/verify_evidence.py artifacts/runs/run-ac78b8669196` (root) | PASS, all 6 member checksums match |
+| Real browser → real SAM → preview/save/run/reload | `node scripts/sam_browser_smoke.cjs` (root) | PASS; `run-d4256c86d8b7`, oracle PASS, 741 ticks, 0.4137 m, saved scenario restored, zero page errors |
+
+Additional live PHOTO probe (not merely a rendered image): fetched the public
+COCO sample at `https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/coco_sample.png`,
+submitted its actual PNG bytes to `/api/scenarios/from-image/detect` with
+concept `cat`: HTTP 200, `LIVE_META`, `sam-3.1`, **2 objects**. This perspective
+photo was used for detection only, not falsely interpreted as a floor map.
+
+Evidence: `artifacts/sam_smoke/20261102T213034/{detections,scenario,result}.json`
+(UTC directory timestamp; local date 2026-11-03),
+`artifacts/sam_smoke/live-browser-{preview.png,result.json}`,
+`artifacts/sam_smoke/real_photo_detection.json`, and the corresponding run
+directories under `artifacts/runs/`.
+
+Failures found and corrected (not hidden):
+- PNG metadata loading invalidated Pillow's `verify()` stream; validation now
+  verifies before reopening for EXIF/animation inspection.
+- Initial frontend lint rejected helper name `useImage` as a hook; renamed it
+  `acceptImage` (no rule suppression).
+- The intermediate backend run had 34 passes / 2 setup-teardown errors because
+  a 7 MB parametrized value became a Windows environment test ID; explicit
+  short case IDs fixed the harness. The complete rerun passed all 194 tests.
+- Initial browser suite: 10 passed / 2 failed; new alert selectors also matched
+  Next's route announcer. Scoped them to the image panel; full rerun 12/12.
+- First manual smoke raced backend startup and got connection refused; reran
+  after health HTTP 200 and a fresh worker heartbeat, then passed.
+- Full formatter found two existing wrapping differences in health/battery
+  routes; formatter-only changes resolved them without behavior changes.
+
+Limits: physical camera hardware itself was not exercised (browser camera test
+uses Chromium's fake device). Image segmentation was genuinely live. The live
+simulation journeys use an explicitly rendered, known-scale overhead fixture;
+arbitrary perspective photos need external rectification before conversion.
+Objects over the 0.80 m radius limit, overlaps and invalid start/goal positions
+are rejected; no geometry is silently shrunk and no rule thresholds changed.
+
+Next executable action: use Test → Camera / Photo → SAM 3.1 with a user's
+overhead/rectified floor image and measured dimensions. Services are available
+on backend :8000, worker and production web :3000. No presentation work begun.
+
+Governed by `ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md`. Results below are
+recorded per dated session — no unattended claims, no fabricated verdicts.
 
 ## Phase Checklist
 
@@ -540,3 +610,23 @@ regression.
   full 40-row endpoint table), EVIDENCE_FORMAT (battery report cards are generated, not sealed),
   DEMO_GUIDE (Path B CLOSED, English UI flow), Makefile (`test-frontend`/`test-e2e`/`coverage`),
   `.env.example` (JWT/OIDC, rate limit, webhook, worker, lease vars), requirements.lock header.
+
+## Camera → Scenario via Real SAM 3.1 (2026-11-03, user-built, verified here)
+
+The user added an end-to-end photo path: upload a still or capture a camera
+photo → real Meta SAM 3.1 segmentation (`app/ai/sam.py`, strict output validation,
+no fabricated detections) → user-calibrated overhead projection
+(`app/maps/image_converter.py`, explicit scale + overhead confirmation,
+static-circle projection with honest limits) → saved `RW-IMG-*` scenario →
+ordinary PyBullet run/verify. Verified in this session: backend **194/194**
+(incl. 35 recorded-transport image tests), frontend typecheck/lint/build clean,
+Playwright **12/12** (incl. 4 new camera/photo/scale-gate/permission tests).
+Live coverage stays paid-only (`scripts/sam_live_smoke.py`,
+`scripts/sam_browser_smoke.cjs`); default suite spends no credits. Propagated
+to: README (badge + lab section + counts), HACKATHON_SUBMISSION (showcase +
+live-proof note), ENTERPRISE (endpoints), CONTRACTS (schema + 3 endpoints),
+DEMO_GUIDE (Path D), new RW logo (`docs/assets/logo.svg`, titlebar + favicon).
+Honest note: blueprint §4 lists cameras as out of scope and §104 too; this
+feature adds no actuation or physical-world claims — photos become scenarios,
+simulation stays software-only. A blueprint-scope clarification is owed if
+this path grows beyond scenario authoring.

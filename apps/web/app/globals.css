@@ -328,6 +328,15 @@ select.rw-input option { background: #fff; }
 @media (max-width: 700px) { .rw-compare { grid-template-columns: 1fr; } }
 .rw-compare h4 { font-size: 0.72rem; font-weight: 700; color: var(--text-1); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
 
+.rw-image-form { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
+.rw-image-fields { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.rw-image-fields input[type="file"] { width: 1px; height: 1px; opacity: 0; position: absolute; }
+.rw-image-fields .rw-field { min-width: 0; flex: 1; }
+.rw-photo { width: 100%; max-height: 300px; height: auto; display: block; border: 1px solid var(--line); }
+.rw-image-check { display: flex; align-items: flex-start; gap: 6px; font-size: 0.78rem; }
+.rw-image-check input { margin-top: 2px; }
+.rw-image-points { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+
 /* ---------- Yardım penceresi ---------- */
 .rw-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
 .rw-modal { background: var(--panel); border: 1px solid #6f6f6f; border-radius: 4px; max-width: 560px; width: 100%; max-height: 86vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,0.35); }

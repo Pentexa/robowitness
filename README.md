@@ -30,8 +30,9 @@
 
 <br />
 
-[![Tests — 159 Passed](https://img.shields.io/badge/tests-159_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
-[![E2E — 8 Passed](https://img.shields.io/badge/e2e-8_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
+[![Tests — 194 Passed](https://img.shields.io/badge/tests-194_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
+[![E2E — 12 Passed](https://img.shields.io/badge/e2e-12_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
+[![Photo to Scenario — SAM 3.1](https://img.shields.io/badge/photo_to_scenario-SAM_3.1-C026D3?style=flat-square&logo=meta&logoColor=white)](#-robot--scenario-lab)
 [![UI — English + Türkçe](https://img.shields.io/badge/ui-english_%2B_turkish-2F6BFF?style=flat-square)](#-at-a-glance)
 [![Verdicts — Never Manufactured](https://img.shields.io/badge/verdicts-never_manufactured-6f42c1?style=flat-square&logo=shieldsdotio&logoColor=white)](#-honest-limitations)
 [![Physics — 60 Hz Deterministic](https://img.shields.io/badge/physics-60_Hz_deterministic-FF6F00?style=flat-square)](#how-it-works)
@@ -303,9 +304,45 @@ The web app is a six-tab English-first workflow (Turkish switchable in the title
 
 ### 🏭 Robot & Scenario Lab
 
+**Camera / Photo → SAM 3.1:** In the Test tab, open this section, upload a
+PNG/JPEG/WebP still (up to 5 MB) or capture a camera photo, and click **Detect
+with SAM 3.1**. This makes a real Meta Responses API request using the existing
+server-side `RW_META_API_KEY` and `RW_META_BASE_URL`; it is independent of the
+text-generation `RW_AI_MODE` and never substitutes offline detections. Specify
+up to three object concepts, one per line (for example `chair`, `box`, `person`).
+SAM segments one concept per API request. [Official API contract](https://dev.meta.ai/docs/sam/segmenting).
+
+Select 1–8 detected obstacles, enter the real floor width (6–20 m) and height
+(4–15 m), confirm an **overhead or rectified rectangular floor view**, and place
+start/goal on the photo (or enter their image percentages). **Preview scenario**
+shows the projected world; **Save and use** persists it in the current workspace,
+and **Save and run** starts the existing PyBullet worker flow. Saved image
+scenarios can be selected again after refreshing. Camera access needs localhost
+or HTTPS and browser permission; only still snapshots are sent. Original photos
+are not retained on the server; measured boxes and a source SHA-256 are retained.
+
+The conversion encloses image boxes in **static circles**. It does not recover
+depth, perspective, hidden obstacles or velocity. Perspective photos must first
+be rectified; a known scale alone is insufficient. Objects requiring a radius
+over 0.80 m, overlaps, invalid start/goal positions and excess selections are
+rejected rather than silently shrunk/dropped. The usual oracle/verifier is unchanged.
+
+With backend and worker running, reproduce the live image-to-PyBullet check:
+
+```powershell
+python scripts/sam_live_smoke.py
+# Full live camera/photo UI journey (uses rendered still input; no camera hardware required):
+node scripts/sam_browser_smoke.cjs
+```
+
+This sends an explicitly rendered overhead calibration image with two red
+squares to real SAM 3.1, saves the resulting scenario, runs real PyBullet, and
+writes measured results under `artifacts/sam_smoke/`. Normal automated tests
+use a recorded SAM response and do not spend live API credits.
+
 - 🤖 **Robot Catalog** — Six built-in profiles (ROBOTIS TurtleBot3 Waffle Pi/Burger, Clearpath Jackal, MiR250, Boston Dynamics Spot, Unitree Go2) plus user-created robots with full specs
 - 🚧 **Honest Compatibility Gate** — Only differential-drive robots with a body radius of `0.15–0.40 m` can enter this simulator; others are marked incompatible
-- 🗺️ **Scenario Library** — Canonical `RW-REF-001`, 20 selectable scenarios (10 `RW-LIB-*`, 5 `RW-ULTRA-*`, 5 `RW-CROWD-*`), 3 regression cases, and a frozen 20-scenario holdout manifest
+- 🗺️ **Scenario Library & Photo to Scenario** — Canonical `RW-REF-001`, 20 selectable scenarios (10 `RW-LIB-*`, 5 `RW-ULTRA-*`, 5 `RW-CROWD-*`), 3 regression cases, a frozen 20-scenario holdout manifest — plus camera/photo upload detected by real SAM 3.1 into saved, runnable scenarios
 - 📐 **Policy Profiles** — Four built-in presets plus your own saved parameter sets
 - 📋 **Exam Battery** — One click runs the default 11 scenarios (reference + 10 library), then produces a report card
 - 📥 **Real-Log Import** — Upload a real drive as CSV or JSON; judged by the same rules and labeled `REAL_LOG`
@@ -454,11 +491,9 @@ python -m pip install --no-build-isolation pybullet==3.2.5
 
 | Check | Measured Result | Status |
 |---|---|:---:|
-| Backend test suite | **159 passed** (unit + integration) | ✅ |
-| Frontend E2E (Playwright, live stack) | **8 passed** — incl. a no-Turkish-characters UI leak guard | ✅ |
+| Backend test suite | **194 passed** (unit + integration, incl. 35 image/SAM cases) | ✅ |
+| Frontend E2E (Playwright, live stack) | **12 passed** — incl. camera, photo, scale gate and UI leak guard | ✅ |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean | ✅ |
-| Frontend quality | `npm run lint`, `npm run typecheck`, `npm run build` clean | ✅ |
-| Frontend E2E (Playwright, live stack) | **8 passed** — incl. a no-Turkish-characters UI leak guard | ✅ |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats | ✅ |
 | Path B — improvement accepted | **CLOSED.** `verif-6b2bfd8e0501` → `VERIFIED_IN_SIMULATION`; all five gates PASS, Gate 3 **20/20** on the pre-registered v6 holdout using MPC-lite | ✅ |
 | Path C — rejection demonstrated | Over-cautious candidate `REJECTED` on paired, holdout, and regression gates (`verif-3b370a934cfc`) | ✅ |

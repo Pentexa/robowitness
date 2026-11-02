@@ -107,6 +107,19 @@ Recorded per simulation tick:
 - `clearance_m`: float
 - `events`: List of `[{event_id, type, tick, details}]`
 
+### Scenario from grid text or camera photo
+- `POST /api/maps/scenario` turns occupancy-grid text into a validated
+  `ScenarioSpec` (connected clusters → circle obstacles, ≤8, clamp warnings).
+- `POST /api/scenarios/from-image/detect` runs real SAM 3.1 segmentation on an
+  uploaded still (PNG/JPEG/WebP, ≤5 MB, 16–2048 px; animated/EXIF-rotated rejected)
+  and stores only measured boxes + a source SHA-256 — never the photo.
+- `POST /api/scenarios/from-image/scenario` projects selected boxes onto the
+  user-calibrated floor rectangle (explicit scale + overhead-view confirmation required,
+  start/goal placed on the image) into a runnable `ScenarioSpec`
+  (`RW-IMG-<hash>`), with honest warnings: static circles only, no depth/perspective/
+  hidden-obstacle/velocity recovery. Oversized/overlapping/invalid selections are
+  rejected, never silently shrunk. `GET /api/scenarios/from-image/saved` lists them.
+
 ## 5. API Endpoints (`/api` prefix; auth optional, see `docs/ENTERPRISE.md`)
 
 | Method | Path | Request Body | Response Body |
@@ -145,6 +158,9 @@ Recorded per simulation tick:
 | GET | `/api/imports` | `?limit=` | Import history |
 | GET | `/api/imports/{import_id}` | None | Single import result |
 | POST | `/api/maps/scenario` | `{name, grid_text, cell_size_m}` | Grid text → validated `ScenarioSpec` (≤8 circle obstacles) |
+| POST | `/api/scenarios/from-image/detect` | `{image_data_url, concepts[]}` | Real SAM 3.1 detections (recorded in tests, live via key) |
+| POST | `/api/scenarios/from-image/scenario` | `{detection_id, selected_ids[], width_m, height_m, start, goal, save}` | Previewed or saved runnable `ScenarioSpec` + warnings |
+| GET | `/api/scenarios/from-image/saved` | None | Saved image scenarios, newest first |
 | GET | `/api/metrics` | None | Workspace counts, last battery summary, job states |
 | GET | `/api/prom` | None | Prometheus exposition (public, like health) |
 | GET | `/api/audit?limit=` | None | Write audit trail (admin role) |

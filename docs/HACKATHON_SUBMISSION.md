@@ -44,8 +44,9 @@ manufacture success; it makes success mean something.
 ## How we built it
 FastAPI + SQLite atomic job worker + PyBullet DIRECT simulation, Next.js
 dashboard (English-first UI with Turkish switch, designed for non-experts), Pydantic contracts,
-SHA-256 evidence packages with an independent verifier. 159 backend tests
-pass, plus a Playwright browser suite; Docker images built and run-verified.
+SHA-256 evidence packages with an independent verifier. 194 backend tests
+(incl. 35 image/SAM cases) plus 12 Playwright E2E (incl. camera, photo,
+scale gate); Docker images built and run-verified.
 Controller research (shared law → pass-behind/stateful/waypoint/MPC) was
 run under a strict protocol: develop only on burned sets, pre-register,
 single-shot on a fresh frozen set, publish the result either way.
@@ -85,6 +86,17 @@ library. The baseline fails all five. A crowd-tuned MPC variant
 five — and live-verified the market scenario end-to-end
 (`verif-b9ce2a55155e`, VERIFIED with the crowd configuration).
 Frozen expectations: `tests/unit/test_crowd_scenarios.py`.
+
+## Camera to scenario (Meta SAM 3.1, measured)
+
+Upload a PNG/JPEG/WebP still or capture a camera photo in the Test tab and
+click **Detect with SAM 3.1**: a real Meta Responses API request segments
+your object concepts, and the measured boxes become static circular
+obstacles in a saved, runnable scenario. The suite proves the whole chain
+with a recorded SAM response (35 backend cases, 4 browser E2E incl. camera
+capture, permission-denied fallback and the scale/overhead gate); live
+runs are covered by `scripts/sam_live_smoke.py` and the paid
+`scripts/sam_browser_smoke.cjs` UI smoke, never by the default suite.
 
 ## 3-minute demo script
 - **0:00–0:30** Problem: "AI fixed my robot" is self-graded homework. Show

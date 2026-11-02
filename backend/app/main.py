@@ -19,6 +19,7 @@ from app.api.routes_policies import router as policies_router
 from app.api.routes_robots import router as robots_router
 from app.api.routes_runs import router as runs_router
 from app.api.routes_scenarios import router as scenarios_router
+from app.api.routes_image_scenarios import router as image_scenarios_router
 from app.api.routes_verifications import router as verifications_router
 from app.config import settings
 from app.db import init_db
@@ -103,6 +104,7 @@ def create_app() -> FastAPI:
     # Register Routers under /api
     app.include_router(health_router, prefix="/api")
     app.include_router(scenarios_router, prefix="/api")
+    app.include_router(image_scenarios_router, prefix="/api")
     app.include_router(runs_router, prefix="/api")
     app.include_router(failures_router, prefix="/api")
     app.include_router(verifications_router, prefix="/api")

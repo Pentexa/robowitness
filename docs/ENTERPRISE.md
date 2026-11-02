@@ -35,12 +35,19 @@ RW_API_KEYS=anahtar1:admin:depo-a;anahtar2:editor:depo-a;anahtar3:viewer:depo-a
 PASS/FAIL değişimi, mesafe farkı ve özet deltası döner.
 Arayüzde (İngilizce): Report Card sekmesi → "Report Card Comparison (A → B)".
 
-## 4. Kendi ortamım: harita içe aktarma
+## 4. Kendi ortamım: harita ve kamera içe aktarma
 
 `POST /api/maps/scenario` — ızgara metni (`#` engel, `.` boş, `S` başlangıç,
 `G` hedef) + hücre boyutu → doğrulanmış senaryo. Her bağlantılı engel kümesi bir
 daire engele çevrilir (en çok 8; kırpılmalar uyarı olarak döner). Dünya boyutu
 6–20 m × 4–15 m sınırına uymalı. Arayüzde: Test sekmesi → "Scenario From My Map".
+
+`POST /api/scenarios/from-image/detect` + `POST /api/scenarios/from-image/scenario` —
+kamera/fotoğraftaki nesneleri gerçek SAM 3.1 ile tespit edip (ölçek + overhead
+onayı zorunlu) kaydedilebilir, çalıştırılabilir senaryoya çevirir
+(`GET /api/scenarios/from-image/saved`). Fotoğraflar sunucuda tutulmaz;
+yalnızca ölçülmüş kutular ve kaynak SHA-256 saklanır. Workspace izolasyonu
+ve denetim bu uçlara da uygulanır.
 
 ## 5. CI kapısı
 

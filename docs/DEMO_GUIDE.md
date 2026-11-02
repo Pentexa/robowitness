@@ -35,6 +35,12 @@ Governed by Section 1.2 and Section 11 of `ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT
 2. The candidate fails holdouts or goal deadline (`TIMEOUT` or `STUCK`).
 3. Gate evaluation immediately reports `REJECTED` with specific failure reason codes.
 
+### Path D — Photo to Scenario (camera/SAM, measured)
+1. Upload a still (or capture a camera photo) in the Test tab's photo section.
+2. Real SAM 3.1 segments the named concepts; select boxes, confirm scale + overhead view, place start/goal.
+3. Preview shows the projected world; saving persists it for the current workspace.
+4. The saved scenario runs through the ordinary run/verify flow — same oracle, same gates.
+
 ### 2. Viewing: 2D (canonical) and 3D (display only)
 - The replay card offers **2D / 3D** toggle buttons (`btn-view-2d`, `btn-view-3d`).
 - **2D canvas is the canonical evidence view** (exact telemetry coordinates).

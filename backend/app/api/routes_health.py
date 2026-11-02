@@ -63,7 +63,5 @@ def get_health():
         worker_last_seen=worker_last_seen,
         ai_mode=settings.RW_AI_MODE,
         ai_provider="Meta AI",
-        meta_model=(settings.RW_META_MODEL or None)
-        if settings.RW_AI_MODE == "live"
-        else None,
+        meta_model=(settings.RW_META_MODEL or None) if settings.RW_AI_MODE == "live" else None,
     )
