@@ -42,18 +42,15 @@ def list_reference_scenarios():
     return results
 
 
-@router.get("/library", response_model=List[ScenarioCatalogEntry], status_code=status.HTTP_200_OK)
-def list_library_scenarios():
-    root = get_scenarios_root()
-    lib_dir = root / "library"
-    catalog_file = lib_dir / "catalog.json"
+def _load_catalog_dir(directory: Path) -> List[ScenarioCatalogEntry]:
+    catalog_file = directory / "catalog.json"
     if not catalog_file.exists():
         return []
     with open(catalog_file, "r", encoding="utf-8") as f:
         catalog = json.load(f)
     results = []
     for entry in catalog.get("entries", []):
-        spec_file = lib_dir / entry["file"]
+        spec_file = directory / entry["file"]
         if not spec_file.exists():
             continue
         try:
@@ -72,6 +69,12 @@ def list_library_scenarios():
             )
         )
     return results
+
+
+@router.get("/library", response_model=List[ScenarioCatalogEntry], status_code=status.HTTP_200_OK)
+def list_library_scenarios():
+    root = get_scenarios_root()
+    return _load_catalog_dir(root / "library") + _load_catalog_dir(root / "ultra")
 
 
 @router.post("/generate", response_model=ScenarioGenerateResponse, status_code=status.HTTP_200_OK)

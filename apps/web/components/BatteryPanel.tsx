@@ -264,7 +264,7 @@ export const BatteryPanel: React.FC<BatteryPanelProps> = ({ onLoadRun }) => {
           disabled={running || !robotId}
         >
           <ClipboardList size={16} />
-          {running ? "Batarya çalışıyor…" : "Bataryayı Çalıştır (11 senaryo)"}
+          {running ? "Batarya çalışıyor…" : "Bataryayı Çalıştır (tüm senaryolar)"}
         </button>
         {progress && <p className="rw-summary mono">{progress}</p>}
         {error && <p className="rw-err">{error}</p>}

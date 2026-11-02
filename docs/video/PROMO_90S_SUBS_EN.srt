@@ -1,0 +1,66 @@
+1
+00:00:00,400 --> 00:00:05,800
+"The AI fixed my robot."
+
+2
+00:00:06,000 --> 00:00:11,300
+But who grades it? The model that proposes
+the fix is the same model that grades it.
+
+3
+00:00:11,500 --> 00:00:16,000
+That's grading your own homework —
+and in robotics the stakes are heavier.
+
+4
+00:00:16,000 --> 00:00:22,000
+RoboWitness separates the roles:
+the AI proposes.
+
+5
+00:00:22,000 --> 00:00:28,000
+The simulator runs deterministically at 60 Hz.
+The policy never sees its true pose —
+only delayed, noisy sensor data.
+
+6
+00:00:28,000 --> 00:00:34,000
+The oracle decides: it checks true geometry
+and never reads the model's rationale.
+
+7
+00:00:34,500 --> 00:00:40,000
+Five good-looking candidates
+took exams on frozen holdout sets.
+
+8
+00:00:40,500 --> 00:00:46,000
+Five rejections — each sealed
+in SHA-256 evidence.
+
+9
+00:00:46,500 --> 00:00:50,000
+We never lowered the bar.
+
+10
+00:00:51,500 --> 00:00:56,000
+The bar is the product.
+
+11
+00:01:00,000 --> 00:01:10,000
+Then we registered the next candidate
+before its exam existed: MPC-lite.
+The set was generated after registration.
+On a single shot: 20 out of 20.
+
+12
+00:01:10,500 --> 00:01:20,000
+Five gates clean — VERIFIED_IN_SIMULATION.
+And an over-cautious control candidate
+in the same run was still rejected.
+
+13
+00:01:24,000 --> 00:01:30,000
+RoboWitness.
+If a result can't survive an independent
+re-check, it isn't a result.

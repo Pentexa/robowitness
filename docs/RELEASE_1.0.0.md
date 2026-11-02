@@ -18,7 +18,7 @@ düzeltmeler önceliklidir.
 ## Sürüm öncesi doğrulama matrisi (2026-11-02, ölçüldü)
 | Kontrol | Sonuç |
 |---|---|
-| Backend testleri (ana ortam) | 129/129 — iki kez üst üste |
+| Backend testleri (ana ortam) | 129/129 — iki kez üst üste (1.0 sonrası E2E paketiyle 136/136) |
 | Backend testleri (taze venv, sıfır kurulum) | 129/129 |
 | Ruff E,F + format | temiz |
 | Web lint + typecheck + build | temiz |

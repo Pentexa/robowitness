@@ -23,7 +23,8 @@ exam it cannot see, graded by a judge that never reads its reasoning?
   scenarios and investigates failures from measured tick-level evidence;
   an offline reference mode keeps everything runnable without a key.
 - Product surface: robot catalog (brand/model/specs, custom robots),
-  11-scenario exam battery with report cards, battery comparison/trends,
+  16-scenario exam battery (including 5 ultra-hard cases) with report cards,
+  battery comparison/trends,
   fleets, policy profiles, your own Python policy (subprocess, opt-in),
   real-drive log judging, your own map → scenario, ROS 2 passive recorder.
 - Enterprise layer: API keys/JWT/OIDC, roles, workspaces, audit trail,
@@ -43,7 +44,7 @@ manufacture success; it makes success mean something.
 ## How we built it
 FastAPI + SQLite atomic job worker + PyBullet DIRECT simulation, Next.js
 dashboard (Turkish UI designed for non-experts), Pydantic contracts,
-SHA-256 evidence packages with an independent verifier. 129 backend tests
+SHA-256 evidence packages with an independent verifier. 136 backend tests
 pass, including in a fresh venv; Docker images built and run-verified.
 Controller research (shared law → pass-behind/stateful/waypoint/MPC) was
 run under a strict protocol: develop only on burned sets, pre-register,
@@ -58,6 +59,23 @@ Then optionally: backend (`uvicorn app.main:app --port 8000`) + worker
 → Test tab → *Robotu Çalıştır*; Karne tab → *Bataryayı Çalıştır*.
 With a Meta key in `.env` (`RW_AI_MODE=live`), scenario generation and
 failure investigation go live via Muse Spark.
+
+## The ultra-hard showcase (measured live, 2026-11-02)
+Five ULTRA scenarios (`scenarios/ultra/`, in the library as "Ultra"):
+900 ms latency wall, dual onslaught, double crossing, noise storm
+(0.20 m), goal guardian. Measured with the frozen demo test
+(`tests/unit/test_ultra_scenarios.py`): the baseline policy fails all
+five; a Meta-style patch driven by the MPC candidate law passes all five.
+
+Live on stage (real Meta call, not a recording): baseline crashed on
+RW-ULTRA-002 (collision), Muse Spark investigated from recorded
+telemetry (failure tick 283, provenance `LIVE_META`) and proposed its
+patch. RoboWitness then examined *that* solution:
+- Gate 2 (paired, same ultra scenario): **PASS** — Meta's fix really works there.
+- Full exam: **REJECTED at 19/20** (`verif-e691c7dc3096`) — one stuck case
+  (RW-HLD6-013) kept it from VERIFIED. Even a great Meta answer does not
+  get a free pass; the pre-registered champion (`verif-6b2bfd8e0501`,
+  20/20) is what earning it looks like.
 
 ## 3-minute demo script
 - **0:00–0:30** Problem: "AI fixed my robot" is self-graded homework. Show

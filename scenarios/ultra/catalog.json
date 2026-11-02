@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "entries": [
+    {"scenario_id": "RW-ULTRA-001", "file": "ultra_gecikme.json", "title": "Ultra: 900 ms Gecikme Duvarı", "description": "neredeyse bir saniye gecikmeli sensör ve hızlı çapraz engel; eski ayarlar güvenli mesafeyi çiğner.", "difficulty": "Ultra", "category": "Ultra Zor", "tags": ["gecikme", "hızlı engel", "sınav"]},
+    {"scenario_id": "RW-ULTRA-002", "file": "cift_akin.json", "title": "Ultra: Çift Akın", "description": "İki hızlı hareketli engel zıt yönlerde yolu keser; eski ayarlar çarpışır.", "difficulty": "Ultra", "category": "Ultra Zor", "tags": ["çift engel", "çarpışma"]},
+    {"scenario_id": "RW-ULTRA-003", "file": "dar_koridor_trafik.json", "title": "Ultra: Çift Çapraz Geçiş", "description": "İki engel çapraz rotalarla aynı koridoru paylaşır; zamanlama her şeydir.", "difficulty": "Ultra", "category": "Ultra Zor", "tags": ["çapraz", "zamanlama"]},
+    {"scenario_id": "RW-ULTRA-004", "file": "gurultu_firtinasi.json", "title": "Ultra: Gürültü Fırtınası", "description": "Azami sensör gürültüsü (0,20 m) ve gecikme altında hızlı engelden kaçış.", "difficulty": "Ultra", "category": "Ultra Zor", "tags": ["gürültü", "sensör"]},
+    {"scenario_id": "RW-ULTRA-005", "file": "kafa_kafaya_plus.json", "title": "Ultra: Hedef Bekçisi", "description": "Biri yolda, biri hedefin önünde nöbet tutan iki engel; eski ayarlar hedefe varamadan çarpışır.", "difficulty": "Ultra", "category": "Ultra Zor", "tags": ["hedef", "çift engel"]}
+  ]
+}

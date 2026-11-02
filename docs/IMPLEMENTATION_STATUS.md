@@ -380,6 +380,33 @@ undeclared `cryptography` dependency (OIDC would silently fail) and missing
 end-to-end (battery 1/1 inside containers), then torn down; local services
 restored. No new features added in this round. Suggested tag: `v1.0.0`.
 
+## Ultra Showcase Pack (2026-11-02, hackathon demo asset)
+
+5 ultra scenarios (`scenarios/ultra/` + catalog, served inside
+`/api/scenarios/library`, difficulty "Ultra"; battery default now 16
+scenarios). Frozen expectations in `tests/unit/test_ultra_scenarios.py`:
+baseline FAILs all 5 (collisions/near-misses); Meta-style patch + MPC
+passes all 5. Live proof with real Meta: ULTRA-002 baseline collision →
+LIVE_META investigation (tick 283) → patch (0.45/0.85/0.15/3.0/0.6) →
+verification `verif-e691c7dc3096`: Gate 2 PASS (solves the ultra paired
+run) but Gate 3 19/20 (RW-HLD6-013 STUCK) → REJECTED. The champion
+configuration (candidate-final-v1 params + MPC) remains the only VERIFIED.
+Worker restarted with default (shared) candidate law afterwards.
+
+## End-to-End Test Suite (2026-11-02)
+
+`backend/tests/integration/test_e2e_journeys.py` — 5 full journeys through
+HTTP + real worker service + oracle + sealed evidence (no mocks):
+1. Failure → investigation → over-cautious verification REJECTED → evidence
+   ZIP + independent seal check.
+2. Custom robot → 2 batteries → report card → replay → compare → trend.
+3. Own map → scenario run; real-log near-miss; metrics + audit views.
+4. DB API-key lifecycle end-to-end (401/viewer-403/open-again).
+5. **MPC configuration earns VERIFIED_IN_SIMULATION on frozen v6**
+   (Gate 3 20/20, seal re-verified) — 69 s.
+Suite total: **136 passed** (~100 s). Plus `scripts/e2e_live_stack.py`
+against the running stack: ALL PASSED (investigation answered LIVE_META).
+
 ## Execution State Details
 
 - **Current phase:** PHASE 12 (hardening; Phases 07/10/12 partially open, see below)
