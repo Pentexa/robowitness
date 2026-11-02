@@ -61,12 +61,22 @@ Only 5 AI-adjustable numeric parameters:
 - `brake_gain`: `0.10..10.00`
 - `obstacle_prediction_horizon_s`: `0.00..2.00`
 
-### Shared navigation law (baseline and candidate run the SAME algorithm)
+### Shared navigation law (baseline runs ALWAYS use this algorithm)
+
 Proportional heading to goal + braking on delayed sensor distance + horizon-gated
 lateral avoidance. Only the five numeric fields above may differ between runs.
 
+### Candidate laws (explicit opt-in via `RW_CANDIDATE_LAW`, default `shared`)
+
+The verified configuration is **MPC-lite** (`mpc`): receding-horizon rollouts
+over delivered velocity tracks with a preferred-clearance tier — the law that
+earned `VERIFIED_IN_SIMULATION` on the pre-registered v6 set. Alternatives:
+`mpc-crowd` (closed-loop rollouts + prediction-uncertainty inflation for dense
+pedestrian traffic), `stateful` and `waypoint` (experimental detour planners).
+Baseline runs always use the shared law, so every frozen measurement is unchanged.
+
 ### Deterministic obstacle-velocity estimator (sensor infrastructure, not policy)
-- `SensorSystem` keeps, per obstacle ID, a bounded deque of the last 8 DELIVERED
+- `SensorSystem` keeps, per obstacle ID, a bounded deque of the last 16 DELIVERED
   world-frame position estimates (`observed robot pose + relative vector`, noisy/stale
   as delivered — never ground truth).
 - Velocity = least-squares slope over the window; `confident` only with >= 3 samples
@@ -80,6 +90,10 @@ lateral avoidance. Only the five numeric fields above may differ between runs.
 - With horizon `0.0` the block is skipped entirely: baseline behavior is
   bit-identical to the brake-only law (verified: reference run repeats
   tick-for-tick).
+- Occlusion: an obstacle hidden behind a closer one is not observed at all.
+- Sensor models (`RW_SENSOR_MODEL`): `legacy` (exact delayed geometry, default;
+  all frozen results use this) or `beam` (24-ray LiDAR-like casting — obstacles
+  are only seen when a ray strikes them, with quantized bearing).
 
 ## 4. Telemetry Frame (`TelemetryFrame`)
 Recorded per simulation tick:
@@ -93,20 +107,51 @@ Recorded per simulation tick:
 - `clearance_m`: float
 - `events`: List of `[{event_id, type, tick, details}]`
 
-## 5. API Endpoints
+## 5. API Endpoints (`/api` prefix; auth optional, see `docs/ENTERPRISE.md`)
 
 | Method | Path | Request Body | Response Body |
 |---|---|---|---|
-| GET | `/api/health` | None | `{status, schema_version, db_status, worker_active, ai_mode}` |
-| GET | `/api/scenarios/reference` | None | List of ScenarioSpec |
+| GET | `/api/health` | None | `{status, schema_version, db_status, worker_active, ai_mode, ai_provider, meta_model}` |
+| GET | `/api/scenarios/reference` | None | List of ScenarioSpec (canonical `RW-REF-001`) |
+| GET | `/api/scenarios/library` | None | 20 catalog entries: 10 `RW-LIB-*`, 5 `RW-ULTRA-*`, 5 `RW-CROWD-*` |
 | POST | `/api/scenarios/generate` | `{objective?, constraints?}` | `{scenario: ScenarioSpec, provenance: AIProvenance}` |
-| POST | `/api/runs` | `{scenario: ScenarioSpec, policy: PolicyConfig}` | `{job_id, run_id, status: "queued"}` (202 Accepted) |
+| POST | `/api/runs` | `{scenario, policy, local_policy?}` + optional `Idempotency-Key` | `{job_id, run_id, status: "queued"}` (202 Accepted) |
 | GET | `/api/jobs/{job_id}` | None | `{job_id, status, progress, error, result_id}` |
 | POST | `/api/jobs/{job_id}/cancel` | None | `{job_id, status: "cancelled"}` |
 | GET | `/api/runs/{run_id}` | None | `{run_id, scenario_hash, policy_hash, oracle_status, reason_codes, metrics}` |
 | GET | `/api/runs/{run_id}/telemetry` | `?offset=0&limit=600` | `{frames, total, offset, next_offset}` |
-| POST | `/api/failures/{run_id}/investigate` | `{}` | `{investigation_id, hypothesis, evidence_window, patch_proposal, provenance}` |
+| POST | `/api/failures/{run_id}/investigate` | `{}` | `{investigation_id, hypothesis, evidence, patch, provenance}`; `409` unless the run is FAIL |
 | POST | `/api/fixes/verify` | `{baseline_run_id, candidate_policy}` | `{job_id, verification_id, status: "queued"}` |
+| GET | `/api/verifications` | `?limit=` | Verification summaries, newest first |
 | GET | `/api/verifications/{verification_id}` | None | `{verification_id, verdict, gates, baseline_run_id, candidate_policy}` |
+| GET | `/api/verifications/{verification_id}/candidate-telemetry` | `?offset=&limit=` | Sealed candidate replay frames |
 | GET | `/api/evidence/{verification_id}` | None | Manifest, report, hashes, integrity status |
 | GET | `/api/evidence/{verification_id}/download` | None | Safe ZIP stream |
+| GET / POST | `/api/robots` | `RobotProfileCreate` | Robot catalog (builtin + workspace user robots) |
+| GET / PUT / DELETE | `/api/robots/{robot_id}` | `RobotProfileCreate` | Single robot; builtins are read-only (403) |
+| POST | `/api/robots/{robot_id}/apply-to-scenario` | `ScenarioSpec` | Scenario with the robot's body/sensor fields applied |
+| GET / POST | `/api/policy-profiles` | `PolicyProfileCreate` | Named 5-parameter presets (4 builtin + user) |
+| GET / PUT / DELETE | `/api/policy-profiles/{profile_id}` | `PolicyProfileCreate` | Single profile; builtins are read-only (403) |
+| GET | `/api/local-policies` | None | `{enabled, policies[]}` — user Python plugins in `app/policies/local/` |
+| POST | `/api/batteries` | `{robot_id, scenario_ids?, policy, local_policy?}` + optional `Idempotency-Key` | `{job_id, battery_id}` (202); default battery = reference + 10 library scenarios |
+| POST | `/api/batteries/fleet` | `{robot_ids[], scenario_ids?, policy}` | Per-robot battery jobs; incompatible robots skipped with reasons |
+| GET | `/api/batteries` | `?limit=` | Report cards, newest first |
+| GET | `/api/batteries/trend` | `?robot_id=&limit=` | Pass-rate history, oldest first |
+| GET | `/api/batteries/compare?a=&b=` | None | Per-scenario improved/worsened/same + summary deltas |
+| GET | `/api/batteries/{battery_id}` | None | Full report card (entries trace to `run_id`s) |
+| GET | `/api/batteries/{battery_id}/report.md` | `?lang=tr\|en` | Markdown report card (generated, not sealed) |
+| POST / GET / DELETE | `/api/batteries/schedules` | `{name, robot_id, policy, scenario_ids?, interval_minutes}` | Recurring batteries; worker enqueues due ones once |
+| POST | `/api/imports/telemetry` | `{name, format: csv\|json, content, goal?}` (≤20 000 frames) | Judged `REAL_LOG` verdict via the same oracle rules |
+| GET | `/api/imports` | `?limit=` | Import history |
+| GET | `/api/imports/{import_id}` | None | Single import result |
+| POST | `/api/maps/scenario` | `{name, grid_text, cell_size_m}` | Grid text → validated `ScenarioSpec` (≤8 circle obstacles) |
+| GET | `/api/metrics` | None | Workspace counts, last battery summary, job states |
+| GET | `/api/prom` | None | Prometheus exposition (public, like health) |
+| GET | `/api/audit?limit=` | None | Write audit trail (admin role) |
+| POST / GET / DELETE | `/api/admin/api-keys` | `{label, role, workspace_id}` | DB-managed keys (hash-only, one-time plaintext, 422-guarded first key) |
+| POST | `/api/admin/backup` | None | WAL-safe SQLite backup + SHA-256 |
+| GET | `/api/admin/backups` | None | Backup file list |
+| POST | `/api/admin/retention` | `{older_than_days, dry_run}` | Delete old tenant history (never sealed evidence) |
+| POST | `/api/admin/restore` | `{file}` | Restore from backup (pre-restore safety copy + SHA-256) |
+| GET | `/api/workspaces/export` | None | Full tenant-data JSON bundle (admin) |
+| POST | `/api/workspaces/import` | `WorkspaceExport` | Restore into the caller's workspace (no history overwrite) |

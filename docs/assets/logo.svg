@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="RoboWitness logo">
+  <title>RoboWitness — Robot Verification Console</title>
+  <defs>
+    <clipPath id="rwBadgeClip">
+      <rect x="64" y="64" width="384" height="384" rx="92"/>
+    </clipPath>
+  </defs>
+  <rect x="64" y="64" width="384" height="384" rx="92" fill="#17121e"/>
+  <g clip-path="url(#rwBadgeClip)" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1">
+    <path d="M96 64V448M128 64V448M160 64V448M192 64V448M224 64V448M256 64V448M288 64V448M320 64V448M352 64V448M384 64V448M416 64V448M64 96H448M64 128H448M64 160H448M64 192H448M64 224H448M64 256H448M64 288H448M64 320H448M64 352H448M64 384H448M64 416H448"/>
+  </g>
+  <rect x="64" y="64" width="384" height="384" rx="92" fill="none" stroke="#3a3049" stroke-width="2"/>
+  <g stroke="#f5f2fa" stroke-opacity="0.85" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M100 126V100H126M386 100H412V126M100 386V412H126M386 412H412V386"/>
+  </g>
+  <g stroke="#f5f2fa" stroke-opacity="0.6" stroke-width="3" stroke-linecap="round">
+    <path d="M232 84H280M244 92H268"/>
+    <path d="M104 220V252M104 268V300M408 220V252M408 268V300"/>
+  </g>
+  <g stroke="#f5f2fa" stroke-width="11" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M196 336V196"/>
+    <path d="M196 196H258Q286 196 286 226Q286 256 258 256H196"/>
+    <path d="M228 256L272 336"/>
+    <path d="M292 196L318 336L342 244L366 336L392 196"/>
+  </g>
+  <path d="M318 318L348 348L402 282" stroke="#f5f2fa" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="256" y="424" text-anchor="middle" font-family="Consolas, 'Cascadia Mono', monospace" font-size="15" letter-spacing="3" fill="#ffffff" fill-opacity="0.85">ROBOWITNESS • ROBOT VERIFICATION CONSOLE</text>
+</svg>

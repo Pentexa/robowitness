@@ -97,7 +97,7 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
     setError(null);
     setNotice(null);
     if (!form.brand.trim() || !form.model.trim()) {
-      setError("Marka ve model zorunludur.");
+      setError(t("Marka ve model zorunludur."));
       return;
     }
     setBusy(true);
@@ -105,17 +105,17 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
       const payload = { ...form, brand: form.brand.trim(), model: form.model.trim() };
       if (editingId) {
         await updateRobot(editingId, payload);
-        setNotice("Robot güncellendi.");
+        setNotice(t("Robot güncellendi."));
       } else {
         const created = await createRobot(payload);
         setSelectedId(created.robot_id);
-        setNotice(`Yeni robot eklendi: ${created.brand} ${created.model}`);
+        setNotice(`${t("Yeni robot eklendi:")} ${created.brand} ${created.model}`);
       }
       setForm(EMPTY_FORM);
       setEditingId(null);
       await refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Robot kaydedilemedi");
+      setError(e instanceof Error ? e.message : t("Robot kaydedilemedi"));
     } finally {
       setBusy(false);
     }
@@ -127,14 +127,14 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
     setBusy(true);
     try {
       await deleteRobot(robot.robot_id);
-      setNotice(`Robot silindi: ${robot.brand} ${robot.model}`);
+      setNotice(`${t("Robot silindi:")} ${robot.brand} ${robot.model}`);
       if (editingId === robot.robot_id) {
         setEditingId(null);
         setForm(EMPTY_FORM);
       }
       await refresh(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Robot silinemedi");
+      setError(e instanceof Error ? e.message : t("Robot silinemedi"));
     } finally {
       setBusy(false);
     }
@@ -149,10 +149,10 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
       const applied = await applyRobotToScenario(selected.robot_id, scenario);
       onScenarioChange(applied, `${selected.brand} ${selected.model}`);
       setNotice(
-        `${selected.brand} ${selected.model} teste uygulandı. Artık “Robotu Çalıştır” bu robotun ölçüleriyle çalışır.`
+        `${selected.brand} ${selected.model} ${t("teste uygulandı. Artık “Robotu Çalıştır” bu robotun ölçüleriyle çalışır.")}`
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Robot teste uygulanamadı");
+      setError(e instanceof Error ? e.message : t("Robot teste uygulanamadı"));
     } finally {
       setBusy(false);
     }
@@ -233,7 +233,7 @@ export const RobotPanel: React.FC<RobotPanelProps> = ({ scenario, onScenarioChan
           className="rw-btn rw-btn-primary"
           onClick={handleApply}
           disabled={busy || !selected || !scenario || !selected.simulation_compatible}
-          title={selected && !selected.simulation_compatible ? "Bu robot simülatörle uyumlu değil" : undefined}
+          title={selected && !selected.simulation_compatible ? t("Bu robot simülatörle uyumlu değil") : undefined}
         >
           <Bot size={15} /> {t("Teste Uygula")}
         </button>

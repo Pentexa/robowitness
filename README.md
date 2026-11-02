@@ -5,6 +5,10 @@
 
 <br />
 
+<p align="center">
+  <img width="160" alt="RoboWitness logo — RW monogram with verification check" src="docs/assets/logo.svg" />
+</p>
+
 # 🤖 RoboWitness
 
 ### Independent Verification Engine for AI-Generated Robotics Policies
@@ -26,7 +30,7 @@
 
 <br />
 
-[![Tests — 138 Passed](https://img.shields.io/badge/tests-138_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
+[![Tests — 159 Passed](https://img.shields.io/badge/tests-159_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
 [![Verdicts — Never Manufactured](https://img.shields.io/badge/verdicts-never_manufactured-6f42c1?style=flat-square&logo=shieldsdotio&logoColor=white)](#-honest-limitations)
 [![Physics — 60 Hz Deterministic](https://img.shields.io/badge/physics-60_Hz_deterministic-FF6F00?style=flat-square)](#how-it-works)
 [![Evidence — SHA-256 Sealed](https://img.shields.io/badge/evidence-SHA--256_sealed-2E7D32?style=flat-square&logo=letsencrypt&logoColor=white)](#-evidence-sealing)
@@ -77,7 +81,7 @@ RoboWitness exists because **"the AI fixed my robot"** is usually self-graded ho
 | # | What Happened | Evidence |
 |:---:|---|---|
 | 🔴 | **It fails first, on camera** — the baseline policy collides at tick 358 with `0.0016 m` clearance — deterministically, every run | Reproducible with seed |
-| 🟡 | **It was rejected, honestly, five times** — across five frozen holdout sets, good-looking fixes scored 17/20, 17/20, 18/20, 18/20, 18/20 and were `REJECTED` with sealed evidence | We never lowered the bar |
+| 🟡 | **It was rejected, honestly, four times** — across four frozen holdout sets, good-looking fixes scored 17/20, 17/20, 18/20, 18/20 and were `REJECTED` with sealed evidence | We never lowered the bar |
 | 🟢 | **Then it earned it** — a pre-registered MPC candidate (registered before its exam set existed) went **20/20** on the fresh v6 set | `verif-6b2bfd8e0501` — `VERIFIED_IN_SIMULATION` |
 
 ```powershell
@@ -111,7 +115,7 @@ python scripts\run_hackathon_demo.py
 </tr>
 <tr>
 <td><strong>🖥️ Interface</strong></td>
-<td>FastAPI backend, atomic SQLite job worker, Next.js 14 dashboard (Turkish UI, English code/docs)</td>
+<td>FastAPI backend, atomic SQLite job worker, Next.js 14 dashboard (English-first UI with Turkish switch, Meta AI badge, RW logo)</td>
 </tr>
 <tr>
 <td><strong>🤖 AI modes</strong></td>
@@ -284,15 +288,16 @@ The same pipeline still rejects bad candidates: the over-cautious control finish
 
 ### 🖥️ Dashboard
 
-The web app is a five-tab Turkish-language workflow designed for non-experts:
+The web app is a six-tab English-first workflow (Turkish switchable in the titlebar) designed for non-experts:
 
 | Tab | What It Does |
 |:---:|---|
 | 🧪 **Test** | Pick a scenario and robot, run the baseline, watch the 2D replay (canonical) or 3D view (display-only) |
-| 🔍 **İncele** | Read a grounded failure analysis tied to the measured tick and real clearance numbers |
-| 🔧 **Düzeltme** | Adjust the five policy parameters, apply a **Meta AI** suggestion, or load a saved policy profile |
-| 📊 **Sonuç** | Inspect gates 1–5, compare baseline vs candidate replay, download sealed evidence ZIP |
-| 📝 **Karne** | Run the full exam battery (16 scenarios), get a per-scenario report card, replay any run, download Markdown report |
+| 🔍 **Inspect** | Read a grounded failure analysis tied to the measured tick and real clearance numbers |
+| 🔧 **Fix** | Adjust the five policy parameters, apply a **Meta AI** suggestion, or load a saved policy profile |
+| 📊 **Result** | Inspect gates 1–5, compare baseline vs candidate replay, download sealed evidence ZIP |
+| 📝 **Report Card** | Run the default 11-scenario exam battery, get a per-scenario report card, replay any run, download Markdown report |
+| 🛠️ **Admin** | API keys, scheduled batteries, backups, metrics, and audit trail |
 
 ### 🏭 Robot & Scenario Lab
 
@@ -300,7 +305,7 @@ The web app is a five-tab Turkish-language workflow designed for non-experts:
 - 🚧 **Honest Compatibility Gate** — Only differential-drive robots with a body radius of `0.15–0.40 m` can enter this simulator; others are marked incompatible
 - 🗺️ **Scenario Library** — Canonical `RW-REF-001`, 20 selectable scenarios (10 `RW-LIB-*`, 5 `RW-ULTRA-*`, 5 `RW-CROWD-*`), 3 regression cases, and a frozen 20-scenario holdout manifest
 - 📐 **Policy Profiles** — Four built-in presets plus your own saved parameter sets
-- 📋 **Exam Battery** — One click runs 21 scenarios, then produces a report card
+- 📋 **Exam Battery** — One click runs the default 11 scenarios (reference + 10 library), then produces a report card
 - 📥 **Real-Log Import** — Upload a real drive as CSV or JSON; judged by the same rules and labeled `REAL_LOG`
 - 📡 **Passive ROS 2 Recorder** — `scripts/ros2_bridge.py` listens to `/odom` and `/scan` only and never publishes
 - 🔌 **Local Policy Plugins (opt-in)** — Your own single-file Python policy can drive runs and batteries in a subprocess with timeouts
@@ -313,7 +318,7 @@ The web app is a five-tab Turkish-language workflow designed for non-experts:
 |---|---|
 | **Auth, Roles, Workspaces** | `RW_API_KEYS=key:role:workspace;…` enables API-key auth (`admin` > `editor` > `viewer`) and logical workspace isolation |
 | **Audit & Metrics** | Every write is recorded; `GET /api/audit` and `GET /api/metrics` expose workspace counts and job states |
-| **Battery Comparison** | Diff two report cards scenario by scenario (İYİLEŞTİ/KÖTÜLEŞTİ) via the Karne tab or API |
+| **Battery Comparison** | Diff two report cards scenario by scenario (IMPROVED/WORSENED) via the Report Card tab or API |
 | **Map Import** | Draw your own occupancy grid (`#` obstacle, `S` start, `G` goal) and convert to a validated scenario |
 | **CI Gate** | `scripts/ci_battery_gate.py` runs a battery and fails the pipeline (exit 1) when thresholds are missed |
 
@@ -445,9 +450,10 @@ python -m pip install --no-build-isolation pybullet==3.2.5
 
 > All numbers below were measured in this repository. The full log, commands, IDs, and artifacts live in [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md).
 
-| Check | Measured Result (2026-11-02) | Status |
+| Check | Measured Result | Status |
 |---|---|:---:|
-| Backend test suite | **138 passed** (unit + integration) | ✅ |
+| Backend test suite | **159 passed** (unit + integration) | ✅ |
+| Frontend E2E (Playwright, live stack) | **8 passed** — incl. a no-Turkish-characters UI leak guard | ✅ |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean | ✅ |
 | Frontend quality | `npm run lint`, `npm run typecheck`, `npm run build` clean | ✅ |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats | ✅ |
@@ -514,7 +520,7 @@ Interactive OpenAPI docs are available at **`http://127.0.0.1:8000/docs`** while
 | `GET` | `/api/evidence/{id}/download` | Safe ZIP download |
 | `GET` / `POST` | `/api/robots` | List / create robot profiles |
 | `GET` / `POST` | `/api/policy-profiles` | List / create policy presets |
-| `POST` | `/api/batteries` | Queue the full exam battery (21 scenarios) |
+| `GET` / `POST` | `/api/batteries` | Queue the default 11-scenario exam battery |
 | `GET` | `/api/batteries/{id}/report.md` | Download the Markdown report card |
 | `POST` | `/api/imports/telemetry` | Import a real drive log (CSV or JSON) |
 | `GET` | `/api/local-policies` | List opt-in local policy plugins |

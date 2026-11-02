@@ -19,7 +19,7 @@ RW_API_KEYS=anahtar1:admin:depo-a;anahtar2:editor:depo-a;anahtar3:viewer:depo-a
   gerçek sürüş içe aktarımları anahtarın workspace'inde izole edilir. Anahtarsız
   modda `X-Workspace-Id` başlığı aynı işlevi görür. Hazır kataloglar (robotlar,
   profiller) tüm alanlarda paylaşılır.
-- Tarayıcı: üst çubuktaki "API anahtarı" ve "Çalışma alanı" alanları değerleri
+- Tarayıcı: üst çubuktaki "API key (if any)" ve "Workspace" alanları değerleri
   `localStorage`'da saklar; anahtar koda ASLA yazılmaz.
 
 ## 2. Denetim kaydı (audit) ve metrikler
@@ -32,15 +32,15 @@ RW_API_KEYS=anahtar1:admin:depo-a;anahtar2:editor:depo-a;anahtar3:viewer:depo-a
 ## 3. Karne karşılaştırma
 
 `GET /api/batteries/compare?a=<id>&b=<id>` — senaryo başına
-GEÇTİ/KALDI değişimi, mesafe farkı ve özet deltası döner.
-Arayüzde: Karne sekmesi → "Karne Karşılaştırma (A → B)".
+PASS/FAIL değişimi, mesafe farkı ve özet deltası döner.
+Arayüzde (İngilizce): Report Card sekmesi → "Report Card Comparison (A → B)".
 
 ## 4. Kendi ortamım: harita içe aktarma
 
 `POST /api/maps/scenario` — ızgara metni (`#` engel, `.` boş, `S` başlangıç,
 `G` hedef) + hücre boyutu → doğrulanmış senaryo. Her bağlantılı engel kümesi bir
 daire engele çevrilir (en çok 8; kırpılmalar uyarı olarak döner). Dünya boyutu
-6–20 m × 4–15 m sınırına uymalı. Arayüzde: Test sekmesi → "Haritamdan Senaryo".
+6–20 m × 4–15 m sınırına uymalı. Arayüzde: Test sekmesi → "Scenario From My Map".
 
 ## 5. CI kapısı
 
@@ -68,10 +68,10 @@ birim testiyle doğrulanır.
   başka alana geri yükler (robot/profiller yeni kimlik alabilir; karne/log
   geçmişi asla ezilmez, çakışanlar atlanıp raporlanır).
 - **Trend:** `GET /api/batteries/trend` geçme oranının zaman serisini verir;
-  Karne sekmesinde çubuk listesi olarak görünür.
+  Report Card sekmesinde çubuk listesi olarak görünür.
 - **Filo bataryası:** `POST /api/batteries/fleet` birden çok robot için tek
   istekle batarya kuyruğa alır; uyumsuz/bilinmeyen robotlar nedenleriyle
-  atlanır. Karne sekmesinde sıralı filo sonucu görünür.
+  atlanır. Report Card sekmesinde sıralı filo sonucu görünür.
 - **Sensör gerçekçiliği:** Artık bir engelin arkasındaki engel sensörde
   görünmüyor (ışın tıkanması/occlusion). Tek engelli referans senaryo
   bit-aynı kaldı; kütüphane karne sonuçları yeniden ölçülüp aynı bulundu.
@@ -81,7 +81,7 @@ birim testiyle doğrulanır.
 - **Veritabanı anahtarları:** `POST /api/admin/api-keys` anahtar üretir (yalnızca
   özet saklanır, düz metin bir kez gösterilir), `GET` listeler, `DELETE` iptal
   eder. İlk anahtar oluştuğu anda kimlik zorunlu olur; kilitlenmeyi önlemek
-  için ilk anahtar admin olmak zorundadır (422). Yönetim: **Yönetim** sekmesi.
+  için ilk anahtar admin olmak zorundadır (422). Yönetim: **Admin** sekmesi.
 - **Idempotency:** `POST /api/runs` ve `POST /api/batteries`,
   `Idempotency-Key` başlığıyla tekrarlanırsa aynı işi geri verir, çift koşu açmaz.
 - **Sertleştirme:** her yanıtta `X-Request-Id`, `nosniff`, `X-Frame-Options:
@@ -118,7 +118,8 @@ birim testiyle doğrulanır.
   export/import var, parçalama/sharding yok).
 - OIDC doğrulaması JWKS ile RS256'dır; IdP tarafı kurulumu (keşif/oturum
   yenileme) istemciye aittir, RoboWitness oturum yönetmez.
-- Fizik hâlâ kinematik ve 2B'dir (tıkanma eklendi ama ışın demeti/LiDAR
-  taraması modellenmez); karneler gerçek dünya güvenlik onayı değildir.
-- Hiçbir aday düzeltme bugüne dek 20'li gizli setin tamamını geçemedi
-  (Path B açık; en iyi 18/20).
+- Fizik hâlâ kinematik ve 2B'dir (tıkanma eklendi; isteğe bağlı 24-ışın
+  LiDAR-benzeri modu da var); karneler gerçek dünya güvenlik onayı değildir.
+- Path B **kapandı**: ön kayıtlı MPC-lite adayı taze v6 setinde 20/20 ile
+  `VERIFIED_IN_SIMULATION` aldı (`docs/PATH_B_V6_PREREGISTRATION.md`).
+  Varsayılan aday yasası paylaşılan yasadır; MPC açıkça seçilir.

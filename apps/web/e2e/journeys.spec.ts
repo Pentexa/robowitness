@@ -61,3 +61,9 @@ test("admin tab renders enterprise controls", async ({ page }) => {
   await expect(page.locator("#btn-admin-backup")).toBeVisible();
   await expect(page.locator("#btn-create-api-key")).toBeVisible();
 });
+
+test("english UI contains no Turkish characters (i18n leak guard)", async ({ page }) => {
+  // textContent (not innerText) also covers hidden tabs, so every panel is scanned.
+  const text = await page.locator("body").evaluate((el) => el.textContent ?? "");
+  expect(text).not.toMatch(/[ğĞşŞıİçÇöÖüÜ]/);
+});

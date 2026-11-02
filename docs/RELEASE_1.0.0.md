@@ -8,9 +8,12 @@ düzeltmeler önceliklidir.
 - Doğrulama çekirdeği: deterministik PyBullet simülasyonu, bağımsız oracle,
   5 kapı, mühürlü kanıt; **ilk VERIFIED**: `verif-6b2bfd8e0501`
   (MPC adayı, taze v6 setinde 20/20).
-- Robot/senaryo laboratuvarı: katalog, kütüphane, harita içe aktarma,
-  profiller, karne + karşılaştırma + trend + filo, gerçek log yargılama,
-  kendi kodu (kapılı), ROS 2 pasif kaydedici (canlı doğrulanmadı).
+- Robot/senaryo laboratuvarı: katalog, kütüphane (10) + ultra paket (5) +
+  kalabalık paketi (5), harita içe aktarma, profiller, karne + karşılaştırma
+  + trend + filo, gerçek log yargılama, kendi kodu (kapılı), ROS 2 pasif
+  kaydedici (canlı doğrulanmadı).
+- Arayüz: İngilizce varsayılan, başlık çubuğunda EN/TR değiştirici, RW logosu
+  (başlık + favicon + README).
 - Enterprise: API anahtarı/JWT/OIDC, roller, workspace, denetim, metrikler,
   Prometheus, webhook, zamanlama, idempotency, hız sınırı, yedek/geri
   yükleme/retention, export/import, CI kapısı, Docker Compose.
@@ -18,8 +21,9 @@ düzeltmeler önceliklidir.
 ## Sürüm öncesi doğrulama matrisi (2026-11-02, ölçüldü)
 | Kontrol | Sonuç |
 |---|---|
-| Backend testleri (ana ortam) | 129/129 — iki kez üst üste (1.0 sonrası E2E paketiyle 136/136) |
-| Backend testleri (taze venv, sıfır kurulum) | 129/129 |
+| Backend testleri (ana ortam) | 159/159 — iki kez üst üste |
+| Backend testleri (taze venv, sıfır kurulum) | 159/159 |
+| Web E2E (Playwright, canlı yığın) | 8/8 — Türkçe-sızıntı bekçisi dahil |
 | Ruff E,F + format | temiz |
 | Web lint + typecheck + build | temiz |
 | Smoke testi | ALL SMOKE TESTS PASSED |
@@ -35,13 +39,13 @@ düzeltmeler önceliklidir.
 
 ## Bilinen sınırlamalar (1.0'da kabul edilen)
 - Fizik 2B kinematik; sensör modeli basitleştirilmiş (tıkanma + isteğe bağlı
-  24-ışın modu var, ışın demeti fiziği yok).
+  24-ışın modu var, tam ışın-demeti fiziği yok).
 - SQLite tek dosya; workspace izolasyonu mantıksal.
 - ROS 2 köprüsü yalnızca kayıt yapar ve bu sürümde canlı ROS ile denenmedi.
 - Varsayılan aday yasası paylaşılan yasadır; VERIFIED alan MPC yapılandırması
-  açıkça seçilmelidir (`RW_CANDIDATE_LAW=mpc`). Varsayılanlarla koşulan
-  karneler/sınavlar aynı adayın sonucu değildir.
-- Arayüz Türkçe; ön uçta otomatik E2E test paketi yok.
+  açıkça seçilmelidir (`RW_CANDIDATE_LAW=mpc`).
+- Arayüz İngilizce varsayılandır (başlık çubuğundan Türkçe'ye geçilebilir);
+  ön uçta otomatik Playwright E2E paketi vardır (8 test, canlı yığına karşı).
 
 ## Yükseltme / çalıştırma
 - Yerel: README'deki adımlar (Windows'da pybullet MSVC ile derlenir;

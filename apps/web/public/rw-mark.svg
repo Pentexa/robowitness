@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RoboWitness mark">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#17121e"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#3a3049" stroke-width="1.5"/>
+  <g stroke="#f5f2fa" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 46V18"/>
+    <path d="M20 18H30Q36 18 36 25Q36 32 30 32H20"/>
+    <path d="M25 32L33 46"/>
+    <path d="M38 18L42 46L46 30L50 46L54 18"/>
+  </g>
+  <path d="M40 44L46 50L56 38" stroke="#f5f2fa" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -25,7 +25,7 @@ export const PolicyProfiles: React.FC<PolicyProfilesProps> = ({
   const refresh = async () => setProfiles(await fetchPolicyProfiles());
 
   useEffect(() => {
-    refresh().catch(() => setError("Profiller yüklenemedi."));
+    refresh().catch(() => setError(t("Profiller yüklenemedi.")));
   }, []);
 
   const selected = profiles.find((p) => p.profile_id === selectedId) ?? null;
@@ -33,28 +33,28 @@ export const PolicyProfiles: React.FC<PolicyProfilesProps> = ({
   const handleSelect = (profile: PolicyProfile) => {
     setSelectedId(profile.profile_id);
     onSelectProfile({ ...profile.policy });
-    setNotice(`Profil uygulandı: ${profile.name}`);
+    setNotice(`${t("Profil uygulandı:")} ${profile.name}`);
     setError(null);
   };
 
   const handleSave = async () => {
     if (!newName.trim()) {
-      setError("Profile bir isim verin.");
+      setError(t("Profile bir isim verin."));
       return;
     }
     try {
       const created = await createPolicyProfile({
         name: newName.trim(),
-        description: "Kullanıcının kaydettiği ayarlar",
+        description: t("Kullanıcının kaydettiği ayarlar"),
         policy: { ...candidatePolicy, id: `candidate-${Date.now()}` },
       });
       setNewName("");
       setSelectedId(created.profile_id);
       await refresh();
-      setNotice(`Profil kaydedildi: ${created.name}`);
+      setNotice(`${t("Profil kaydedildi:")} ${created.name}`);
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Profil kaydedilemedi");
+      setError(e instanceof Error ? e.message : t("Profil kaydedilemedi"));
     }
   };
 
@@ -63,9 +63,9 @@ export const PolicyProfiles: React.FC<PolicyProfilesProps> = ({
       await deletePolicyProfile(profile.profile_id);
       setSelectedId("");
       await refresh();
-      setNotice(`Profil silindi: ${profile.name}`);
+      setNotice(`${t("Profil silindi:")} ${profile.name}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Profil silinemedi");
+      setError(e instanceof Error ? e.message : t("Profil silinemedi"));
     }
   };
 

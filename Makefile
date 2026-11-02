@@ -1,4 +1,4 @@
-.PHONY: help install test test-backend test-frontend fmt lint-backend dev-backend dev-worker dev-web run-offline-demo
+.PHONY: help install test test-backend test-frontend test-e2e coverage fmt lint-backend dev-backend dev-worker dev-web run-offline-demo
 
 help:
 	@echo "RoboWitness Architecture & Run Commands:"
@@ -7,6 +7,9 @@ help:
 	@echo "  make dev-worker     - Run local jobs worker process"
 	@echo "  make dev-web        - Run Next.js web application on port 3000"
 	@echo "  make test-backend   - Run backend unit and integration tests"
+	@echo "  make test-frontend  - Run web lint + typecheck + production build"
+	@echo "  make test-e2e       - Run Playwright browser E2E (needs backend+worker+web running)"
+	@echo "  make coverage       - Run backend tests with coverage report"
 	@echo "  make fmt            - Format backend with ruff"
 	@echo "  make lint-backend   - Ruff format-check + lint (E,F) for backend"
 	@echo "  make run-offline-demo - Run end-to-end offline reference flow"
@@ -25,7 +28,16 @@ dev-web:
 	cd apps/web && npm run dev
 
 test-backend:
-	cd backend && pytest -v
+	cd backend && pytest
+
+test-frontend:
+	cd apps/web && npm run lint && npm run typecheck && npm run build
+
+test-e2e:
+	cd apps/web && npm run test:e2e
+
+coverage:
+	cd backend && pytest --cov=app --cov-report=term  # needs: pip install pytest-cov
 
 fmt:
 	ruff format backend/app backend/tests

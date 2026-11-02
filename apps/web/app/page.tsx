@@ -249,7 +249,7 @@ export default function DashboardPage() {
       resetRunState(false);
       setActivePanel("test");
     } catch (e) {
-      setGenerationError(e instanceof Error ? e.message : "Yeni test oluşturulamadı");
+      setGenerationError(e instanceof Error ? e.message : t("Yeni test oluşturulamadı"));
     } finally {
       setIsGenerating(false);
     }
@@ -453,7 +453,7 @@ export default function DashboardPage() {
       {/* Program başlık çubuğu */}
       <div className="rw-titlebar">
         <div className="rw-titlebar-left">
-          <div className="rw-mark">RW</div>
+          <img className="rw-mark" src="/rw-mark.svg" alt="" draggable={false} />
           <span className="rw-appname">
             RoboWitness <span className="dim">— {t("Robot Test Programı")}</span>
           </span>
@@ -490,7 +490,7 @@ export default function DashboardPage() {
             id="input-jwt"
             className="rw-input"
             type="password"
-            placeholder="JWT (varsa)"
+            placeholder={t("JWT (varsa)")}
             style={{ width: 130 }}
             defaultValue={typeof window !== "undefined" ? (localStorage.getItem("rw_jwt") ?? "") : ""}
             onBlur={(e) => {

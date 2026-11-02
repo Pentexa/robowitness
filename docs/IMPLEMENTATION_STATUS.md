@@ -507,3 +507,36 @@ killed; worker restarted on the default shared law. Suite: 138 passed.
   - `requirements.lock` + `pyproject` updated to actually-tested versions; dead `asyncio_mode` setting removed.
   - Frontend: added `eslint-config-next@14.2.5` + `.eslintrc.json` (was unconfigured, `next lint` prompted interactively).
 - **Next executable action:** Meta anahtarı için base URL + model ID iste (kullanıcı söz verdi, soru dialogu kapatıldı — chatten yazması bekleniyor) → Phase 05 canlı çağrı; plan kapanışı ve push.
+
+## i18n Leak Audit (2026-11-02, user report: “Robotun yolu” still Turkish)
+
+Systematic check: every `t("...")` key in `apps/web` vs the EN dictionary,
+plus unwrapped user-facing strings. Found and fixed: the reported legend
+key (`Robotun yolu` → `Robot path`), 3 more missing keys (`Testler
+çalışıyor…`, `Yeni Robot Ekle`, lowercase `Çevrimdışı yedek`), 20 status/
+badge/profile/robot message keys used only through dynamic lookups, and a
+dozen unwrapped error/notice strings (RobotPanel, PolicyProfiles, page
+fallback, JWT placeholder). Dynamic scenario titles were already covered
+(`SCENARIO_TEXT_EN` incl. ultra + crowd). New Playwright guard asserts the
+EN-mode body text contains zero Turkish characters (hidden tabs included) —
+**8/8 e2e passed**. Note: an interim e2e failure in this session was a
+stale dev server after running `next build` alongside `next dev` (known
+`.next` corruption footgun, recovered with `dev:clean`), not an i18n
+regression.
+
+## Docs Sync + Logo (2026-11-02, user: “push atmadan önce bütün dosyaları güncelle”)
+
+- **Logo:** new `docs/assets/logo.svg` (RW monogram + verification check on
+  dark blueprint grid, recreated from the approved mark) + `apps/web/public/rw-mark.svg`
+  used in the app titlebar and as favicon; README shows the logo above the title.
+- **Fresh full verification for this push:** backend **159/159** (~4.5 dk, idle machine),
+  web typecheck + build + `test:e2e` **8/8**, ruff clean. (An earlier in-session full run
+  showed 6 failures under concurrent build+browser load; isolated re-run is green —
+  recorded as load flake, not product regression.)
+- **Docs brought current:** README (159 badge, 11-scenario battery, 6-tab English-first UI,
+  four — not five — eval rejections), HACKATHON_SUBMISSION (same corrections + EN labels),
+  RELEASE_1.0.0 (159 counts, E2E row, English-UI + 20/20 notes), ENTERPRISE (Path B closed,
+  English UI names), CONTRACTS (candidate-law selector, 16-sample tracks, occlusion/beam,
+  full 40-row endpoint table), EVIDENCE_FORMAT (battery report cards are generated, not sealed),
+  DEMO_GUIDE (Path B CLOSED, English UI flow), Makefile (`test-frontend`/`test-e2e`/`coverage`),
+  `.env.example` (JWT/OIDC, rate limit, webhook, worker, lease vars), requirements.lock header.
