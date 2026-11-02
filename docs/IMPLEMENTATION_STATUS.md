@@ -423,6 +423,45 @@ crowd configuration → `verif-b9ce2a55155e` **VERIFIED_IN_SIMULATION**
 Caught in passing: a stale pre-crowd worker process was stealing jobs —
 killed; worker restarted on the default shared law. Suite: 138 passed.
 
+## Perfection Pass — Test Gaps Closed (2026-11-02, user: “hatasız mükemmel olmalıyız”)
+
+- Dead code deleted (`ai/investigator.py`, `ai/scenario_generator.py`,
+  `ai/prompts.py` — unreferenced; the adapter is self-contained).
+- 15 new backend tests: run metrics/oracle edges, job repository claim
+  semantics, worker loop success+failure with stubbed service (26% → covered
+  paths), plugin host subprocess protocol (was 0% direct), example policy,
+  local-policy timeout abort, map warning caps, JWT issuer mismatch.
+- Frontend E2E (Playwright, `apps/web/e2e/journeys.spec.ts`, 5 tests, live
+  stack): grouped library (Kalabalık/Ultra), crowd crash verdict, clean
+  PASS does not advance, Karne controls, Admin controls — **5 passed**.
+  It caught a REAL product bug: the initial reference-scenario load could
+  clobber a scenario the user had already selected (fixed with a
+  `prev ??` guard in page.tsx).
+- Coverage: backend 88% → **90%**, suite **153 passed**. Ruff + lint +
+  typecheck clean. Remaining honest limits are unchanged (live IdP/ROS
+  never available here; physics 2D; single-node SQLite).
+
+## Rock-Solid Hardening (2026-11-02)
+
+- **Job lease recovery (real robustness gap, closed):** claimed jobs now
+  carry a lease (`RW_JOB_LEASE_SECONDS=600`, renewed by progress updates);
+  a job whose worker died mid-flight is automatically reclaimed to the
+  queue by the next claim instead of hanging in `running` forever.
+- **Concurrent-claim proof:** 5 threads × 10 jobs — each claimed exactly
+  once (atomic BEGIN IMMEDIATE claim holds under contention).
+- **Hostile-input suite:** bad types → 422 envelope, 20 001-frame import →
+  422, path traversal → 404, absurd policy → 422; unhandled exceptions now
+  return a clean `500 INTERNAL_ERROR` envelope (no stack/internals leaked),
+  and bodies over 10 MB are rejected with 413 before routing.
+- **Frontend resilience:** stale saved run ids are forgotten on 404 instead
+  of failing restore on every load; `npm run dev:clean` for the known
+  `.next` corruption footgun.
+- **Flake fixed by hardening:** the investigation test picked "the first
+  run" and broke when a PASS run was inserted first in some orderings —
+  it now selects a FAIL run explicitly (investigation is FAIL-only by rule).
+- Results: backend **158 passed** (full suite, ~3 min), Playwright **5/5**,
+  ruff/format/lint clean. Services healthy.
+
 ## Execution State Details
 
 - **Current phase:** PHASE 12 (hardening; Phases 07/10/12 partially open, see below)

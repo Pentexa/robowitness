@@ -9,6 +9,8 @@ def test_get_health_endpoint(client):
     assert data["schema_version"] == "1.0"
     assert "db_status" in data
     assert "ai_mode" in data
+    assert data["ai_provider"] == "Meta AI"
+    assert "meta_model" in data  # model id when live, null offline — never a key
 
 
 def test_openapi_schema_generation(client):

@@ -78,7 +78,11 @@ def test_investigation_grounded_in_measured_telemetry(client):
     from app.db import get_db
 
     with get_db() as conn:
-        row = conn.execute("SELECT run_id FROM runs LIMIT 1").fetchone()
+        # Pick a FAIL run explicitly: investigation only applies to failures,
+        # and other suites in the session may have inserted PASS runs first.
+        row = conn.execute(
+            "SELECT run_id FROM runs WHERE oracle_status = 'FAIL' LIMIT 1"
+        ).fetchone()
     if row is None:
         import json
         from pathlib import Path

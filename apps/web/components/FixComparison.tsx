@@ -138,7 +138,7 @@ export const FixComparison: React.FC<FixComparisonProps> = ({
         </button>
         <p className="rw-hint">
           Bu buton yeni ayarları aynı testte, ayrıca robotun görmediği 20 yeni testte ve önemli eski testlerde
-          dener. Biraz sürebilir; pencereyi kapatmayın. Kararı siz değil, bağımsız kontrol verir.
+          dener. Biraz sürebilir; pencereyi kapatmayın. Geçen çözüm, Meta AI'ın başarısı olarak mühürlü karara dönüşür.
         </p>
         <details className="rw-details">
           <summary>Teknik detaylar (isteğe bağlı)</summary>

@@ -19,6 +19,8 @@ class HealthResponse(BaseModel):
     worker_active: bool
     worker_last_seen: Optional[str] = None
     ai_mode: str
+    ai_provider: str = "Meta AI"
+    meta_model: Optional[str] = None
 
 
 def _worker_heartbeat() -> tuple[bool, Optional[str]]:
@@ -60,4 +62,8 @@ def get_health():
         worker_active=worker_active,
         worker_last_seen=worker_last_seen,
         ai_mode=settings.RW_AI_MODE,
+        ai_provider="Meta AI",
+        meta_model=(settings.RW_META_MODEL or None)
+        if settings.RW_AI_MODE == "live"
+        else None,
     )

@@ -43,8 +43,9 @@ export const LocalPolicyPanel: React.FC<LocalPolicyPanelProps> = ({ info, select
             Seçersen “Robotu Çalıştır” ve batarya,{" "}
             <span className="mono">backend/app/policies/local/</span> altındaki senin kodunla çalışır.
             <strong> Uyarı:</strong> Bu bir güvenlik kum havuzu değildir; yalnızca kendi yazdığın ve
-            güvendiğin kodu koy. <strong>Yapay zekâ kodu kesinlikle yasak.</strong> Kod ayrı bir süreçte
-            çalışır; hata verirse veya 5 saniyeyi aşarsa koşu başarısız sayılır, sahte sonuç üretilmez.
+            güvendiğin kodu koy. Meta AI'ın çözümleri için güvenli yol, yukarıdaki yama ve profil
+            akışıdır. Kod ayrı bir süreçte çalışır; hata verirse veya 5 saniyeyi aşarsa koşu başarısız
+            sayılır, sahte sonuç üretilmez.
           </p>
           {selected && (
             <p className="rw-summary" role="status">

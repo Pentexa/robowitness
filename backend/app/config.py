@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     RW_WEBHOOK_URL: str = ""
     RW_WEBHOOK_SECRET: str = ""
     RW_WORKER_CONCURRENCY: int = 1
+    # Job lease: a claimed job whose lease expires (worker died mid-job) is
+    # automatically returned to the queue. Progress updates renew the lease.
+    RW_JOB_LEASE_SECONDS: int = 600
     # Sensor model: "legacy" (exact delayed geometry, default; all measured
     # results in the docs use this) or "beam" (24-ray LiDAR-like casting:
     # obstacles are only seen when a ray actually hits them, with quantized

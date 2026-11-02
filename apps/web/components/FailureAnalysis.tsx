@@ -64,7 +64,11 @@ export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
               : "Robot neden çarptı ya da neden hedefe ulaşamadı?"}
           </p>
         </div>
-        {investigation && <span className="rw-badge mono">{investigation.provenance === "LIVE_META" ? "YAPAY ZEKÂ" : "ÇEVRİMDIŞI"}</span>}
+        {investigation && (
+          <span className="rw-badge mono">
+            {investigation.provenance === "LIVE_META" ? "Meta AI · Canlı" : "Çevrimdışı Yedek"}
+          </span>
+        )}
       </div>
       <div className="rw-card-body">
         {runResult && <RunVerdict result={runResult} minClearanceLimitM={minClearanceLimitM} />}
@@ -93,8 +97,8 @@ export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
           <>
             <p className="rw-intro">
               {nearMiss
-                ? "Çarpışma olmadı; ancak yukarıda yazdığı gibi robot güvenli mesafeyi koruyamadı. Yapay zekâ ölçümlere bakıp bu yakın geçişin nedenini açıklasın ve bir düzeltme önersin."
-                : "Çalıştırma bitti. Şimdi yapay zekâ, kaydedilen ölçümlere bakarak hatanın muhtemel nedenini açıklasın ve bir düzeltme önersin."}
+                ? "Çarpışma olmadı; ancak yukarıda yazdığı gibi robot güvenli mesafeyi koruyamadı. Meta AI ölçümlere bakıp bu yakın geçişin nedenini açıklasın ve bir düzeltme önersin."
+                : "Çalıştırma bitti. Şimdi Meta AI, kaydedilen ölçümlere bakarak hatanın nedenini açıklasın ve çözümünü önersin. Meta AI'ın çözümü bağımsız sınavda ölçülerek kanıtlanır; geçen çözüm mühürlü karara dönüşür."}
             </p>
             <button id="btn-investigate" className="rw-btn rw-btn-primary rw-btn-block" onClick={handleInvestigate} disabled={isLoading}>
               <SearchCheck size={16} />
@@ -111,12 +115,12 @@ export const FailureAnalysis: React.FC<FailureAnalysisProps> = ({
                 <span className="rw-spec-value mono">{investigation.failure_tick}. adım</span>
               </div>
               <div className="rw-spec-item">
-                <span className="rw-spec-label">Karar verir mi?</span>
-                <span className="rw-spec-value">Hayır, sadece önerir</span>
+                <span className="rw-spec-label">Meta AI'ın rolü</span>
+                <span className="rw-spec-value">Çözümü üretir · sınavda kanıtlanır</span>
               </div>
             </div>
             <div>
-              <div className="rw-spec-label">Yapay zekânın açıklaması</div>
+              <div className="rw-spec-label">Meta AI'ın açıklaması</div>
               <p className="text-sm">{investigation.hypothesis}</p>
             </div>
             <div>

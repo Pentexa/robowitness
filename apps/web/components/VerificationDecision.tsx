@@ -88,7 +88,7 @@ export const VerificationDecision: React.FC<VerificationDecisionProps> = ({
       <div className="rw-card-head">
         <div>
           <h3 className="rw-card-title">Sonuç</h3>
-          <p className="rw-card-sub">Kararı yapay zekâ değil, bağımsız kontrol verir.</p>
+          <p className="rw-card-sub">Meta AI'ın çözümünün bağımsız ölçümle kanıtlanmış sonucu.</p>
         </div>
         <span className={`rw-badge mono ${passed ? "is-solid" : failed ? "is-fail" : ""}`}>
           {isVerifying ? "TEST ÇALIŞIYOR" : verdictInfo.title}

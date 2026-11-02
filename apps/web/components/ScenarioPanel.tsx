@@ -56,10 +56,10 @@ export const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
           className="rw-btn rw-btn-ghost rw-btn-sm"
           onClick={onGenerateAI}
           disabled={isRunning || isGenerating || !scenario}
-          title="Yapay zekâ ile yeni bir test oluşturur"
+          title="Meta AI ile yeni bir test senaryosu oluşturur"
         >
           <Sparkles size={14} />
-          {isGenerating ? "Oluşturuluyor…" : "Yapay Zekâyla Üret"}
+          {isGenerating ? "Meta AI üretiyor…" : "Meta AI ile Üret"}
         </button>
       </div>
       <details className="rw-details">

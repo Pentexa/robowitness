@@ -116,7 +116,40 @@ def create_app() -> FastAPI:
     app.include_router(admin_router, prefix="/api")
     app.include_router(schedules_router, prefix="/api")
 
+    # Body-size guard: reject absurd payloads before routing (10 MB).
+    @app.middleware("http")
+    async def body_size_guard(request: Request, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length is not None:
+            try:
+                if int(content_length) > 10_485_760:
+                    envelope = ErrorEnvelope(
+                        error=ErrorBody(
+                            code="PAYLOAD_TOO_LARGE",
+                            message="Request body exceeds the 10 MB limit",
+                        )
+                    )
+                    return JSONResponse(status_code=413, content=envelope.model_dump())
+            except ValueError:
+                pass
+        return await call_next(request)
+
     # Custom Error Handlers
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(request: Request, exc: Exception):
+        # Rock-solid surface: never leak a stack trace or an HTML 500 page.
+        import traceback
+
+        print(f"[api] unhandled error on {request.url.path}: {exc!r}")
+        traceback.print_exc()
+        envelope = ErrorEnvelope(
+            error=ErrorBody(
+                code="INTERNAL_ERROR",
+                message="Unexpected internal error; the incident was logged server-side",
+            )
+        )
+        return JSONResponse(status_code=500, content=envelope.model_dump())
+
     @app.exception_handler(RoboWitnessException)
     async def robowitness_exception_handler(request: Request, exc: RoboWitnessException):
         return JSONResponse(status_code=exc.status_code, content=exc.detail)

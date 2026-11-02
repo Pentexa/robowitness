@@ -108,6 +108,7 @@ export default function DashboardPage() {
   const [verification, setVerification] = useState<VerificationRecord | null>(null);
   const [history, setHistory] = useState<VerificationSummary[]>([]);
   const [provenance, setProvenance] = useState<string>("OFFLINE_REFERENCE");
+  const [metaModel, setMetaModel] = useState<string | null>(null);
   const [backendUp, setBackendUp] = useState<boolean>(false);
 
   useEffect(() => {
@@ -115,12 +116,15 @@ export default function DashboardPage() {
       .then((h) => {
         setBackendUp(h.status === "healthy");
         setProvenance(h.ai_mode === "live" ? "LIVE_META" : "OFFLINE_REFERENCE");
+        setMetaModel(typeof h.meta_model === "string" && h.meta_model ? h.meta_model : null);
       })
       .catch(() => setBackendUp(false));
 
     fetchReferenceScenarios()
       .then((scenarios) => {
-        if (scenarios.length > 0) setScenario(scenarios[0]);
+        // Only as the initial value: never clobber a scenario the user (or a
+        // restored flow) has already picked while this request was in flight.
+        if (scenarios.length > 0) setScenario((prev) => prev ?? scenarios[0]);
       })
       .catch((err) => console.error("Could not load scenarios:", err));
 
@@ -143,7 +147,16 @@ export default function DashboardPage() {
         setActiveRunId(savedRunId);
         fetchRun(savedRunId)
           .then((r) => setRunResult(r))
-          .catch(() => console.warn("Saved run result unavailable"));
+          .catch(() => {
+            // Stale saved id (artifacts were cleaned): forget it instead of
+            // failing the same restore on every page load.
+            try {
+              localStorage.removeItem("rw_run_id");
+            } catch {
+              /* ignore */
+            }
+            setActiveRunId(null);
+          });
         fetchAllFrames((o, l) => fetchTelemetry(savedRunId, o, l))
           .then((all) => setFrames(all))
           .catch(() => console.warn("Saved run telemetry unavailable"));
@@ -439,6 +452,16 @@ export default function DashboardPage() {
           <div className="rw-mark">RW</div>
           <span className="rw-appname">
             RoboWitness <span className="dim">— Robot Test Programı</span>
+          </span>
+          <span
+            className={`rw-badge ${provenance === "LIVE_META" ? "is-live" : "is-dim"}`}
+            title={
+              provenance === "LIVE_META"
+                ? "Senaryo üretimi ve hata incelemesi Meta AI ile canlı çalışıyor"
+                : "Meta AI anahtarı yok: çevrimdışı yedek mod"
+            }
+          >
+            Meta AI{provenance === "LIVE_META" ? ` · ${metaModel ?? "Canlı"}` : " · Çevrimdışı"}
           </span>
         </div>
         <div className="rw-row">
@@ -774,7 +797,10 @@ export default function DashboardPage() {
           {backendUp ? "Program bağlantısı: Çalışıyor" : "Bağlantı yok — arka uç programı açık değil"}
         </span>
         <span className="rw-status-cell">
-          Yapay zekâ: {provenance === "LIVE_META" ? "Bağlı" : "Çevrimdışı yedek"}
+          Meta AI:{" "}
+          {provenance === "LIVE_META"
+            ? `Canlı${metaModel ? ` (${metaModel})` : ""}`
+            : "Çevrimdışı yedek"}
         </span>
         <span className="rw-status-cell">Adım: {currentStep + 1} / 4 — {STEPS[currentStep].name}</span>
         <span className="rw-status-cell">
@@ -802,7 +828,7 @@ export default function DashboardPage() {
                 <h4>Yapmanız gerekenler (sırayla)</h4>
                 <ol>
                   <li><strong>Testi çalıştırın:</strong> “Robotu Çalıştır”a basın. Robot eski ayarlarla hareket eder; ortadaki alanda tekrarını izleyin.</li>
-                  <li><strong>Hatayı inceleyin:</strong> Robot çarparsa ya da hedefe ulaşamazsa “Hatayı İncele”ye basın. Yapay zekâ ölçümlere bakıp nedeni açıklar ve yeni ayarlar önerir.</li>
+                  <li><strong>Hatayı inceleyin:</strong> Robot çarparsa ya da hedefe ulaşamazsa “Hatayı İncele”ye basın. Meta AI ölçümlere bakıp nedeni açıklar ve yeni ayarlar önerir. (Bağlı değilse çevrimdışı yedek aynı işi yapar.)</li>
                   <li><strong>Düzeltmeyi deneyin:</strong> Öneriyi kullanın ya da kaydırıcılarla ayarları kendiniz değiştirin. “Düzeltmeyi Test Et”e basın.</li>
                   <li><strong>Sonucu görün:</strong> Program yeni ayarları aynı testte + görmediği 20 yeni testte dener. Karar: <strong>KABUL EDİLDİ</strong> ya da <strong>REDDEDİLDİ</strong>. Raporu indirip saklayabilirsiniz.</li>
                 </ol>
