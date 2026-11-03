@@ -171,16 +171,23 @@ RoboWitness separates the four roles that are usually blurred together — with 
 
 ## ⚡ Powered by Meta AI
 
-**Model credits include [Muse Wonder](https://dev.meta.ai/models/muse-wonder)**,
-one of the Meta models used in RoboWitness. The live text-model adapter selects
-its model through `RW_META_MODEL`.
+RoboWitness uses three Meta models at distinct stages:
+
+| Model | Where and how we used it |
+|---|---|
+| **[Muse Wonder](https://dev.meta.ai/models/muse-wonder)** | **Development/coding assistance:** supported implementation and iteration on RoboWitness source code, with changes checked through the project's review and test workflow. |
+| **[Muse Spark 1.3](https://dev.meta.ai/models/muse-spark)** | **Runtime reasoning:** the backend sends objectives or recorded failure measurements to `/chat/completions`; validated responses provide scenarios, failure hypotheses and five-parameter controller patches. Selected through `RW_META_MODEL=muse-spark-1.3`. |
+| **[SAM 3.1](https://dev.meta.ai/docs/sam/segmenting)** | **Runtime image perception:** still photos/camera snapshots and object concepts go to `/responses` with `model=sam-3.1`. Validated boxes/masks feed object selection; application code uses user-supplied floor dimensions to build a PyBullet-compatible scenario. |
+
+See [where and how each model is used](docs/HACKATHON_SUBMISSION.md#where-and-how-we-used-the-three-meta-models)
+for inputs, outputs, API routes, implementation links and measured evidence.
 
 **Meta AI is the intelligence at the heart of RoboWitness.** Every improvement starts with Meta AI:
 
 - 🗺️ **Scenario generation** — Meta AI creates challenging warehouse scenarios (`POST /api/scenarios/generate`), validated by Pydantic schemas
 - 🔍 **Failure investigation** — Meta AI explains *why* the baseline failed in terms of measured ticks, clearances and testable hypotheses (`POST /api/failures/{run_id}/investigate`)
 - 🔧 **Fix proposals** — Meta AI proposes a patch with only the five allowed numeric `PolicyConfig` fields — never code, never oracle thresholds
-- 🛡️ **Strict separation** — Meta AI never touches physics, never reads ground truth, never declares itself verified. The oracle alone decides
+- 🛡️ **Strict separation** — runtime AI proposes validated data; the controller receives delayed sensor observations, and the independent oracle determines outcomes from measured simulation state
 - 🔌 **Flexible modes** — offline reference mode works with zero keys; set `RW_AI_MODE=live` + `RW_META_API_KEY` + `RW_META_MODEL` to unleash live Meta AI
 
 > Meta AI brings the creativity. RoboWitness brings the proof.

@@ -19,7 +19,7 @@ exam it cannot see, graded by a judge that never reads its reasoning?
 - Five gates: baseline-failure reproduction, paired comparison, 20 frozen
   holdout scenarios, critical regressions, cryptographic evidence sealing
   (independently re-verified before any VERIFIED verdict is published).
-- Live Meta AI integration (Muse Spark via api.meta.ai) generates new test
+- Live Meta AI integration (Muse Spark 1.3 via api.meta.ai) generates new test
   scenarios and investigates failures from measured tick-level evidence;
   an offline reference mode keeps everything runnable without a key.
 - Product surface: robot catalog (brand/model/specs, custom robots),
@@ -30,6 +30,88 @@ exam it cannot see, graded by a judge that never reads its reasoning?
 - Enterprise layer: API keys/JWT/OIDC, roles, workspaces, audit trail,
   Prometheus, webhooks, scheduled batteries, idempotency, backups, CI gate,
   Docker Compose.
+
+## Where and how we used the three Meta models
+
+| Model | Where we used it | Input and method | Contribution to RoboWitness |
+|---|---|---|---|
+| **[Muse Wonder](https://dev.meta.ai/models/muse-wonder)** | Development and coding workflow | Used as a coding assistant while developing RoboWitness, supporting implementation work through code suggestions and changes | Helped build and iterate on the application; changes enter the repository's review and automated-test workflow |
+| **[Muse Spark 1.3](https://dev.meta.ai/models/muse-spark)** | Runtime scenario generation, failure investigation and fix proposals | The backend sends an objective or a summary of measured failure evidence to the Meta Model API's `/chat/completions`, with `RW_META_MODEL=muse-spark-1.3` | Returns a schema-validated scenario, or a failure hypothesis and a patch limited to five numeric controller parameters |
+| **[SAM 3.1](https://dev.meta.ai/docs/sam/segmenting)** | Runtime camera/photo-to-scenario workflow | A still image plus a short object concept is sent to `/responses` with `model=sam-3.1`; the official SAM parser validates the returned boxes and masks | Detects objects for selection and preview; application code uses the user's floor dimensions to project selected boxes into static circular PyBullet obstacles |
+
+### Muse Wonder — development-time coding assistance
+
+We used Muse Wonder as a **development/coding assistant** while building
+RoboWitness. This is its contribution to the engineering workflow: assistance
+with implementing and iterating on source code. Resulting changes are checked
+through the project's normal tests and review process. The application runtime
+described below uses Muse Spark 1.3 and SAM 3.1; Muse Wonder's attribution is for
+development assistance, as confirmed by the project author.
+
+### Muse Spark 1.3 — runtime reasoning and structured proposals
+
+- **Generate a scenario:** Test → **Generate with Meta AI** calls
+  `POST /api/scenarios/generate`. The backend sends the requested objective and
+  a JSON schema template to Muse Spark 1.3, then validates its answer as a
+  `ScenarioSpec` before the scenario can be run.
+- **Investigate a failure:** after an oracle-FAIL run, Inspect calls
+  `POST /api/failures/{run_id}/investigate`. The application extracts recorded
+  collision/minimum-clearance ticks, frame count and goal/collision measurements
+  from the run's telemetry. The model receives this measured evidence summary
+  and returns a testable hypothesis plus a proposed parameter patch.
+- **Propose a fix:** the patch can contain only `max_speed_mps`,
+  `safe_distance_m`, `reaction_margin_m`, `brake_gain`, and
+  `obstacle_prediction_horizon_s`. The user can review/apply these values;
+  the same independent verification pipeline evaluates the candidate.
+
+Implementation: [MetaAdapter](../backend/app/ai/adapter.py),
+[scenario route](../backend/app/api/routes_scenarios.py),
+[measured-evidence investigation](../backend/app/api/routes_failures.py), and
+[policy patch schema](../backend/app/schemas/policy.py).
+Live text inference is configured server-side with `RW_AI_MODE=live`,
+`RW_META_BASE_URL`, `RW_META_API_KEY` and `RW_META_MODEL=muse-spark-1.3`.
+Valid live results are labeled `LIVE_META`; offline reference results are
+explicitly labeled `OFFLINE_REFERENCE`.
+
+### SAM 3.1 — runtime still-image perception
+
+In Test → **Camera / Photo → SAM 3.1**, the user uploads a PNG/JPEG/WebP photo
+or captures a single camera snapshot. **Detect with SAM 3.1** calls
+`POST /api/scenarios/from-image/detect`. The backend sends the image and each
+requested object concept to the actual SAM 3.1 API using the server-side Meta
+key. The official `meta-sam-parser` validates segmentation boxes and masks,
+and the UI displays the detected objects with confidence when supplied.
+
+The user selects 1–8 obstacles, confirms an overhead/rectified floor view,
+enters physical floor width/height and places start/goal points. Ordinary
+application code projects the image boxes into enclosing static circles,
+validates the resulting `ScenarioSpec`, and supports preview, workspace-scoped
+save/reload, and **Save and run** through the existing PyBullet worker.
+The scale comes from the user; depth and obstacle motion are not inferred.
+
+Implementation: [camera/photo UI](../apps/web/components/ImageScenarioPanel.tsx),
+[SAM adapter](../backend/app/ai/sam.py),
+[image routes](../backend/app/api/routes_image_scenarios.py), and
+[image-to-world conversion](../backend/app/maps/image_converter.py).
+
+### What decides the result, and what we actually checked
+
+PyBullet executes the scenario, the deterministic oracle evaluates measured
+behavior, and the five-gate protocol plus evidence integrity determine the
+verification verdict. Model suggestions do not assign `VERIFIED_IN_SIMULATION`.
+
+- **Muse Wonder:** development-time use is confirmed by the author; this is
+  engineering attribution, not an application inference test result.
+- **Muse Spark 1.3:** live scenario-generation and grounded-investigation
+  results are recorded in [implementation status](IMPLEMENTATION_STATUS.md).
+  The documented ultra scenario demonstrates that even a live Meta fix whose
+  paired test succeeds can be rejected by the holdout gate.
+- **SAM 3.1:** actual-photo detection found two cats in the public COCO sample.
+  A separate rendered, known-scale overhead calibration image exercised the
+  full real SAM → preview/save → PyBullet → reload journey. Latest recorded
+  run `run-1db85969c259`: 2 detected objects, 741 simulation ticks, goal reached,
+  zero collisions, minimum clearance 0.4137 m. The two image checks have
+  distinct scopes: real-photo segmentation and calibrated simulation input.
 
 ## The story judges should remember
 For four consecutive frozen holdout sets, good-looking AI-era fixes scored
@@ -43,13 +125,14 @@ manufacture success; it makes success mean something.
 
 ## How we built it
 
-Meta model credits also include **[Muse Wonder](https://dev.meta.ai/models/muse-wonder)**,
-used in the RoboWitness project.
+We used **Muse Wonder for development/coding assistance**, **Muse Spark 1.3
+for runtime scenario generation and failure reasoning**, and **SAM 3.1 for
+camera/photo segmentation**, as detailed above.
 
 FastAPI + SQLite atomic job worker + PyBullet DIRECT simulation, Next.js
 dashboard (English-first UI with Turkish switch, designed for non-experts), Pydantic contracts,
 SHA-256 evidence packages with an independent verifier. 194 backend tests
-(incl. 35 image/SAM cases) plus 12 Playwright E2E (incl. camera, photo,
+(incl. 35 image/SAM cases) plus 18 Playwright E2E (incl. camera, photo,
 scale gate); Docker images built and run-verified.
 Controller research (shared law → pass-behind/stateful/waypoint/MPC) was
 run under a strict protocol: develop only on burned sets, pre-register,
@@ -63,7 +146,7 @@ Then optionally: backend (`uvicorn app.main:app --port 8000`) + worker
 (`python -m app.jobs.worker`) + web (`npm run dev`) → http://localhost:3000
 → Test tab → *Run Robot*; Report Card tab → *Run the Battery*.
 With a Meta key in `.env` (`RW_AI_MODE=live`), scenario generation and
-failure investigation go live via Muse Spark.
+failure investigation go live via Muse Spark 1.3 (`RW_META_MODEL=muse-spark-1.3`).
 
 ## The ultra-hard showcase (measured live, 2026-11-02)
 Five ULTRA scenarios (`scenarios/ultra/`, in the library as "Ultra"):
@@ -97,8 +180,8 @@ Upload a PNG/JPEG/WebP still or capture a camera photo in the Test tab and
 click **Detect with SAM 3.1**: a real Meta Responses API request segments
 your object concepts, and the measured boxes become static circular
 obstacles in a saved, runnable scenario. The suite proves the whole chain
-with a recorded SAM response (35 backend cases, 4 browser E2E incl. camera
-capture, permission-denied fallback and the scale/overhead gate); live
+with a recorded SAM response (35 backend cases, 10 image/browser E2E incl. camera
+cleanup, permission-denied fallback, retry/job failures and the scale/overhead gate); live
 runs are covered by `scripts/sam_live_smoke.py` and the paid
 `scripts/sam_browser_smoke.cjs` UI smoke, never by the default suite.
 

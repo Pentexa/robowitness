@@ -1,5 +1,19 @@
 # RoboWitness Implementation Status
 
+## Three-model usage documentation — 2026-11-03
+
+- The author confirmed Muse Wonder was used as a development/coding assistant.
+  Its attribution now states that role explicitly, separate from runtime inference.
+- Expanded HACKATHON_SUBMISSION with a three-model role table, inputs/outputs,
+  API/configuration details, source links, and actual verification scope:
+  Muse Wonder (development), Muse Spark 1.3 (runtime scenario/investigation/patch),
+  SAM 3.1 (runtime still-image segmentation, followed by user-calibrated projection).
+- README and DEMO_GUIDE use the same roles and link to the detailed submission.
+  Submission counts updated to the already measured 18 browser tests (10 image
+  flow + 8 existing journeys); historical result counts are otherwise retained.
+- Documentation-only verification: diff whitespace and local Markdown link checks.
+  No model configuration changes, new inference calls or application test reruns.
+
 ## Muse Wonder documentation credit — 2026-11-03
 
 - Added the user-confirmed Muse Wonder project credit to README and hackathon

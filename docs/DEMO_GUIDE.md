@@ -4,6 +4,18 @@ Governed by Section 1.2 and Section 11 of `ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT
 
 ## 1. Demonstration Paths
 
+### Explain the three model roles
+
+- **Muse Wonder:** development/coding assistant used while building RoboWitness.
+- **Muse Spark 1.3:** runtime scenario generation, measured-failure investigation
+  and structured controller-parameter proposals.
+- **SAM 3.1:** runtime camera/photo object segmentation; user-calibrated
+  application code converts selected image boxes into simulation obstacles.
+
+PyBullet executes the tests and the oracle/evidence gates determine verdicts.
+Use the [model usage section](HACKATHON_SUBMISSION.md#where-and-how-we-used-the-three-meta-models)
+for the exact inputs, outputs, API calls, source links and verification scope.
+
 ### Path A — Failure Detected
 1. Select reference scenario `RW-REF-001` with moving obstacle and 450ms sensor latency.
 2. Run baseline policy.
