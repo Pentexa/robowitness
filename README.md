@@ -27,6 +27,7 @@
 [![PyBullet 3.2.7](https://img.shields.io/badge/PyBullet-3.2.7-FF6F00?style=for-the-badge)](https://pybullet.org/)
 [![TypeScript 5.5](https://img.shields.io/badge/TypeScript-5.5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Powered by Meta AI](https://img.shields.io/badge/Powered_by-Meta_AI-0082FB?style=for-the-badge&logo=meta&logoColor=white)](#-powered-by-meta-ai)
+[![Muse Wonder](https://img.shields.io/badge/Meta-Muse_Wonder-0064FF?style=for-the-badge&logo=meta&logoColor=white)](https://dev.meta.ai/models/muse-wonder)
 
 <br />
 
@@ -169,6 +170,10 @@ RoboWitness separates the four roles that are usually blurred together — with 
 <br />
 
 ## ⚡ Powered by Meta AI
+
+**Model credits include [Muse Wonder](https://dev.meta.ai/models/muse-wonder)**,
+one of the Meta models used in RoboWitness. The live text-model adapter selects
+its model through `RW_META_MODEL`.
 
 **Meta AI is the intelligence at the heart of RoboWitness.** Every improvement starts with Meta AI:
 
@@ -716,6 +721,7 @@ Copyright © 2026, **Ahmet Aras Akyasan**.
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![PyBullet](https://img.shields.io/badge/PyBullet-FF6F00?style=for-the-badge)](https://pybullet.org/)
 [![Meta AI](https://img.shields.io/badge/Meta_AI-0082FB?style=for-the-badge&logo=meta&logoColor=white)](https://ai.meta.com/)
+[![Muse Wonder](https://img.shields.io/badge/Meta-Muse_Wonder-0064FF?style=for-the-badge&logo=meta&logoColor=white)](https://dev.meta.ai/models/muse-wonder)
 
 <br />
 

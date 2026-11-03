@@ -42,6 +42,10 @@ control candidate was still rejected in the same run. The system does not
 manufacture success; it makes success mean something.
 
 ## How we built it
+
+Meta model credits also include **[Muse Wonder](https://dev.meta.ai/models/muse-wonder)**,
+used in the RoboWitness project.
+
 FastAPI + SQLite atomic job worker + PyBullet DIRECT simulation, Next.js
 dashboard (English-first UI with Turkish switch, designed for non-experts), Pydantic contracts,
 SHA-256 evidence packages with an independent verifier. 194 backend tests

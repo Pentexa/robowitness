@@ -1,5 +1,14 @@
 # RoboWitness Implementation Status
 
+## Muse Wonder documentation credit — 2026-11-03
+
+- Added the user-confirmed Muse Wonder project credit to README and hackathon
+  submission, plus linked Muse Wonder badges in the README header and Built With.
+- Official model reference: https://dev.meta.ai/models/muse-wonder.
+- Documentation-only change; no runtime model/configuration changes or new
+  live-model verification claims. Historical measured results are preserved.
+- Verification: `git diff --check`; application tests not rerun for this docs-only edit.
+
 ## Jury demo review — 2026-11-03
 
 - State: PASS within the tested jury-demo scope. Review started from clean commit `9a1a54c`.
