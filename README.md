@@ -31,7 +31,7 @@
 <br />
 
 [![Tests — 194 Passed](https://img.shields.io/badge/tests-194_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
-[![E2E — 12 Passed](https://img.shields.io/badge/e2e-12_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
+[![E2E — 18 Passed](https://img.shields.io/badge/e2e-18_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
 [![Photo to Scenario — SAM 3.1](https://img.shields.io/badge/photo_to_scenario-SAM_3.1-C026D3?style=flat-square&logo=meta&logoColor=white)](#-robot--scenario-lab)
 [![UI — English + Türkçe](https://img.shields.io/badge/ui-english_%2B_turkish-2F6BFF?style=flat-square)](#-at-a-glance)
 [![Verdicts — Never Manufactured](https://img.shields.io/badge/verdicts-never_manufactured-6f42c1?style=flat-square&logo=shieldsdotio&logoColor=white)](#-honest-limitations)
@@ -492,7 +492,7 @@ python -m pip install --no-build-isolation pybullet==3.2.5
 | Check | Measured Result | Status |
 |---|---|:---:|
 | Backend test suite | **194 passed** (unit + integration, incl. 35 image/SAM cases) | ✅ |
-| Frontend E2E (Playwright, live stack) | **12 passed** — incl. camera, photo, scale gate and UI leak guard | ✅ |
+| Frontend E2E (Playwright, live stack) | **18 passed** — incl. camera cleanup, retry/queue failures, laptop coordinates, scale gate and UI leak guard | ✅ |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean | ✅ |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats | ✅ |
 | Path B — improvement accepted | **CLOSED.** `verif-6b2bfd8e0501` → `VERIFIED_IN_SIMULATION`; all five gates PASS, Gate 3 **20/20** on the pre-registered v6 holdout using MPC-lite | ✅ |

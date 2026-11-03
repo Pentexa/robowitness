@@ -1,5 +1,55 @@
 # RoboWitness Implementation Status
 
+## Jury demo review — 2026-11-03
+
+- State: PASS within the tested jury-demo scope. Review started from clean commit `9a1a54c`.
+- Local API/web were stopped at review start; API, one worker and production
+  web were restarted for real browser checks.
+- Four previously uncovered bugs were reproduced by four failing Playwright
+  cases BEFORE rebuilding the fixes:
+  1. A failed second SAM call retained the previous object's boxes/selection.
+  2. Switching from Test to Report Card kept the camera track `live`.
+  3. In the 1000 px laptop layout, clicking image x=20% produced x=37%.
+  4. Save-and-run swallowed an HTTP 503 from `/api/runs`; no visible error.
+- Fixes clear stale detections, close camera on tab exit, invert the actual
+  SVG transform for image coordinates, and display queue/progress/job errors.
+  A confirmed save also updates local history directly, so a separate history
+  GET failure cannot block a requested run.
+- Added six regression cases (the four reproductions plus history-read failure
+  and worker-job failure). Physics, oracle and evaluation data are unchanged.
+- Physical device inventory: `TOSHIBA Web Camera - FHD`, status OK. A separate
+  installed-Chrome check opened the ACTUAL device at **1600×1080**, video ready
+  state 4, track `live`; closing the camera changed the track to `ended`.
+  No physical-camera still was captured, retained or sent to SAM. The portable
+  default browser suite continues to use an explicit fake camera device.
+
+| Verification | Exact command | Actual result |
+|---|---|---|
+| Initial bug reproductions, before fix build | `npx playwright test e2e/image-scenario.spec.ts -g 'audit:'` (`apps/web`) | **4 failed**, confirming the four defects above |
+| Complete backend rerun | `python -m pytest -q --tb=line` (`backend`) | **194 passed**, 599.96 s, no skips |
+| Complete browser rerun, after fixes | `npm run test:e2e` (`apps/web`) | **18 passed**, 56.8 s, no skips |
+| Frontend types and lint | `npm run typecheck`; `npm run lint` (`apps/web`) | PASS; same 3 pre-existing lint warnings |
+| Production build | `npm run build` (`apps/web`) | PASS, Next.js 14.2.35 |
+| Backend lint and format | `ruff check --select E,F app tests`; `ruff format --check app tests` (`backend`) | PASS, 123 files formatted |
+| Real SAM browser journey | `node scripts/sam_browser_smoke.cjs` (root) | PASS, `run-1db85969c259`, 2 actual SAM detections, 741 PyBullet ticks, oracle PASS, minimum clearance **0.4137 m**, saved/reloaded, zero page errors |
+| Run evidence integrity | `python scripts/verify_evidence.py artifacts/runs/run-1db85969c259` (root) | PASS, all six member checksums match |
+| Physical camera in installed Chrome | `$env:RW_CAMERA_BROWSER='chrome'; node artifacts/jury_audit/physical_camera_check.cjs` (root) | PASS, real TOSHIBA camera, 1600×1080 stream, then all tracks stopped |
+
+The first physical-camera check in bundled headless Chromium failed with
+`NotSupportedError: Not supported`; it was NOT counted as a pass. Both Windows
+webcam consent settings inspected were `Allow`. The installed-Chrome check
+passed without application changes between those two camera checks. Metadata
+only is retained in `artifacts/jury_audit/physical-camera-chromium-result.json`
+(failure) and `physical-camera-chrome-result.json` (success).
+
+No open functional defect remains in the exercised flows. Existing scope limits
+still apply: overhead/rectified photos with user-supplied dimensions, 1–8 static
+circular obstacles; live SAM requires working network/provider access. This
+review does not certify arbitrary photos or every browser/device combination.
+Next executable action: open `http://localhost:3000` in the installed Chrome
+and exercise the selected jury image. API, one worker and production web are
+running locally; no public deployment or presentation assets were added.
+
 ## Camera/photo SAM 3.1 integration — 2026-11-03
 
 - State: PASS. Existing simulation/oracle/verification contracts preserved.

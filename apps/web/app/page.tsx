@@ -101,6 +101,7 @@ export default function DashboardPage() {
   const [isRunningBaseline, setIsRunningBaseline] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
 
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
@@ -202,6 +203,7 @@ export default function DashboardPage() {
     setInvestigation(null);
     setRunResult(null);
     setFrames([]);
+    setRunError(null);
     setCurrentFrameIndex(0);
     setIsPlaying(false);
     try {
@@ -257,6 +259,7 @@ export default function DashboardPage() {
   };
 
   const runScenarioBaseline = async (runScenario: ScenarioSpec) => {
+    setRunError(null);
     setIsRunningBaseline(true);
     setIsPlaying(false);
     setCurrentFrameIndex(0);
@@ -293,16 +296,21 @@ export default function DashboardPage() {
           } else if (job.status === "failed" || job.status === "cancelled") {
             clearInterval(pollInterval);
             setIsRunningBaseline(false);
+            setRunError(t("Simülasyon işi başarısız oldu veya iptal edildi. Tekrar deneyin."));
           }
         } catch (e) {
           clearInterval(pollInterval);
           setIsRunningBaseline(false);
+          setRunError(t("Simülasyon durumu alınamadı. Bağlantıyı kontrol edip tekrar deneyin."));
           console.error(e);
         }
       }, 750);
+      return true;
     } catch (e) {
       setIsRunningBaseline(false);
+      setRunError(t("Simülasyon başlatılamadı. Bağlantıyı kontrol edip tekrar deneyin."));
       console.error(e);
+      return false;
     }
   };
 
@@ -730,6 +738,7 @@ export default function DashboardPage() {
                 isRunning={isRunningBaseline}
                 isGenerating={isGenerating}
                 generationError={generationError}
+                runError={runError}
               />
               {appliedRobotLabel && (
                 <p className="rw-hint" role="status">
@@ -739,13 +748,16 @@ export default function DashboardPage() {
               )}
               <ImageScenarioPanel
                 disabled={busy}
+                active={activePanel === "test"}
                 onScenario={async (s, runNow) => {
                   setScenario(s);
                   setScenarioProvenance("LIVE_META_SAM_3_1");
                   setAppliedRobotLabel(null);
                   resetRunState(false);
                   setActivePanel("test");
-                  if (runNow) await runScenarioBaseline(s);
+                  if (runNow && !(await runScenarioBaseline(s))) {
+                    throw new Error(t("Senaryo kaydedildi ancak simülasyon başlatılamadı."));
+                  }
                 }}
               />
               <ScenarioLibrary

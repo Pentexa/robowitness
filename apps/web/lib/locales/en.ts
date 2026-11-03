@@ -3,6 +3,10 @@
  * Turkish mode renders keys as-is. Keep entries exact (punctuation matters).
  */
 export const EN: Record<string, string> = {
+  "Simülasyon işi başarısız oldu veya iptal edildi. Tekrar deneyin.": "The simulation job failed or was cancelled. Please retry.",
+  "Simülasyon durumu alınamadı. Bağlantıyı kontrol edip tekrar deneyin.": "Could not read simulation progress. Check the connection and retry.",
+  "Simülasyon başlatılamadı. Bağlantıyı kontrol edip tekrar deneyin.": "Could not start the simulation. Check the connection and retry.",
+  "Senaryo kaydedildi ancak simülasyon başlatılamadı.": "Scenario saved, but the simulation could not be started.",
   // ---- App chrome (page.tsx) ----
   "Robot Test Programı": "Robot Verification Console",
   Yardım: "Help",

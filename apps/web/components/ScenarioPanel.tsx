@@ -14,6 +14,7 @@ interface ScenarioPanelProps {
   isRunning: boolean;
   isGenerating: boolean;
   generationError: string | null;
+  runError: string | null;
 }
 
 export const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
@@ -25,6 +26,7 @@ export const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
   isRunning,
   isGenerating,
   generationError,
+  runError,
 }) => {
   const { t } = useLocale();
   return (
@@ -44,6 +46,7 @@ export const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
           {t("Yeni test oluşturulamadı:")} {generationError}
         </p>
       )}
+      {runError && <p id="run-error" role="alert" className="rw-err">{runError}</p>}
       <button
         id="btn-run-baseline"
         className="rw-btn rw-btn-primary rw-btn-big"

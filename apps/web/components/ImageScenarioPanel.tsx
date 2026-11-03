@@ -11,10 +11,11 @@ import { ScenarioSpec } from "../lib/types";
 
 interface Props {
   disabled: boolean;
+  active: boolean;
   onScenario: (scenario: ScenarioSpec, runNow: boolean) => Promise<void>;
 }
 
-export function ImageScenarioPanel({ disabled, onScenario }: Props) {
+export function ImageScenarioPanel({ disabled, active, onScenario }: Props) {
   const { locale } = useLocale();
   const text = (en: string, tr: string) => locale === "tr" ? tr : en;
   const [image, setImage] = useState<string | null>(null);
@@ -66,13 +67,13 @@ export function ImageScenarioPanel({ disabled, onScenario }: Props) {
   }, [width, height, overhead, start, goal, selected, name]);
 
   useEffect(() => {
-    if (disabled) {
+    if (disabled || !active) {
       cameraRequest.current += 1;
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       setCameraActive(false);
     }
-  }, [disabled]);
+  }, [disabled, active]);
 
   const acceptImage = (dataUrl: string) => {
     stopCamera();
@@ -141,6 +142,8 @@ export function ImageScenarioPanel({ disabled, onScenario }: Props) {
   const detect = async () => {
     if (!image) return;
     setBusy(true); setError(null); setPreview(null); setNotice(null);
+    setDetections(null);
+    setSelected([]);
     try {
       const result = await detectImage(image, concepts.split(/\r?\n/).map((v) => v.trim()).filter(Boolean));
       setDetections(result);
@@ -161,7 +164,9 @@ export function ImageScenarioPanel({ disabled, onScenario }: Props) {
       });
       setPreview(result);
       if (save) {
-        setSaved(await fetchSavedImageScenarios());
+        // Save is confirmed by the server; a separate history refresh must
+        // not prevent the requested simulation from starting.
+        setSaved((prev) => [result, ...prev.filter((item) => item.scenario.id !== result.scenario.id)].slice(0, 100));
         setNotice(text("Scenario saved.", "Senaryo kaydedildi."));
         await onScenario(result.scenario, runNow);
       }
@@ -194,8 +199,13 @@ export function ImageScenarioPanel({ disabled, onScenario }: Props) {
             {image && <>
               <svg id="image-detection-preview" viewBox="0 0 1000 700" className="rw-photo" aria-label={text("Photo and detected objects", "Fotoğraf ve tespit edilen nesneler")} onClick={(e) => {
                 if (!detections || locked) return;
-                const rect = e.currentTarget.getBoundingClientRect();
-                const point = { x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)), y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)) };
+                // The SVG can have letterboxing under max-height on laptops.
+                // Invert its actual transform instead of scaling the element box.
+                const transform = e.currentTarget.getScreenCTM();
+                if (!transform) return;
+                const pixel = new DOMPoint(e.clientX, e.clientY).matrixTransform(transform.inverse());
+                const point = { x: pixel.x / 1000, y: pixel.y / 700 };
+                if (point.x < 0 || point.x > 1 || point.y < 0 || point.y > 1) return;
                 if (placing === "start") setStart(point); else setGoal(point);
               }}>
                 <image href={image} width="1000" height="700" preserveAspectRatio="none" />
