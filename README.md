@@ -1,3 +1,7 @@
+[![Watch RoboWitness Demo on YouTube](https://img.shields.io/badge/YouTube-Watch_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/6f0TXazTw_w)
+
+**[▶ Watch the RoboWitness demo](https://youtu.be/6f0TXazTw_w)**
+
 <img width="1808" height="1344" alt="bymeta" src="https://github.com/user-attachments/assets/ddd9f2fd-3ca9-4f51-8a1e-098633bb4588" />
 
 
@@ -499,7 +503,7 @@ python -m pip install --no-build-isolation pybullet==3.2.5
 
 ## 📊 Measured Results
 
-> All numbers below were measured in this repository. The full log, commands, IDs, and artifacts live in [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md).
+> These are recorded measurements from RoboWitness tests and simulation runs. The [verification protocol](docs/VERIFICATION_PROTOCOL.md) describes the frozen evaluation data, candidate configuration, and result scope. Reproduction commands are listed below.
 
 | Check | Measured Result | Status |
 |---|---|:---:|
@@ -507,7 +511,7 @@ python -m pip install --no-build-isolation pybullet==3.2.5
 | Frontend E2E (Playwright, live stack) | **18 passed** — incl. camera cleanup, retry/queue failures, laptop coordinates, scale gate and UI leak guard | ✅ |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean | ✅ |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats | ✅ |
-| Path B — improvement accepted | **CLOSED.** `verif-6b2bfd8e0501` → `VERIFIED_IN_SIMULATION`; all five gates PASS, Gate 3 **20/20** on the pre-registered v6 holdout using MPC-lite | ✅ |
+| Path B — improvement accepted | `verif-6b2bfd8e0501` → `VERIFIED_IN_SIMULATION`; all five gates PASS, Gate 3 **20/20** on the pre-registered v6 holdout using MPC-lite | ✅ |
 | Path C — rejection demonstrated | Over-cautious candidate `REJECTED` on paired, holdout, and regression gates (`verif-3b370a934cfc`) | ✅ |
 | Evidence integrity | Sealed packages re-verify with `scripts/verify_evidence.py`; tamper or missing member → `INCONCLUSIVE` | ✅ |
 | Exam battery example | TurtleBot3 Waffle Pi + baseline: **4/11 PASS**, 5 collisions, 2 near-misses, worst clearance `0.003 m` | ✅ |
@@ -524,7 +528,7 @@ python -m pip install --no-build-isolation pybullet==3.2.5
 | **v6** | **Evaluation, pre-registered, fresh recipe seed** | **20/20 → `VERIFIED_IN_SIMULATION`** (`verif-6b2bfd8e0501`, MPC-lite) | ✅ |
 
 > [!NOTE]
-> **Honest by design:** The v6 set was generated only after the candidate law was frozen, with a recipe seed never used before, and the MPC attempt was single-shot. A worker race also produced an extra shared-law data point on v6 (`verif-1db21e6713ad`, 18/20 `REJECTED`); it is recorded in the pre-registration doc instead of being hidden.
+> **Honest by design:** The v6 set was generated only after the candidate law was frozen, with a recipe seed never used before, and the MPC attempt was single-shot. A worker race also produced an extra shared-law data point on v6 (`verif-1db21e6713ad`, 18/20 `REJECTED`); the [verification protocol](docs/VERIFICATION_PROTOCOL.md) records this separately.
 
 <br />
 
@@ -587,8 +591,6 @@ Interactive OpenAPI docs are available at **`http://127.0.0.1:8000/docs`** while
 ```
 robowitness/
 ├── 📄 README.md
-├── 📄 AGENTS.md                         # Instructions for coding agents
-├── 📄 ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md
 ├── 📄 .gitignore
 ├── 📄 .env.example
 │
@@ -617,7 +619,7 @@ robowitness/
 │   └── 📁 holdout/              # Frozen 20-scenario manifests (v1–v6)
 │
 ├── 📁 scripts/                  # Bootstrap, demo, evidence verifier, ROS bridge
-├── 📁 docs/                     # Contracts, evidence format, demo guide, status
+├── 📁 docs/                     # Usage, contracts, evidence format, verification protocol
 └── 📁 artifacts/                # Runs, verifications, SQLite DB, evidence output
 ```
 
@@ -663,17 +665,13 @@ python scripts/run_final_evaluation.py
 
 | Document | Contents |
 |---|---|
-| [`ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md`](ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md) | Full architecture, invariants, and phase requirements |
-| [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) | Live phase status, measured commands, artifacts, and open gaps |
-| [`docs/PATH_B_V6_PREREGISTRATION.md`](docs/PATH_B_V6_PREREGISTRATION.md) | Frozen candidate law, fresh v6 recipe, and the measured `VERIFIED` result |
-| [`docs/PATH_B_V5_PREREGISTRATION.md`](docs/PATH_B_V5_PREREGISTRATION.md) | Previous pre-registered attempt and its 18/20 `REJECTED` result |
+| [`docs/VERIFICATION_PROTOCOL.md`](docs/VERIFICATION_PROTOCOL.md) | Five verification gates, frozen evaluation data, candidate configuration, and recorded outcomes |
 | [`docs/HACKATHON_SUBMISSION.md`](docs/HACKATHON_SUBMISSION.md) | Meta Global AI Developer Hackathon submission |
 | [`docs/ENTERPRISE.md`](docs/ENTERPRISE.md) | Auth, workspaces, audit, schedules, backup/restore, and deployment |
 | [`docs/CONTRACTS.md`](docs/CONTRACTS.md) | Canonical schemas and API contracts |
 | [`docs/EVIDENCE_FORMAT.md`](docs/EVIDENCE_FORMAT.md) | Evidence package structure and sealing rules |
 | [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md) | Path A/B/C demonstration scripts |
 | [`docs/RELEASE_1.0.0.md`](docs/RELEASE_1.0.0.md) | Release notes for v1.0.0 |
-| [`AGENTS.md`](AGENTS.md) | Instructions for autonomous coding agents |
 
 <br />
 

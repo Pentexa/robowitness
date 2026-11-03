@@ -1,6 +1,6 @@
 # RoboWitness Canonical Data Models & API Contracts
 
-This document formalizes the canonical contracts and data models required by `ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md`.
+This document describes RoboWitness's canonical data models and API contracts.
 
 ## 1. Geometry & Coordinate Space
 - Planar warehouse coordinate system: `[0, width_m] x [0, height_m]`

@@ -127,6 +127,6 @@ birim testiyle doğrulanır.
   yenileme) istemciye aittir, RoboWitness oturum yönetmez.
 - Fizik hâlâ kinematik ve 2B'dir (tıkanma eklendi; isteğe bağlı 24-ışın
   LiDAR-benzeri modu da var); karneler gerçek dünya güvenlik onayı değildir.
-- Path B **kapandı**: ön kayıtlı MPC-lite adayı taze v6 setinde 20/20 ile
-  `VERIFIED_IN_SIMULATION` aldı (`docs/PATH_B_V6_PREREGISTRATION.md`).
+- Ön kayıtlı MPC-lite adayı taze v6 setinde 20/20 ile
+  `VERIFIED_IN_SIMULATION` aldı ([doğrulama protokolü](VERIFICATION_PROTOCOL.md)).
   Varsayılan aday yasası paylaşılan yasadır; MPC açıkça seçilir.

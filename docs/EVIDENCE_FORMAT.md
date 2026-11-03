@@ -1,6 +1,6 @@
 # RoboWitness Evidence Package Specification
 
-Governed by Section 10 of `ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md`.
+This specification describes the recorded evidence files and integrity rules used by RoboWitness.
 Battery report cards (`GET /api/batteries/{id}/report.md`, `?lang=tr|en`)
 are *not* sealed evidence: they are generated summaries over individually
 sealed runs, each row tracing to a `run_id` whose own package verifies.

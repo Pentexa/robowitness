@@ -103,7 +103,7 @@ verification verdict. Model suggestions do not assign `VERIFIED_IN_SIMULATION`.
 - **Muse Wonder:** development-time use is confirmed by the author; this is
   engineering attribution, not an application inference test result.
 - **Muse Spark 1.3:** live scenario-generation and grounded-investigation
-  results are recorded in [implementation status](IMPLEMENTATION_STATUS.md).
+  were exercised against the running application API.
   The documented ultra scenario demonstrates that even a live Meta fix whose
   paired test succeeds can be rejected by the holdout gate.
 - **SAM 3.1:** actual-photo detection found two cats in the public COCO sample.

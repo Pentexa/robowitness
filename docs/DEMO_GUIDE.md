@@ -1,6 +1,6 @@
 # RoboWitness Demo Guide
 
-Governed by Section 1.2 and Section 11 of `ROBOWITNESS_AGENT_EXECUTION_BLUEPRINT.md`.
+Run the local backend, worker, and web application before following these workflows.
 
 ## 1. Demonstration Paths
 
@@ -22,7 +22,7 @@ for the exact inputs, outputs, API calls, source links and verification scope.
 3. The baseline controller collides or violates minimum clearance due to observation delay.
 4. Telemetry and oracle emit `COLLISION` or `MIN_CLEARANCE_VIOLATION` with exact failure tick.
 
-### Path B — Improvement Accepted (CLOSED 2026-11-02, pre-registered)
+### Path B — Improvement Accepted (recorded evaluation)
 1. Trigger failure investigation.
 2. Receive candidate parameter adjustment (e.g. reduced max speed, increased safe distance and prediction horizon).
 3. Submit candidate for verification:
@@ -39,8 +39,9 @@ for the exact inputs, outputs, API calls, source links and verification scope.
    The ceiling broke only when the structural MPC-lite planner replaced steering
    heuristics. Reproduce: with `RW_CANDIDATE_LAW=mpc`,
    `python scripts/run_final_evaluation.py` (real PyBullet DIRECT sims, live worker),
-   then inspect `artifacts/verifications/<id>/holdout_results.json`. Every tuning step
-   is scripted under `scripts/`; every evaluation ran on a set the candidate never saw.
+   then inspect `artifacts/verifications/<id>/holdout_results.json`. The
+   [verification protocol](VERIFICATION_PROTOCOL.md) describes the retained
+   evaluation sets, candidate configuration, and recorded outcomes.
 
 ### Path C — Candidate Rejected
 1. Submit an over-conservative candidate (e.g. extremely low speed or excessive brake gain).

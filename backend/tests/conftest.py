@@ -42,9 +42,14 @@ def temp_workspace():
 
 
 @pytest.fixture
-def client(temp_workspace):
+def client(temp_workspace, tmp_path, monkeypatch):
     from fastapi.testclient import TestClient
 
+    # Each API test owns its queue and evidence; expired leases from another
+    # test must never be reclaimed and executed here.
+    monkeypatch.setattr(settings, "RW_ARTIFACTS_DIR", str(tmp_path / "artifacts"))
+    monkeypatch.setattr(settings, "RW_DB_PATH", str(tmp_path / "artifacts" / "test.sqlite3"))
+    init_db(settings.db_path)
     app = create_app()
     with TestClient(app) as test_client:
         yield test_client

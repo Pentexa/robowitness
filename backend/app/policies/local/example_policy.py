@@ -1,4 +1,4 @@
-"""Örnek yerel politika (kullanıcı kodu şablonu).
+"""Example local policy (user-written policy template).
 
 Sözleşme: policy(observation, config) her adımda (60 Hz) çağrılır.
 observation yalnızca gecikmeli sensör verisidir (gerçek konumlar YOK):
