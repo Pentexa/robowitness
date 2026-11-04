@@ -36,6 +36,7 @@
 <br />
 
 [![CI](https://github.com/Pentexa/robowitness/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Pentexa/robowitness/actions/workflows/ci.yml)
+[![Solo Build — 4 Days · 2014 Laptop · No GPU](https://img.shields.io/badge/solo_build-4_days_%C2%B7_2014_laptop_%C2%B7_no_GPU-555555?style=flat-square)](#-built-under-constraints)
 [![Release](https://github.com/Pentexa/robowitness/actions/workflows/release.yml/badge.svg)](https://github.com/Pentexa/robowitness/actions/workflows/release.yml)
 [![Security](https://github.com/Pentexa/robowitness/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Pentexa/robowitness/actions/workflows/security.yml)
 [![Tests — 194 Passed](https://img.shields.io/badge/tests-194_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
@@ -676,6 +677,24 @@ python scripts/run_final_evaluation.py
 | [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md) | Path A/B/C demonstration scripts |
 | [`docs/RELEASE_1.0.0.md`](docs/RELEASE_1.0.0.md) | Release notes for v1.0.0 |
 | [`docs/CI_CD.md`](docs/CI_CD.md) | CI/CD pipelines: jobs, release flow, security scans, Dependabot, branch protection |
+
+<br />
+
+## 🏕️ Built Under Constraints
+
+RoboWitness was built solo on a 2014-era Toshiba Tecra Z40 laptop — no GPU,
+no cloud servers, no team — with Meta models at every step and no other AI
+vendor in the loop: **Muse Wonder** assisted development, **Muse Spark 1.3**
+reasons at runtime, **SAM 3.1** perceives the photos. The core system went
+from blueprint to v1.0.0 with a sealed `VERIFIED` verdict in four working
+days (2026-10-27 → 2026-11-02 — count them in the commit history).
+
+The constraints shaped the engineering: PyBullet DIRECT mode instead of a
+GPU renderer, SQLite instead of a database server, offline-first operation,
+and deterministic 60 Hz physics cheap enough to re-run entire frozen
+holdout sets on decade-old hardware. The full quality bar — 194 backend
+tests, 18 browser E2E, Docker, CI — runs on that same laptop. If it runs
+here, it runs anywhere.
 
 <br />
 

@@ -134,6 +134,11 @@ dashboard (English-first UI with Turkish switch, designed for non-experts), Pyda
 SHA-256 evidence packages with an independent verifier. 194 backend tests
 (incl. 35 image/SAM cases) plus 18 Playwright E2E (incl. camera, photo,
 scale gate); Docker images built and run-verified.
+Built solo on a 2014-era Toshiba Tecra Z40 laptop — no GPU, no cloud, no
+team — using only Meta models. Blueprint to v1.0.0 with a sealed VERIFIED
+verdict took four working days (2026-10-27 → 2026-11-02 in the commit
+history); the constraints are why the stack is PyBullet DIRECT, SQLite and
+offline-first, and why the full test suites run on that same machine.
 Controller research (shared law → pass-behind/stateful/waypoint/MPC) was
 run under a strict protocol: develop only on burned sets, pre-register,
 single-shot on a fresh frozen set, publish the result either way.
