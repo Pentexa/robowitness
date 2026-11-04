@@ -693,6 +693,7 @@ python scripts/run_final_evaluation.py
 | [`docs/RELEASE_1.0.0.md`](docs/RELEASE_1.0.0.md) | Release notes for v1.0.0 |
 | [`docs/RELEASE_1.1.0.md`](docs/RELEASE_1.1.0.md) | Release notes for v1.1.0 (stress grid, adversarial rounds, inspector, HTML reports) |
 | [`docs/CI_CD.md`](docs/CI_CD.md) | CI/CD pipelines: jobs, release flow, security scans, Dependabot, branch protection |
+| [`docs/DEVELOPMENT_JOURNEY.md`](docs/DEVELOPMENT_JOURNEY.md) | How RoboWitness was built: the honest road from blueprint to VERIFIED (TR) |
 
 <br />
 
