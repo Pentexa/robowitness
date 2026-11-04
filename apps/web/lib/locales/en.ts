@@ -549,4 +549,22 @@ export const EN: Record<string, string> = {
   "teste uygulandı. Artık “Robotu Çalıştır” bu robotun ölçüleriyle çalışır.":
     "applied to the test. “Run Robot” will now use this robot's measurements.",
   "Yeni test oluşturulamadı": "Could not generate a new test",
+  "Piksel Kanıt": "Pixel Proof",
+  "Piksel kanıt, beş kapının görsel katmanıdır; altıncı kapı değildir ve kararı değiştirmez — kararı gösterir.":
+    "Pixel proof is the visual layer of the five gates; it is not a sixth gate and never changes the verdict — it shows it.",
+  "Piksel kanıt için tamamlanmış bir doğrulama gerekli. Önce bir düzeltmeyi doğrulayın; eski ve yeni koşum burada yan yana, ölçülen mesafelerle gösterilir.":
+    "Pixel proof needs a completed verification. Verify a fix first; the old and new runs then appear here side by side with measured clearances.",
+  "Piksel kanıt yükleniyor…": "Loading pixel proof…",
+  "Ölçülen en düşük mesafe": "Measured minimum clearance",
+  "Şu anki mesafe": "Current clearance",
+  "Arızayı Söyle": "Describe the Failure",
+  "Dinleniyor… söyleyin": "Listening… speak now",
+  "Bu tarayıcı ses tanımayı desteklemiyor (Chrome veya Edge gerekir). Yazarak devam edebilirsiniz.":
+    "This browser does not support speech recognition (Chrome or Edge required). You can continue by typing.",
+  "Sesin alındı": "Heard you",
+  "Şimdi İncele sekmesinde arıza analizi açılıyor.": "Opening the failure analysis in the Inspect tab.",
+  "Investigation yalnızca FAIL alan koşumda açılır. Önce robotu çalıştırın; çarpma veya ihlal olursa sesli komut analizi başlatır.":
+    "Investigation opens only for a FAIL run. Run the robot first; on a collision or violation, the voice command starts the analysis.",
+  "Ses tanıma başlatılamadı": "Speech recognition could not start",
+  "Mikrofon izni gerekli": "Microphone permission is required",
 };

@@ -364,3 +364,15 @@ select.rw-input option { background: #fff; }
   .rw-viewport-area { overflow: visible; }
   .rw-inspector-body { overflow: visible; }
 }
+
+/* Piksel Kanıt bandı ve canlı mesafe rozetleri */
+.rw-pixel-band { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.rw-pixel-min { font-size: 0.78rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--line); }
+.rw-pixel-min.is-base { color: #b3261e; border-color: #b3261e; background: rgba(179, 38, 30, 0.08); }
+.rw-pixel-min.is-cand { color: #1e7d32; border-color: #1e7d32; background: rgba(30, 125, 50, 0.08); }
+.rw-pixel-arrow { font-weight: 700; color: var(--text-2); }
+.rw-pixel-delta { font-size: 0.78rem; font-weight: 700; color: var(--text-1); }
+.rw-pixel-wrap { position: relative; }
+.rw-pixel-live { position: absolute; top: 6px; right: 6px; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--line); }
+.rw-pixel-live.is-danger { color: #b3261e; border-color: #b3261e; }
+.rw-pixel-live.is-safe { color: #1e7d32; border-color: #1e7d32; }

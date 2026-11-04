@@ -132,7 +132,7 @@ camera/photo segmentation**, as detailed above.
 FastAPI + SQLite atomic job worker + PyBullet DIRECT simulation, Next.js
 dashboard (English-first UI with Turkish switch, designed for non-experts), Pydantic contracts,
 SHA-256 evidence packages with an independent verifier. 194 backend tests
-(incl. 35 image/SAM cases) plus 18 Playwright E2E (incl. camera, photo,
+(incl. 35 image/SAM cases) plus 20 Playwright E2E (incl. camera, photo,
 scale gate); Docker images built and run-verified.
 Built solo on a 2014-era Toshiba Tecra Z40 laptop — no GPU, no cloud, no
 team — using only Meta models. Blueprint to v1.0.0 with a sealed VERIFIED
@@ -189,6 +189,17 @@ with a recorded SAM response (35 backend cases, 10 image/browser E2E incl. camer
 cleanup, permission-denied fallback, retry/job failures and the scale/overhead gate); live
 runs are covered by `scripts/sam_live_smoke.py` and the paid
 `scripts/sam_browser_smoke.cjs` UI smoke, never by the default suite.
+
+## Pixel Proof & voice (visual layer, honest by construction)
+
+The dashboard adds two jury-facing layers that invent nothing: a
+**Pixel Proof** tab renders the sealed baseline-vs-candidate pair side by
+side with the measured minimum clearances (e.g. `0.0016 m → 0.7575 m` on a
+stored pair, read from Gate 2 details/telemetry — never typed in), a live
+per-frame clearance badge on each replay, and an explicit label that it is
+*not* a sixth gate. A **voice button** (Web Speech API) lets you say the
+failure out loud; the transcript only triggers the same grounded
+investigation, and solely for runs the oracle already marked FAIL.
 
 ## 3-minute demo script
 - **0:00–0:30** Problem: "AI fixed my robot" is self-graded homework. Show

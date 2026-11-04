@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { HelpCircle, X } from "lucide-react";
 import { ComparisonReplay } from "../components/ComparisonReplay";
+import { PixelProof } from "../components/PixelProof";
+import { VoiceFailureButton } from "../components/VoiceFailureButton";
 import { EvidencePanel } from "../components/EvidencePanel";
 import { FailureAnalysis } from "../components/FailureAnalysis";
 import { FixComparison } from "../components/FixComparison";
@@ -72,7 +74,7 @@ const DEFAULT_CANDIDATE_POLICY: PolicyConfig = {
   obstacle_prediction_horizon_s: 0.6,
 };
 
-type PanelId = "test" | "hata" | "duzeltme" | "sonuc" | "karne" | "yonetim";
+type PanelId = "test" | "hata" | "duzeltme" | "sonuc" | "piksel" | "karne" | "yonetim";
 
 const STEPS: Array<{ panel: PanelId; name: string; desc: string }> = [
   { panel: "test", name: "Testi çalıştır", desc: "Robotu eski ayarlarla bir kez çalıştırın." },
@@ -712,6 +714,14 @@ export default function DashboardPage() {
             ))}
             <button
               role="tab"
+              aria-selected={activePanel === "piksel"}
+              className={`rw-tab ${activePanel === "piksel" ? "is-active" : ""}`}
+              onClick={() => setActivePanel("piksel")}
+            >
+              {t("Piksel Kanıt")}
+            </button>
+            <button
+              role="tab"
               aria-selected={activePanel === "karne"}
               className={`rw-tab ${activePanel === "karne" ? "is-active" : ""}`}
               onClick={() => setActivePanel("karne")}
@@ -739,6 +749,14 @@ export default function DashboardPage() {
                 isGenerating={isGenerating}
                 generationError={generationError}
                 runError={runError}
+              />
+              <VoiceFailureButton
+                disabled={busy}
+                hasFailedRun={runFailed}
+                onInvestigate={async () => {
+                  await handleInvestigate();
+                  setActivePanel("hata");
+                }}
               />
               {appliedRobotLabel && (
                 <p className="rw-hint" role="status">
@@ -826,6 +844,9 @@ export default function DashboardPage() {
                   }
                 }}
               />
+            </div>
+            <div className={`rw-tabpage ${activePanel === "piksel" ? "is-active" : ""}`}>
+              <PixelProof scenario={scenario} verification={verification} />
             </div>
             <div className={`rw-tabpage ${activePanel === "karne" ? "is-active" : ""}`}>
               <BatteryPanel onLoadRun={handleLoadBatteryRun} />

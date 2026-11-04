@@ -62,6 +62,25 @@ test("admin tab renders enterprise controls", async ({ page }) => {
   await expect(page.locator("#btn-create-api-key")).toBeVisible();
 });
 
+test("voice button is honest about speech support", async ({ page }) => {
+  const button = page.getByRole("button", { name: /Describe the Failure/ });
+  await expect(button).toBeVisible();
+  const supported = await page.evaluate(() => {
+    const w = window as unknown as Record<string, unknown>;
+    return Boolean(w.SpeechRecognition ?? w.webkitSpeechRecognition);
+  });
+  if (!supported) {
+    // No fabricated listening: the UI must say speech is unavailable here.
+    await expect(page.getByText(/does not support speech recognition/)).toBeVisible();
+  }
+});
+
+test("pixel proof tab is honest without a verification", async ({ page }) => {
+  await page.getByRole("tab", { name: "Pixel Proof" }).click();
+  await expect(page.getByText(/needs a completed verification/)).toBeVisible();
+  await expect(page.getByText(/not a sixth gate/)).toBeVisible();
+});
+
 test("english UI contains no Turkish characters (i18n leak guard)", async ({ page }) => {
   // textContent (not innerText) also covers hidden tabs, so every panel is scanned.
   const text = await page.locator("body").evaluate((el) => el.textContent ?? "");

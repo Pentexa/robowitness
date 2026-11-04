@@ -40,7 +40,7 @@
 [![Release](https://github.com/Pentexa/robowitness/actions/workflows/release.yml/badge.svg)](https://github.com/Pentexa/robowitness/actions/workflows/release.yml)
 [![Security](https://github.com/Pentexa/robowitness/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Pentexa/robowitness/actions/workflows/security.yml)
 [![Tests — 194 Passed](https://img.shields.io/badge/tests-194_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
-[![E2E — 18 Passed](https://img.shields.io/badge/e2e-18_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
+[![E2E — 20 Passed](https://img.shields.io/badge/e2e-20_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
 [![Photo to Scenario — SAM 3.1](https://img.shields.io/badge/photo_to_scenario-SAM_3.1-C026D3?style=flat-square&logo=meta&logoColor=white)](#-robot--scenario-lab)
 [![UI — English + Türkçe](https://img.shields.io/badge/ui-english_%2B_turkish-2F6BFF?style=flat-square)](#-at-a-glance)
 [![Verdicts — Never Manufactured](https://img.shields.io/badge/verdicts-never_manufactured-6f42c1?style=flat-square&logo=shieldsdotio&logoColor=white)](#-honest-limitations)
@@ -67,7 +67,7 @@
 
 ## 🎯 What is RoboWitness?
 
-**RoboWitness** is a locally runnable, software-only verification engine for **Meta AI-generated** robotics policy fixes. Powered by **Meta AI**, it never asks Meta AI to grade its own homework.
+**RoboWitness** is the independent verification engine for **Meta AI-generated** robotics policy fixes — powered end-to-end by Meta models: **Muse Spark 1.3** reasons about failures, **SAM 3.1** turns your photos into exam scenarios, and **Muse Wonder** helped write the code. It never asks Meta AI to grade its own homework.
 
 **Meta AI** proposes a candidate policy fix → it is executed in a deterministic PyBullet world → judged by an independent oracle against true geometry → pushed through five verification gates → sealed into SHA-256 evidence that anyone can re-check.
 
@@ -92,6 +92,7 @@ RoboWitness exists because **"the AI fixed my robot"** is usually self-graded ho
 
 | # | What Happened | Evidence |
 |:---:|---|---|
+| 📸 | **It sees your room** — snap a photo, live **SAM 3.1** segments it, and the objects become a runnable exam scenario in the Test tab | Photo → scenario, measured boxes only |
 | 🔴 | **It fails first, on camera** — the baseline policy collides at tick 358 with `0.0016 m` clearance — deterministically, every run | Reproducible with seed |
 | 🟡 | **It was rejected, honestly, four times** — across four frozen holdout sets, good-looking fixes scored 17/20, 17/20, 18/20, 18/20 and were `REJECTED` with sealed evidence | We never lowered the bar |
 | 🟢 | **Then it earned it** — a pre-registered MPC candidate (registered before its exam set existed) went **20/20** on the fresh v6 set | `verif-6b2bfd8e0501` — `VERIFIED_IN_SIMULATION` |
@@ -131,7 +132,7 @@ python scripts\run_hackathon_demo.py
 </tr>
 <tr>
 <td><strong>🤖 AI modes</strong></td>
-<td><strong>Powered by Meta AI</strong> — offline reference mode by default; optional live Meta AI adapter (`RW_META_MODEL`, `RW_META_BASE_URL`, `RW_META_API_KEY`) for real-time scenario generation, failure investigation & fix proposals</td>
+<td><strong>Powered by Meta AI</strong> — live **Muse Spark 1.3** reasoning and **SAM 3.1** perception with your Meta key (`RW_META_MODEL`, `RW_META_BASE_URL`, `RW_META_API_KEY`); an honest offline reference mode is built in for zero-key runs</td>
 </tr>
 <tr>
 <td><strong>📦 Evidence</strong></td>
@@ -196,7 +197,6 @@ for inputs, outputs, API routes, implementation links and measured evidence.
 - 🔍 **Failure investigation** — Meta AI explains *why* the baseline failed in terms of measured ticks, clearances and testable hypotheses (`POST /api/failures/{run_id}/investigate`)
 - 🔧 **Fix proposals** — Meta AI proposes a patch with only the five allowed numeric `PolicyConfig` fields — never code, never oracle thresholds
 - 🛡️ **Strict separation** — runtime AI proposes validated data; the controller receives delayed sensor observations, and the independent oracle determines outcomes from measured simulation state
-- 🔌 **Flexible modes** — offline reference mode works with zero keys; set `RW_AI_MODE=live` + `RW_META_API_KEY` + `RW_META_MODEL` to unleash live Meta AI
 
 > Meta AI brings the creativity. RoboWitness brings the proof.
 
@@ -512,7 +512,7 @@ python -m pip install --no-build-isolation pybullet==3.2.5
 | Check | Measured Result | Status |
 |---|---|:---:|
 | Backend test suite | **194 passed** (unit + integration, incl. 35 image/SAM cases) | ✅ |
-| Frontend E2E (Playwright, live stack) | **18 passed** — incl. camera cleanup, retry/queue failures, laptop coordinates, scale gate and UI leak guard | ✅ |
+| Frontend E2E (Playwright, live stack) | **20 passed** — incl. camera cleanup, retry/queue failures, laptop coordinates, scale gate, voice honesty, pixel proof and UI leak guard | ✅ |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean | ✅ |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats | ✅ |
 | Path B — improvement accepted | `verif-6b2bfd8e0501` → `VERIFIED_IN_SIMULATION`; all five gates PASS, Gate 3 **20/20** on the pre-registered v6 holdout using MPC-lite | ✅ |
@@ -693,7 +693,7 @@ The constraints shaped the engineering: PyBullet DIRECT mode instead of a
 GPU renderer, SQLite instead of a database server, offline-first operation,
 and deterministic 60 Hz physics cheap enough to re-run entire frozen
 holdout sets on decade-old hardware. The full quality bar — 194 backend
-tests, 18 browser E2E, Docker, CI — runs on that same laptop. If it runs
+tests, 20 browser E2E, Docker, CI — runs on that same laptop. If it runs
 here, it runs anywhere.
 
 <br />
@@ -708,7 +708,8 @@ here, it runs anywhere.
 - 📊 **Built-in robot specs are nominal examples.** They are catalog values, not manufacturer-certified measurements.
 - 📡 **Live ROS 2 is unverified here.** The recorder is passive by design; without `rclpy`, it exits with an honest `[BLOCKED]` message.
 - 🔌 **Local policy plugins are not a sandbox.** They are opt-in, subprocess-isolated, timeout-bounded, and output-clamped — but only trusted, user-written code belongs there.
-- 🌐 **Live Meta AI connectivity is optional — but recommended.** Offline reference mode is the default and fully supported; add your own base URL, model and key (`RW_META_BASE_URL`, `RW_META_MODEL`, `RW_META_API_KEY`) to unlock live Meta AI scenario generation, investigation and fix proposals.
+- 🌐 **Live Meta AI needs your key.** Live scenario generation, investigation, and SAM 3.1 perception run against your own Meta API key (`RW_AI_MODE=live`); nothing is proxied or pre-recorded for you.
+- 🔌 **Zero keys still works — as a fallback, not the headline.** With no key configured, the offline reference mode runs the full pipeline (deterministic reference adapter instead of live Meta AI), so every claim in this README stays reproducible offline.
 - 🔐 **Evidence proves integrity, not physical truth.** SHA-256 sealing proves the recorded artifacts were not altered. It does not prove the simulator matches reality.
 
 <br />
