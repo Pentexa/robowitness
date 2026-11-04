@@ -56,7 +56,7 @@
 [![Verdicts — Never Manufactured](https://img.shields.io/badge/verdicts-never_manufactured-6f42c1?style=flat-square&logo=shieldsdotio&logoColor=white)](#-honest-limitations)
 [![Physics — 60 Hz Deterministic](https://img.shields.io/badge/physics-60_Hz_deterministic-FF6F00?style=flat-square)](#how-it-works)
 [![Evidence — SHA-256 Sealed](https://img.shields.io/badge/evidence-SHA--256_sealed-2E7D32?style=flat-square&logo=letsencrypt&logoColor=white)](#-evidence-sealing)
-[![License — BSD 2-Clause](https://img.shields.io/badge/license-BSD--2--Clause-blue?style=flat-square)](LICENSE)
+[![License — MIT](https://img.shields.io/badge/license-MIT-yellowgreen?style=flat-square)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square&logo=github&logoColor=white)](#-contributing)
 
 <br />
@@ -150,7 +150,7 @@ python scripts\run_hackathon_demo.py
 </tr>
 <tr>
 <td><strong>⚖️ License</strong></td>
-<td>BSD 2-Clause</td>
+<td>MIT</td>
 </tr>
 </table>
 
@@ -742,7 +742,7 @@ Issues and pull requests are welcome! Before opening a PR:
 
 ## ⚖️ License
 
-BSD 2-Clause License. See [`LICENSE`](LICENSE).
+MIT License. See [`LICENSE`](LICENSE).
 
 Copyright © 2026, **Ahmet Aras Akyasan**.
 
