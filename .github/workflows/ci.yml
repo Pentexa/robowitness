@@ -29,6 +29,12 @@ env:
   RW_ALLOW_LOCAL_POLICY: "off"
   RW_CANDIDATE_LAW: shared
   RW_SENSOR_MODEL: legacy
+  # Browsers treat 127.0.0.1:3000 and localhost:3000 as different origins.
+  # The local .env (gitignored) already allows both; CI has no .env, so
+  # without this line every browser API call is CORS-blocked and the
+  # Playwright suite times out (server-side checks still pass, which made
+  # the first CI failure look mysterious). Same value as .env.example.
+  RW_CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
   NEXT_PUBLIC_RW_API_URL: http://127.0.0.1:8000
 
 jobs:
