@@ -83,6 +83,7 @@ def inspect_evidence_zip(data: bytes) -> EvidenceInspectReport:
 
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
+        root_resolved = root.resolve()
         extracted: dict[str, int] = {}
         for member in members:
             base = _safe_member_name(member.filename)
@@ -92,7 +93,10 @@ def inspect_evidence_zip(data: bytes) -> EvidenceInspectReport:
             if member.file_size > MAX_MEMBER_BYTES:
                 errors.append(f"MEMBER_TOO_LARGE_{base}")
                 continue
-            target = root / base
+            target = (root / base).resolve()
+            if target.parent != root_resolved:
+                errors.append(f"UNSAFE_MEMBER_NAME_{member.filename}")
+                continue
             target.write_bytes(archive.read(member))
             extracted[base] = member.file_size
 
