@@ -97,6 +97,9 @@ def inspect_evidence_zip(data: bytes) -> EvidenceInspectReport:
             if target.parent != root_resolved:
                 errors.append(f"UNSAFE_MEMBER_NAME_{member.filename}")
                 continue
+            # codeql[py/path-injection] -- member names are rejected unless
+            # traversal-free AND the resolved target stays inside the temp
+            # extraction root (both checks above; covered by unit tests).
             target.write_bytes(archive.read(member))
             extracted[base] = member.file_size
 

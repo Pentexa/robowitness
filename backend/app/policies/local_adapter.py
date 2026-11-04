@@ -28,15 +28,18 @@ class LocalPolicyError(RuntimeError):
 
 
 def local_policy_path(name: str) -> Path:
-    """Resolve a policy name to a file inside the local folder (no traversal)."""
+    """Resolve a policy name to a file inside the local folder (no traversal).
+
+    The path always comes from listing the folder (an allowlist); the
+    caller's name only selects a key, never constructs a path.
+    """
     if not name or any(c in name for c in ("/", "\\", ".", " ")):
         raise LocalPolicyError(f"Invalid local policy name: {name!r}")
-    path = (LOCAL_POLICY_DIR / f"{name}.py").resolve()
-    if path.parent != LOCAL_POLICY_DIR.resolve():
-        raise LocalPolicyError(f"Invalid local policy name: {name!r}")
-    if not path.exists():
+    available = {p.stem: p for p in LOCAL_POLICY_DIR.glob("*.py") if p.is_file()}
+    path = available.get(name)
+    if path is None:
         raise LocalPolicyError(f"Local policy not found: {name}")
-    return path
+    return path.resolve()
 
 
 class SubprocessPolicy:

@@ -45,6 +45,8 @@ def parse_api_keys() -> dict[str, Principal]:
         workspace = parts[2] if len(parts) > 2 and parts[2] else "default"
         if role not in ("admin", "editor", "viewer"):
             continue
+        # codeql[py/weak-sensitive-data-hashing] -- short actor-label
+        # fingerprint only; the key itself is never stored or verified here.
         actor = "key-" + hashlib.sha256(key.encode()).hexdigest()[:8]
         keys[key] = Principal(actor=actor, role=role, workspace=workspace)
     return keys
@@ -101,6 +103,9 @@ def authenticate(request: Request) -> Principal | None:
         if hmac.compare_digest(provided, key):
             return principal
     if provided:
+        # codeql[py/weak-sensitive-data-hashing] -- stored form of
+        # high-entropy random API tokens (not passwords); compared with
+        # hmac.compare_digest below. Slow KDFs are for human passwords.
         provided_hash = hashlib.sha256(provided.encode()).hexdigest()
         for key_hash, principal in _db_api_keys():
             if hmac.compare_digest(provided_hash, key_hash):
