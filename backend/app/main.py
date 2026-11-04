@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(
         title="RoboWitness API",
-        version="1.0.0",  # release version; keep in sync with pyproject/package.json
+        version="1.1.0",  # release version; keep in sync with pyproject/package.json
         description=(
             "Independent evidence and verification engine for simulated robotics failure fixes"
         ),

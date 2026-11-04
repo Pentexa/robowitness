@@ -691,6 +691,7 @@ python scripts/run_final_evaluation.py
 | [`docs/EVIDENCE_FORMAT.md`](docs/EVIDENCE_FORMAT.md) | Evidence package structure and sealing rules |
 | [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md) | Path A/B/C demonstration scripts |
 | [`docs/RELEASE_1.0.0.md`](docs/RELEASE_1.0.0.md) | Release notes for v1.0.0 |
+| [`docs/RELEASE_1.1.0.md`](docs/RELEASE_1.1.0.md) | Release notes for v1.1.0 (stress grid, adversarial rounds, inspector, HTML reports) |
 | [`docs/CI_CD.md`](docs/CI_CD.md) | CI/CD pipelines: jobs, release flow, security scans, Dependabot, branch protection |
 
 <br />
