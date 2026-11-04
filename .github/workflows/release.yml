@@ -65,7 +65,7 @@ jobs:
           print(f"version consistency OK: {expected} (pyproject + package.json)")
           PY
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
