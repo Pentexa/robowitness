@@ -287,3 +287,77 @@ export interface VerificationRecord {
   created_at: string;
   completed_at: string | null;
 }
+
+export interface StressCell {
+  latency_ms: number;
+  noise_std_m: number;
+  run_id: string;
+  oracle_status: OracleStatus;
+  reason_codes: string[];
+  metrics: RunMetrics;
+  near_miss: boolean;
+}
+
+export interface StressTestResult {
+  stress_id: string;
+  scenario_id: string;
+  policy_id: string;
+  latencies_ms: number[];
+  noise_levels_m: number[];
+  cells: StressCell[];
+  summary: {
+    total: number;
+    passed: number;
+    failed: number;
+    inconclusive: number;
+    near_misses: number;
+    worst_clearance_m: number | null;
+  };
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface AdversarialRound {
+  iteration: number;
+  scenario_id: string | null;
+  provenance: "LIVE_META" | "OFFLINE_REFERENCE" | "UNAVAILABLE";
+  executed: boolean;
+  run_id: string | null;
+  oracle_status: OracleStatus | null;
+  reason_codes: string[];
+  min_clearance_m: number | null;
+  note: string;
+}
+
+export interface AdversarialResult {
+  adversarial_id: string;
+  policy_id: string;
+  max_iterations: number;
+  rounds: AdversarialRound[];
+  executed_count: number;
+  fail_count: number;
+  pass_count: number;
+  total_tokens_used: number;
+  stopped_reason: string;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface InspectedFile {
+  name: string;
+  status: "OK" | "MISMATCH" | "MISSING" | "NOT_SEALED" | "EXTRA";
+  sha256: string | null;
+  expected_sha256: string | null;
+  size_bytes: number;
+}
+
+export interface EvidenceInspectReport {
+  ok: boolean;
+  package_type: "verification" | "run" | "unknown";
+  package_id: string | null;
+  verdict: string | null;
+  oracle_status: string | null;
+  files: InspectedFile[];
+  errors: string[];
+  file_count: number;
+}

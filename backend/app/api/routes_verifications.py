@@ -4,9 +4,11 @@ import json
 import uuid
 from datetime import datetime, timezone
 from fastapi import APIRouter, Query, status
+from fastapi.responses import HTMLResponse
 from app.config import settings
 from app.db import get_db
 from app.errors import RoboWitnessException
+from app.evidence.html_report import generate_verification_html
 from app.schemas.jobs import JobCreateResponse
 from typing import List
 
@@ -115,6 +117,41 @@ def get_verification(verification_id: str):
         artifact_dir=row["artifact_dir"],
         created_at=row["created_at"],
         completed_at=row["completed_at"],
+    )
+
+
+@router.get(
+    "/verifications/{verification_id}/report.html",
+    response_class=HTMLResponse,
+    status_code=status.HTTP_200_OK,
+)
+def get_verification_html_report(verification_id: str):
+    """Portable standalone HTML rendering of the sealed verification."""
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT * FROM verifications WHERE verification_id = ?", (verification_id,)
+        ).fetchone()
+    if not row:
+        raise RoboWitnessException(
+            status_code=404,
+            code="VERIFICATION_NOT_FOUND",
+            message=f"Verification {verification_id} does not exist",
+        )
+    artifact_dir = settings.artifacts_path / "verifications" / verification_id
+    html_doc = generate_verification_html(
+        verification_id=verification_id,
+        verdict=row["verdict"],
+        baseline_run_id=row["baseline_run_id"],
+        candidate_policy=json.loads(row["candidate_policy_json"]),
+        gates=json.loads(row["gates_json"]),
+        created_at=row["created_at"],
+        artifact_dir=artifact_dir,
+    )
+    return HTMLResponse(
+        content=html_doc,
+        headers={
+            "Content-Disposition": f'attachment; filename="robowitness_{verification_id}.html"'
+        },
     )
 
 

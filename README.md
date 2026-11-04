@@ -18,7 +18,17 @@
 ### Independent Verification Engine for AI-Generated Robotics Policies
 ### ⚡ Powered by Meta AI
 
-*Meta AI proposes. The simulator executes. The oracle decides. The evidence proves it.*
+> **The problem:** An AI writes a fix for your robot — and then everyone trusts
+> that same AI's confidence. No independent test, no proof. In robotics,
+> unverified trust bends hardware.
+>
+> **What RoboWitness does:** Every AI-generated policy fix must pass an exam
+> it cannot see and cannot grade. **Meta AI** proposes the fix → a deterministic
+> simulator executes it → an **independent oracle** judges true geometry →
+> **five gates** and **SHA-256-sealed evidence** produce the verdict:
+> `VERIFIED`, `REJECTED`, or an honest "we don't know."
+>
+> *Meta AI proposes. The simulator executes. The oracle decides. The evidence proves it.*
 
 <br />
 
@@ -39,8 +49,8 @@
 [![Solo Build — 4 Days · 2014 Laptop · No GPU](https://img.shields.io/badge/solo_build-4_days_%C2%B7_2014_laptop_%C2%B7_no_GPU-555555?style=flat-square)](#-built-under-constraints)
 [![Release](https://github.com/Pentexa/robowitness/actions/workflows/release.yml/badge.svg)](https://github.com/Pentexa/robowitness/actions/workflows/release.yml)
 [![Security](https://github.com/Pentexa/robowitness/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Pentexa/robowitness/actions/workflows/security.yml)
-[![Tests — 194 Passed](https://img.shields.io/badge/tests-194_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
-[![E2E — 20 Passed](https://img.shields.io/badge/e2e-20_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
+[![Tests — 213 Passed](https://img.shields.io/badge/tests-213_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
+[![E2E — 24 Passed](https://img.shields.io/badge/e2e-24_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
 [![Photo to Scenario — SAM 3.1](https://img.shields.io/badge/photo_to_scenario-SAM_3.1-C026D3?style=flat-square&logo=meta&logoColor=white)](#-robot--scenario-lab)
 [![UI — English + Türkçe](https://img.shields.io/badge/ui-english_%2B_turkish-2F6BFF?style=flat-square)](#-at-a-glance)
 [![Verdicts — Never Manufactured](https://img.shields.io/badge/verdicts-never_manufactured-6f42c1?style=flat-square&logo=shieldsdotio&logoColor=white)](#-honest-limitations)
@@ -363,6 +373,11 @@ use a recorded SAM response and do not spend live API credits.
 - 🤖 **Robot Catalog** — Six built-in profiles (ROBOTIS TurtleBot3 Waffle Pi/Burger, Clearpath Jackal, MiR250, Boston Dynamics Spot, Unitree Go2) plus user-created robots with full specs
 - 🚧 **Honest Compatibility Gate** — Only differential-drive robots with a body radius of `0.15–0.40 m` can enter this simulator; others are marked incompatible
 - 🗺️ **Scenario Library & Photo to Scenario** — Canonical `RW-REF-001`, 20 selectable scenarios (10 `RW-LIB-*`, 5 `RW-ULTRA-*`, 5 `RW-CROWD-*`), 3 regression cases, a frozen 20-scenario holdout manifest — plus camera/photo upload detected by real SAM 3.1 into saved, runnable scenarios
+- 🌡️ **Sensor Stress Test** — Re-run any scenario on a latency × noise grid (≤40 cells); every cell is a real recorded run, shown as a PASS/FAIL heatmap with measured clearances
+- ⚔️ **AI Adversarial Testing** — Muse Spark proposes ever-harder scenarios from measured failures (bounded rounds, hard cap 10); the oracle — never the AI — judges each executed run. Live-measured (2026-11-04): Spark's `RW-AI-002` failed at 0.0058 m, its next proposal `RW-AI-003` passed at 0.2688 m
+- 🎞️ **Failure Timeline** — Clearance, sensor delay, safety threshold and failure events on one axis, synchronized with the replay (click to seek)
+- 🔍 **Evidence Inspector** — Upload any evidence ZIP and re-verify SHA-256 integrity, missing files and package type independently
+- 📄 **Portable HTML Report** — One standalone file per verification: gates, measured comparison, clearance chart (inline SVG), findings, evidence hashes
 - 📐 **Policy Profiles** — Four built-in presets plus your own saved parameter sets
 - 📋 **Exam Battery** — One click runs the default 11 scenarios (reference + 10 library), then produces a report card
 - 📥 **Real-Log Import** — Upload a real drive as CSV or JSON; judged by the same rules and labeled `REAL_LOG`
@@ -511,8 +526,8 @@ python -m pip install --no-build-isolation pybullet==3.2.5
 
 | Check | Measured Result | Status |
 |---|---|:---:|
-| Backend test suite | **194 passed** (unit + integration, incl. 35 image/SAM cases) | ✅ |
-| Frontend E2E (Playwright, live stack) | **20 passed** — incl. camera cleanup, retry/queue failures, laptop coordinates, scale gate, voice honesty, pixel proof and UI leak guard | ✅ |
+| Backend test suite | **213 passed** (unit + integration, incl. 35 image/SAM cases and 19 stress/adversarial/inspector/report cases) | ✅ |
+| Frontend E2E (Playwright, live stack) | **24 passed** — incl. camera cleanup, scale gate, voice honesty, pixel proof, stress grid, adversarial panel, evidence inspector, failure timeline and UI leak guard | ✅ |
 | Backend quality | `ruff format --check` + `ruff check --select E,F` clean | ✅ |
 | Path A — failure detected | Baseline `RW-REF-001` deterministically `FAIL`s: `COLLISION` at tick 358, min clearance `0.0016 m`, identical across 3/3 repeats | ✅ |
 | Path B — improvement accepted | `verif-6b2bfd8e0501` → `VERIFIED_IN_SIMULATION`; all five gates PASS, Gate 3 **20/20** on the pre-registered v6 holdout using MPC-lite | ✅ |

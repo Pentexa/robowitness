@@ -26,12 +26,18 @@ class Settings(BaseSettings):
     RW_META_BASE_URL: str = ""
     RW_META_MODEL: str = ""
     RW_AI_MODE: str = "offline"  # 'offline' or 'live'
-    RW_AI_TIMEOUT_SECONDS: int = 20
+    # Reasoning models regularly need >20 s for schema-bound JSON (measured:
+    # a challenging-scenario prompt took ~30 s / 3.4k tokens); 20 s made live
+    # generation flake into UNAVAILABLE. 90 s keeps calls bounded but viable.
+    RW_AI_TIMEOUT_SECONDS: int = 90
     RW_AI_MAX_RETRIES: int = 2
     RW_AI_MAX_INPUT_CHARS: int = 16000
     RW_AI_MAX_OUTPUT_TOKENS: int = 1000
     RW_AI_MAX_CALLS_PER_WORKFLOW: int = 3
     RW_AI_MAX_ESTIMATED_COST_USD: float = 1.00
+    # Adversarial testing (AI önerir, oracle karar verir): tur tavanı. Kod
+    # ayrıca 10'luk sert tavan uygular; her tur en fazla 1 üretim çağrısıdır.
+    RW_ADVERSARIAL_MAX_ITERATIONS: int = 5
     # Local user policy plugins (İş 3B): OFF by default. When "on", the user may
     # run THEIR OWN single-file Python policy in an isolated subprocess during
     # simulation. AI-generated code must never be used with this; it is not a

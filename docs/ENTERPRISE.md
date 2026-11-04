@@ -118,6 +118,26 @@ birim testiyle doğrulanır.
 - **Yedekten dönüş:** `POST /api/admin/restore` önce güvenlik kopyası alır,
   sonra seçili yedeği SHA-256'sıyla geri yükler.
 
+## 6d. Stres, rakip testi, kanıt denetimi, taşınabilir rapor
+
+- **Stres testi:** `POST /api/stress-tests` seçili senaryoyu gecikme × gürültü
+  ızgarasında (en fazla 40 hücre) yeniden koşar; her hücre gerçek kayıtlı
+  koşumdur, sonuçlar `stress_runs` tablosunda workspace'e izole saklanır.
+- **Rakip testi:** `POST /api/adversarial-tests` Muse Spark'a önceki ölçülen
+  başarısızlıklardan beslenen senaryolar ürettirir (`RW_ADVERSARIAL_MAX_ITERATIONS`,
+  varsayılan 5, sert tavan 10; tur başına 1 çağrı, tekrar senaryo koşulmaz).
+  Kararı her zaman oracle verir; token kullanımı sonuçta raporlanır.
+  Canlı çağrılarda `RW_AI_TIMEOUT_SECONDS=90` önerilir: reasoning modeli
+  şema-bağlı JSON için ~30 sn kullanabilir (ölçüldü); 20 sn canlı üretimi
+  aralıklı `UNAVAILABLE` yapar.
+- **Kanıt denetimi:** `POST /api/evidence/inspect` yüklenen ZIP'i yol geçişi
+  korumalarıyla açar, paket tipini manifestten tanır, SHA-256'ları sıfırdan
+  doğrular (eksik/kurcalanmış dosya dosya raporlanır).
+- **Taşınabilir rapor:** `GET /api/verifications/{id}/report.html` tek dosya,
+  dış bağımlılıksız HTML üretir (kapılar, ölçülmüş karşılaştırma, telemetri
+  grafiği, kanıt hash'leri). Rapor mühürlü paketin yerine geçmez; ona
+  referans verir.
+
 ## 7. Dürüst sınırlar
 
 - SQLite tek dosya: çok kullanıcılı yatay ölçek için tasarlanmadı; workspace

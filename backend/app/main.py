@@ -21,6 +21,8 @@ from app.api.routes_runs import router as runs_router
 from app.api.routes_scenarios import router as scenarios_router
 from app.api.routes_image_scenarios import router as image_scenarios_router
 from app.api.routes_verifications import router as verifications_router
+from app.api.routes_stress import router as stress_router
+from app.api.routes_adversarial import router as adversarial_router
 from app.config import settings
 from app.db import init_db
 from app.errors import ErrorBody, ErrorDetail, ErrorEnvelope, RoboWitnessException
@@ -117,6 +119,8 @@ def create_app() -> FastAPI:
     app.include_router(maps_router, prefix="/api")
     app.include_router(admin_router, prefix="/api")
     app.include_router(schedules_router, prefix="/api")
+    app.include_router(stress_router, prefix="/api")
+    app.include_router(adversarial_router, prefix="/api")
 
     # Body-size guard: reject absurd payloads before routing (10 MB).
     @app.middleware("http")

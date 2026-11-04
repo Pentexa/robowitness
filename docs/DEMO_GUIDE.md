@@ -54,6 +54,19 @@ for the exact inputs, outputs, API calls, source links and verification scope.
 3. Preview shows the projected world; saving persists it for the current workspace.
 4. The saved scenario runs through the ordinary run/verify flow — same oracle, same gates.
 
+### Path E — Stress, Adversarial, Inspect, Report (measured extras)
+1. **Stress Test tab:** pick latency/noise chips and run; every heatmap cell is a
+   real recorded run with its measured min clearance (start with a 1x1 grid for speed).
+2. **AI Adversarial Test (Test tab):** bounded rounds where Muse Spark proposes
+   scenarios from measured failures and the oracle judges each executed run.
+   Live-measured 2026-11-04: `RW-AI-002` FAILED (collision, 0.0058 m), the next
+   round `RW-AI-003` PASSED (0.2688 m) — 2 rounds, 6,329 tokens total.
+3. **Evidence Inspector (Result tab):** download an evidence ZIP, re-upload it,
+   and watch SHA-256 integrity recomputed independently; tamper with one file
+   and it reports MISMATCH.
+4. **Portable HTML Report (Result tab):** one standalone file with gates,
+   measured comparison, clearance chart, and evidence hashes — opens offline.
+
 ### 2. Viewing: 2D (canonical) and 3D (display only)
 - The replay card offers **2D / 3D** toggle buttons (`btn-view-2d`, `btn-view-3d`).
 - **2D canvas is the canonical evidence view** (exact telemetry coordinates).

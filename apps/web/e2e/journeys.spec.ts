@@ -81,6 +81,35 @@ test("pixel proof tab is honest without a verification", async ({ page }) => {
   await expect(page.getByText(/not a sixth gate/)).toBeVisible();
 });
 
+test("stress test tab renders the latency x noise grid controls", async ({ page }) => {
+  await page.getByRole("tab", { name: "Stress Test" }).click();
+  const stressPage = page.locator(".rw-tabpage.is-active");
+  await expect(page.locator("#btn-run-stress")).toBeVisible();
+  await expect(stressPage.getByText("Sensor latency (ms)")).toBeVisible();
+  await expect(stressPage.getByText("Sensor noise (m)")).toBeVisible();
+});
+
+test("adversarial panel renders bounded round controls", async ({ page }) => {
+  await expect(page.locator("#btn-run-adversarial")).toBeVisible();
+  await expect(page.locator("#input-adversarial-iterations")).toBeVisible();
+});
+
+test("evidence inspector and html report live in the result tab", async ({ page }) => {
+  await page.getByRole("tab", { name: "Result" }).click();
+  await expect(page.getByText("Evidence Inspector")).toBeVisible();
+  await expect(page.locator("#input-evidence-zip")).toBeAttached();
+});
+
+test("failure timeline appears after a run with synchronized seek", async ({ page }) => {
+  await page.selectOption("#select-library-scenario", "RW-LIB-009");
+  await page.click("#btn-run-baseline");
+  await expect(
+    page.locator(".rw-verdict-value").filter({ hasText: "COMPLETED WITHOUT A CRASH" }).first()
+  ).toBeVisible({ timeout: 180_000 });
+  await expect(page.locator(".rw-failure-timeline")).toBeVisible();
+  await expect(page.locator(".rw-timeline-chart")).toBeVisible();
+});
+
 test("english UI contains no Turkish characters (i18n leak guard)", async ({ page }) => {
   // textContent (not innerText) also covers hidden tabs, so every panel is scanned.
   const text = await page.locator("body").evaluate((el) => el.textContent ?? "");

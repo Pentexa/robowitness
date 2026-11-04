@@ -131,14 +131,21 @@ camera/photo segmentation**, as detailed above.
 
 FastAPI + SQLite atomic job worker + PyBullet DIRECT simulation, Next.js
 dashboard (English-first UI with Turkish switch, designed for non-experts), Pydantic contracts,
-SHA-256 evidence packages with an independent verifier. 194 backend tests
-(incl. 35 image/SAM cases) plus 20 Playwright E2E (incl. camera, photo,
+SHA-256 evidence packages with an independent verifier. 213 backend tests
+(incl. 35 image/SAM cases) plus 24 Playwright E2E (incl. camera, photo,
 scale gate); Docker images built and run-verified.
 Built solo on a 2014-era Toshiba Tecra Z40 laptop — no GPU, no cloud, no
 team — using only Meta models. Blueprint to v1.0.0 with a sealed VERIFIED
 verdict took four working days (2026-10-27 → 2026-11-02 in the commit
 history); the constraints are why the stack is PyBullet DIRECT, SQLite and
 offline-first, and why the full test suites run on that same machine.
+Also on board: sensor stress grids (latency x noise heatmaps), bounded
+AI adversarial scenario rounds (Muse Spark proposes, the oracle judges —
+live-measured 2026-11-04: RW-AI-002 FAILED at 0.0058 m, RW-AI-003 PASSED
+at 0.2688 m, 2 rounds / 6,329 tokens),
+a synchronized failure timeline, an evidence-ZIP inspector, portable
+standalone HTML reports, voice-triggered investigation, and a Pixel Proof
+visual layer over Gate 2.
 Controller research (shared law → pass-behind/stateful/waypoint/MPC) was
 run under a strict protocol: develop only on burned sets, pre-register,
 single-shot on a fresh frozen set, publish the result either way.

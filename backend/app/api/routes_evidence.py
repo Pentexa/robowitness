@@ -1,5 +1,7 @@
 """Evidence package inspection and safe download routes."""
 
+import base64
+import binascii
 import io
 import json
 import zipfile
@@ -7,8 +9,31 @@ from fastapi import APIRouter, status
 from fastapi.responses import StreamingResponse
 from app.config import settings
 from app.errors import RoboWitnessException
+from app.evidence.inspector import (
+    EvidenceInspectReport,
+    EvidenceInspectRequest,
+    inspect_evidence_zip,
+)
 
 router = APIRouter(prefix="/evidence", tags=["Evidence"])
+
+
+@router.post("/inspect", response_model=EvidenceInspectReport, status_code=status.HTTP_200_OK)
+def inspect_uploaded_evidence(body: EvidenceInspectRequest):
+    """Independently verify an uploaded evidence ZIP (base64, JSON API style).
+
+    Placed before the /{verification_id} route so 'inspect' is not parsed
+    as a verification id.
+    """
+    try:
+        data = base64.b64decode(body.content_base64, validate=True)
+    except (binascii.Error, ValueError):
+        raise RoboWitnessException(
+            status_code=422,
+            code="INVALID_BASE64",
+            message="content_base64 is not valid base64",
+        )
+    return inspect_evidence_zip(data)
 
 
 @router.get("/{verification_id}", status_code=status.HTTP_200_OK)

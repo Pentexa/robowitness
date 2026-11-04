@@ -1,5 +1,7 @@
 import {
+  AdversarialResult,
   BatteryResult,
+  EvidenceInspectReport,
   ImportResult,
   LocalPolicyInfo,
   PolicyConfig,
@@ -10,6 +12,7 @@ import {
   RunResult,
   ScenarioCatalogEntry,
   ScenarioSpec,
+  StressTestResult,
   TelemetryFrame,
   VerificationRecord,
 } from "./types";
@@ -563,4 +566,76 @@ export async function fetchCandidateTelemetry(
   if (res.status === 404) throw new Error("CANDIDATE_REPLAY_MISSING");
   if (!res.ok) throw new Error("Failed to load candidate telemetry");
   return res.json();
+}
+
+// ------------------------------------------------------------ new features
+
+export async function createStressTest(payload: {
+  scenario: ScenarioSpec;
+  policy: PolicyConfig;
+  latencies_ms: number[];
+  noise_levels_m: number[];
+}): Promise<{ job_id: string; result_id: string; status: string }> {
+  const res = await apiFetch(`${API_BASE}/api/stress-tests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Stress test could not be queued");
+  return res.json();
+}
+
+export async function fetchStressTest(stressId: string): Promise<StressTestResult> {
+  const res = await apiFetch(`${API_BASE}/api/stress-tests/${stressId}`);
+  if (!res.ok) throw new Error("Failed to load stress test");
+  return res.json();
+}
+
+export async function fetchStressTests(limit = 5): Promise<StressTestResult[]> {
+  const res = await apiFetch(`${API_BASE}/api/stress-tests?limit=${limit}`);
+  if (!res.ok) throw new Error("Failed to load stress tests");
+  return res.json();
+}
+
+export async function createAdversarialTest(payload: {
+  policy: PolicyConfig;
+  max_iterations: number;
+  seed_run_id?: string | null;
+}): Promise<{ job_id: string; result_id: string; status: string }> {
+  const res = await apiFetch(`${API_BASE}/api/adversarial-tests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Adversarial test could not be queued");
+  return res.json();
+}
+
+export async function fetchAdversarialTest(adversarialId: string): Promise<AdversarialResult> {
+  const res = await apiFetch(`${API_BASE}/api/adversarial-tests/${adversarialId}`);
+  if (!res.ok) throw new Error("Failed to load adversarial test");
+  return res.json();
+}
+
+export async function fetchAdversarialTests(limit = 5): Promise<AdversarialResult[]> {
+  const res = await apiFetch(`${API_BASE}/api/adversarial-tests?limit=${limit}`);
+  if (!res.ok) throw new Error("Failed to load adversarial tests");
+  return res.json();
+}
+
+export async function inspectEvidenceZip(
+  filename: string,
+  contentBase64: string
+): Promise<EvidenceInspectReport> {
+  const res = await apiFetch(`${API_BASE}/api/evidence/inspect`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ filename, content_base64: contentBase64 }),
+  });
+  if (!res.ok) throw new Error("Evidence inspection failed");
+  return res.json();
+}
+
+export function verificationHtmlReportUrl(verificationId: string): string {
+  return `${API_BASE}/api/verifications/${verificationId}/report.html`;
 }

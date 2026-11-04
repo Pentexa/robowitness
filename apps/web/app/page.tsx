@@ -5,6 +5,10 @@ import { HelpCircle, X } from "lucide-react";
 import { ComparisonReplay } from "../components/ComparisonReplay";
 import { PixelProof } from "../components/PixelProof";
 import { VoiceFailureButton } from "../components/VoiceFailureButton";
+import { AdversarialPanel } from "../components/AdversarialPanel";
+import { EvidenceInspector } from "../components/EvidenceInspector";
+import { FailureTimeline } from "../components/FailureTimeline";
+import { StressPanel } from "../components/StressPanel";
 import { EvidencePanel } from "../components/EvidencePanel";
 import { FailureAnalysis } from "../components/FailureAnalysis";
 import { FixComparison } from "../components/FixComparison";
@@ -74,7 +78,7 @@ const DEFAULT_CANDIDATE_POLICY: PolicyConfig = {
   obstacle_prediction_horizon_s: 0.6,
 };
 
-type PanelId = "test" | "hata" | "duzeltme" | "sonuc" | "piksel" | "karne" | "yonetim";
+type PanelId = "test" | "hata" | "duzeltme" | "sonuc" | "piksel" | "stres" | "karne" | "yonetim";
 
 const STEPS: Array<{ panel: PanelId; name: string; desc: string }> = [
   { panel: "test", name: "Testi çalıştır", desc: "Robotu eski ayarlarla bir kez çalıştırın." },
@@ -684,6 +688,15 @@ export default function DashboardPage() {
                     setCurrentFrameIndex(idx);
                   }}
                 />
+                <FailureTimeline
+                  frames={frames}
+                  currentIndex={currentFrameIndex}
+                  onSeek={(idx) => {
+                    setIsPlaying(false);
+                    setCurrentFrameIndex(idx);
+                  }}
+                  minClearanceLimitM={scenario?.oracle.min_clearance_m}
+                />
               </div>
             </div>
 
@@ -719,6 +732,14 @@ export default function DashboardPage() {
               onClick={() => setActivePanel("piksel")}
             >
               {t("Piksel Kanıt")}
+            </button>
+            <button
+              role="tab"
+              aria-selected={activePanel === "stres"}
+              className={`rw-tab ${activePanel === "stres" ? "is-active" : ""}`}
+              onClick={() => setActivePanel("stres")}
+            >
+              {t("Stres Testi")}
             </button>
             <button
               role="tab"
@@ -800,6 +821,11 @@ export default function DashboardPage() {
                   setActivePanel("test");
                 }}
               />
+              <AdversarialPanel
+                policy={baselinePolicy}
+                seedRunId={activeRunId}
+                disabled={busy}
+              />
             </div>
             <div className={`rw-tabpage ${activePanel === "hata" ? "is-active" : ""}`}>
               <FailureAnalysis
@@ -826,6 +852,7 @@ export default function DashboardPage() {
             <div className={`rw-tabpage ${activePanel === "sonuc" ? "is-active" : ""}`}>
               <VerificationDecision verification={verification} isVerifying={isVerifying} />
               <EvidencePanel verification={verification} />
+              <EvidenceInspector />
               <VerificationHistory
                 history={history.map((h) => ({
                   verification_id: h.verification_id,
@@ -847,6 +874,9 @@ export default function DashboardPage() {
             </div>
             <div className={`rw-tabpage ${activePanel === "piksel" ? "is-active" : ""}`}>
               <PixelProof scenario={scenario} verification={verification} />
+            </div>
+            <div className={`rw-tabpage ${activePanel === "stres" ? "is-active" : ""}`}>
+              <StressPanel scenario={scenario} policy={baselinePolicy} disabled={busy} />
             </div>
             <div className={`rw-tabpage ${activePanel === "karne" ? "is-active" : ""}`}>
               <BatteryPanel onLoadRun={handleLoadBatteryRun} />

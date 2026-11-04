@@ -159,6 +159,12 @@ Recorded per simulation tick:
 | GET | `/api/imports/{import_id}` | None | Single import result |
 | POST | `/api/maps/scenario` | `{name, grid_text, cell_size_m}` | Grid text → validated `ScenarioSpec` (≤8 circle obstacles) |
 | POST | `/api/scenarios/from-image/detect` | `{image_data_url, concepts[]}` | Real SAM 3.1 detections (recorded in tests, live via key) |
+| POST | `/api/stress-tests` | `{scenario, policy, latencies_ms[], noise_levels_m[]}` (grid ≤ 40 cells) | `{job_id, stress_id}` (202); each cell is a real recorded run |
+| GET | `/api/stress-tests/{stress_id}` | None | Latency × noise cells with oracle verdicts + summary (heatmap source) |
+| POST | `/api/adversarial-tests` | `{policy, max_iterations?, seed_run_id?}` | Bounded AI-proposed scenario rounds (hard cap 10; AI proposes, oracle judges) |
+| GET | `/api/adversarial-tests/{adversarial_id}` | None | Rounds with provenance, executed runs, stop reason, token usage |
+| POST | `/api/evidence/inspect` | `{filename, content_base64}` | Independent ZIP re-verification: per-file SHA-256, missing/tampered, package type |
+| GET | `/api/verifications/{verification_id}/report.html` | None | Standalone portable HTML report (inline SVG chart, gate table, evidence hashes) |
 | POST | `/api/scenarios/from-image/scenario` | `{detection_id, selected_ids[], width_m, height_m, start, goal, save}` | Previewed or saved runnable `ScenarioSpec` + warnings |
 | GET | `/api/scenarios/from-image/saved` | None | Saved image scenarios, newest first |
 | GET | `/api/metrics` | None | Workspace counts, last battery summary, job states |

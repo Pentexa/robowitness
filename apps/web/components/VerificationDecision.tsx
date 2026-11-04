@@ -61,6 +61,15 @@ export const VerificationDecision: React.FC<VerificationDecisionProps> = ({
   isVerifying,
 }) => {
   const { t } = useLocale();
+  const gates = verification?.gates ?? [];
+  const passedCount = gates.filter((g) => g.status === "PASS").length;
+  const pairedGate = gates.find((g) => g.gate_id === "GATE_2_PAIRED");
+  const holdoutGate = gates.find((g) => g.gate_id === "GATE_3_HOLDOUT");
+  const num = (v: unknown): number | null => (typeof v === "number" ? v : null);
+  const baseMin = num(pairedGate?.details?.baseline_min_clearance_m);
+  const candMin = num(pairedGate?.details?.candidate_min_clearance_m);
+  const holdoutPassed = num(holdoutGate?.details?.passed_cases);
+  const holdoutTotal = num(holdoutGate?.details?.total_cases);
   if (!verification && !isVerifying) {
     return (
       <div className="rw-card">
@@ -104,6 +113,36 @@ export const VerificationDecision: React.FC<VerificationDecisionProps> = ({
           </span>
           {!isVerifying && <span className="rw-verdict-sub">{t(verdictInfo.sub)}</span>}
         </div>
+        {verification && gates.length > 0 && (
+          <>
+            <div className="rw-gate-progress" role="img" aria-label={`${passedCount}/${gates.length}`}>
+              {gates.map((g) => (
+                <span
+                  key={g.gate_id}
+                  className={`rw-gate-seg ${g.status === "PASS" ? "is-pass" : g.status === "FAIL" ? "is-fail" : ""}`}
+                  title={`${g.gate_id}: ${g.status}`}
+                />
+              ))}
+              <span className="rw-gate-progress-label mono">
+                {passedCount}/{gates.length} {t("kapı geçti")}
+              </span>
+            </div>
+            {(baseMin !== null || holdoutPassed !== null) && (
+              <div className="rw-measure-chips">
+                {baseMin !== null && candMin !== null && (
+                  <span className="rw-measure-chip mono">
+                    {t("Ölçülen en düşük mesafe")}: {baseMin.toFixed(4)} m → {candMin.toFixed(4)} m
+                  </span>
+                )}
+                {holdoutPassed !== null && holdoutTotal !== null && (
+                  <span className="rw-measure-chip mono">
+                    {t("Görmediği testler")}: {holdoutPassed}/{holdoutTotal}
+                  </span>
+                )}
+              </div>
+            )}
+          </>
+        )}
         <div className="rw-gates">
           {(verification?.gates ?? []).map((g) => {
             const info = GATE_INFO[g.gate_id];

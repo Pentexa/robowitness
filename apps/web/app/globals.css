@@ -320,7 +320,14 @@ select.rw-input option { background: #fff; }
 .rw-verdict.is-fail { border-style: dashed; }
 .rw-verdict-label { font-size: 0.68rem; color: var(--text-1); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
 .rw-verdict.is-solid .rw-verdict-label { color: #c9c9c9; }
-.rw-verdict-value { font-weight: 800; font-size: 1.02rem; letter-spacing: 0.01em; }
+.rw-verdict-value { font-weight: 800; font-size: 1.28rem; letter-spacing: 0.01em; }
+.rw-gate-progress { display: flex; align-items: center; gap: 4px; margin: 10px 0 2px; }
+.rw-gate-seg { flex: 1; height: 8px; border: 1.5px solid var(--line-strong); border-radius: 3px; background: #fff; }
+.rw-gate-seg.is-pass { background: var(--text-0); }
+.rw-gate-seg.is-fail { background: repeating-linear-gradient(45deg, #fff 0 3px, var(--line-strong) 3px 5px); }
+.rw-gate-progress-label { font-size: 0.7rem; font-weight: 700; white-space: nowrap; margin-left: 6px; }
+.rw-measure-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+.rw-measure-chip { font-size: 0.72rem; font-weight: 700; border: 1px solid var(--line-strong); border-radius: 999px; padding: 3px 9px; background: #fff; }
 .rw-verdict-sub { font-size: 0.8rem; color: var(--text-1); }
 
 /* ---------- Karşılaştırma ---------- */
@@ -376,3 +383,31 @@ select.rw-input option { background: #fff; }
 .rw-pixel-live { position: absolute; top: 6px; right: 6px; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--line); }
 .rw-pixel-live.is-danger { color: #b3261e; border-color: #b3261e; }
 .rw-pixel-live.is-safe { color: #1e7d32; border-color: #1e7d32; }
+
+/* Stres testi / rakip testi / kanıt denetçisi / arıza zaman çizgisi */
+.rw-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.rw-chip { font-size: 0.76rem; font-weight: 600; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; background: #fff; cursor: pointer; }
+.rw-chip.is-on { background: var(--text-0); color: #fff; border-color: var(--text-0); }
+.rw-chip:disabled { opacity: 0.5; cursor: default; }
+.rw-linklike { display: block; background: none; border: none; padding: 3px 0; font-size: 0.8rem; color: var(--text-0); cursor: pointer; text-align: left; text-decoration: underline; }
+table.rw-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 8px; }
+table.rw-table th, table.rw-table td { border: 1px solid var(--line); padding: 4px 6px; text-align: left; }
+table.rw-table th { background: #f4f4f4; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.rw-heatmap-wrap { overflow-x: auto; margin-top: 10px; }
+table.rw-heatmap { border-collapse: collapse; font-size: 0.76rem; }
+table.rw-heatmap th, table.rw-heatmap td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; min-width: 86px; }
+table.rw-heatmap thead th, table.rw-heatmap tbody th { background: #f4f4f4; font-size: 0.7rem; }
+table.rw-heatmap td.is-pass { background: rgba(30, 125, 50, 0.14); color: #14532d; font-weight: 700; }
+table.rw-heatmap td.is-fail { background: rgba(179, 38, 30, 0.14); color: #7f1d1d; font-weight: 700; }
+table.rw-heatmap td.is-near { background: rgba(224, 123, 0, 0.18); color: #7c4a03; font-weight: 700; }
+table.rw-heatmap td.is-unknown { background: #eee; color: var(--text-1); font-weight: 700; }
+.rw-heat-min { display: block; font-size: 0.68rem; font-weight: 400; }
+.rw-timeline-chart { width: 100%; height: auto; display: block; cursor: crosshair; }
+.rw-marks-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.72rem; color: var(--text-1); margin-top: 6px; }
+.rw-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.rw-legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.rw-badge.is-pass { color: #1e7d32; border-color: #1e7d32; font-weight: 700; }
+.rw-file-status.is-ok { color: #1e7d32; font-weight: 700; }
+.rw-file-status.is-mismatch, .rw-file-status.is-missing { color: #b3261e; font-weight: 700; }
+.rw-file-status.is-not_sealed { color: #9e6a00; font-weight: 700; }
+.rw-hash-cell { font-size: 0.68rem; }

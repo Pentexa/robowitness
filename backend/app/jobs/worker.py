@@ -68,6 +68,14 @@ def _worker_loop(worker_id: str, service: JobExecutionService, poll_interval_s: 
                 service.execute_verification(
                     job, progress_callback=lambda p: update_job_progress(job.job_id, p)
                 )
+            elif job.kind == "stress_test":
+                service.execute_stress_test(
+                    job, progress_callback=lambda p: update_job_progress(job.job_id, p)
+                )
+            elif job.kind == "adversarial_test":
+                service.execute_adversarial_test(
+                    job, progress_callback=lambda p: update_job_progress(job.job_id, p)
+                )
 
             update_job_status(job.job_id, status="completed", finished=True)
             notify(

@@ -16,7 +16,10 @@ from app.evidence.reporter import generate_verification_report
 from app.policies.candidate_law import get_candidate_policy_fn
 from app.policies.configurable import configurable_policy
 from app.policies.local_adapter import SubprocessPolicy
+from app.ai.adversarial import clamp_iterations, run_adversarial_rounds
+from app.ai.adapter import get_ai_adapter
 from app.schemas.battery import BatteryEntry, BatteryResult, is_near_miss, summarize
+from app.schemas.stress import StressCell, StressTestResult, summarize_cells
 from app.schemas.jobs import JobProgress, JobRecord
 from app.schemas.policy import PolicyConfig
 from app.schemas.scenario import ScenarioSpec
@@ -188,6 +191,166 @@ class JobExecutionService:
                 "summary": result.summary.model_dump(),
             },
         )
+
+    def execute_stress_test(self, job: JobRecord, progress_callback=None) -> None:
+        """Sensor stress grid: vary latency x noise on copies of one scenario.
+
+        Each cell is an ordinary recorded run (same oracle, same law); the
+        grid never relaxes thresholds — it only stresses the sensor model.
+        """
+        data = json.loads(job.payload_json)
+        base = ScenarioSpec.model_validate(data["scenario"])
+        policy = PolicyConfig.model_validate(data["policy"])
+        latencies = [int(v) for v in data["latencies_ms"]]
+        noises = [float(v) for v in data["noise_levels_m"]]
+        cells: list[StressCell] = []
+        total = len(latencies) * len(noises)
+        idx = 0
+        for latency in latencies:
+            for noise in noises:
+                idx += 1
+                if progress_callback:
+                    progress_callback(
+                        JobProgress(
+                            pct=round((idx - 1) / max(total, 1) * 100.0, 1),
+                            current_step=idx,
+                            total_steps=total,
+                            message=f"Stress cell {idx}/{total}: {latency} ms, noise {noise} m",
+                        )
+                    )
+                variant = base.model_copy(
+                    update={
+                        "robot": base.robot.model_copy(
+                            update={"sensor_latency_ms": latency, "sensor_noise_std_m": noise}
+                        )
+                    }
+                )
+                variant = ScenarioSpec.model_validate(variant.model_dump())
+                run_id = f"run-{uuid.uuid4().hex[:12]}"
+                status_, reasons, metrics = self._execute_single_run(
+                    scenario=variant,
+                    policy=policy,
+                    run_id=run_id,
+                    job_id=job.job_id,
+                    created_at=job.created_at,
+                )
+                cells.append(
+                    StressCell(
+                        latency_ms=latency,
+                        noise_std_m=noise,
+                        run_id=run_id,
+                        oracle_status=status_,
+                        reason_codes=reasons,
+                        metrics=metrics,
+                        near_miss=is_near_miss(status_, reasons, metrics),
+                    )
+                )
+        if progress_callback:
+            progress_callback(
+                JobProgress(pct=100.0, current_step=total, total_steps=total, message="Done")
+            )
+        result = StressTestResult(
+            stress_id=job.result_id,
+            scenario_id=base.id,
+            policy_id=policy.id,
+            latencies_ms=latencies,
+            noise_levels_m=noises,
+            cells=cells,
+            summary=summarize_cells(cells),
+            created_at=job.created_at,
+            completed_at=datetime.now(timezone.utc).isoformat(),
+        )
+        with get_db() as conn:
+            conn.execute(
+                "INSERT INTO stress_runs (stress_id, scenario_id, result_json, created_at, "
+                "workspace_id) VALUES (?, ?, ?, ?, ?)",
+                (
+                    result.stress_id,
+                    result.scenario_id,
+                    result.model_dump_json(),
+                    job.created_at,
+                    data.get("workspace_id", "default"),
+                ),
+            )
+            conn.commit()
+
+    def execute_adversarial_test(self, job: JobRecord, progress_callback=None) -> None:
+        """Bounded adversarial rounds: the AI proposes scenarios, each one is
+        executed and judged by the ordinary oracle. The AI never decides."""
+        data = json.loads(job.payload_json)
+        policy = PolicyConfig.model_validate(data["policy"])
+        max_iterations = clamp_iterations(
+            data.get("max_iterations"), settings.RW_ADVERSARIAL_MAX_ITERATIONS
+        )
+
+        seed_summary = ""
+        seed_run_id = data.get("seed_run_id")
+        if seed_run_id:
+            with get_db() as conn:
+                row = conn.execute(
+                    "SELECT oracle_status, reason_codes_json, metrics_json FROM runs "
+                    "WHERE run_id = ?",
+                    (seed_run_id,),
+                ).fetchone()
+            if row is not None:
+                seed_summary = (
+                    f"seed run {seed_run_id}: {row['oracle_status']} "
+                    f"reasons={row['reason_codes_json']} metrics={row['metrics_json']}"
+                )[:800]
+
+        adapter = get_ai_adapter()
+
+        def _execute(scenario):
+            run_id = f"run-{uuid.uuid4().hex[:12]}"
+            status_, reasons, metrics = self._execute_single_run(
+                scenario=scenario,
+                policy=policy,
+                run_id=run_id,
+                job_id=job.job_id,
+                created_at=job.created_at,
+            )
+            return status_, reasons, metrics, run_id
+
+        if progress_callback:
+            progress_callback(
+                JobProgress(
+                    pct=5.0,
+                    current_step=0,
+                    total_steps=max_iterations,
+                    message="Starting adversarial rounds",
+                )
+            )
+        result = run_adversarial_rounds(
+            adapter=adapter,
+            policy=policy,
+            max_iterations=max_iterations,
+            execute=_execute,
+            seed_failure_summary=seed_summary,
+        )
+        result.adversarial_id = job.result_id
+        result.created_at = job.created_at
+        result.completed_at = datetime.now(timezone.utc).isoformat()
+        if progress_callback:
+            progress_callback(
+                JobProgress(
+                    pct=100.0,
+                    current_step=max_iterations,
+                    total_steps=max_iterations,
+                    message="Done",
+                )
+            )
+        with get_db() as conn:
+            conn.execute(
+                "INSERT INTO adversarial_runs (adversarial_id, result_json, created_at, "
+                "workspace_id) VALUES (?, ?, ?, ?)",
+                (
+                    result.adversarial_id,
+                    result.model_dump_json(),
+                    job.created_at,
+                    data.get("workspace_id", "default"),
+                ),
+            )
+            conn.commit()
 
     def execute_verification(self, job: JobRecord, progress_callback=None) -> None:
         data = json.loads(job.payload_json)

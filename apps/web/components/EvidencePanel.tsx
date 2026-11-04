@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Download } from "lucide-react";
-import { API_BASE_URL } from "../lib/api";
+import { API_BASE_URL, verificationHtmlReportUrl } from "../lib/api";
 import { useLocale } from "../lib/i18n";
 import { VerificationRecord } from "../lib/types";
 
@@ -29,6 +29,14 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({ verification }) =>
         </p>
         <a id="btn-download-evidence" href={downloadUrl} className="rw-btn rw-btn-primary rw-btn-block" download>
           <Download size={15} /> {t("Raporu İndir (.zip)")}
+        </a>
+        <a
+          id="btn-download-html-report"
+          href={verificationHtmlReportUrl(verification.verification_id)}
+          className="rw-btn rw-btn-block"
+          download
+        >
+          <Download size={15} /> {t("Taşınabilir HTML Raporu İndir")}
         </a>
         <details className="rw-details">
           <summary>{t("Teknik detaylar (isteğe bağlı)")}</summary>

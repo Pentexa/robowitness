@@ -111,6 +111,19 @@ CREATE TABLE IF NOT EXISTS battery_runs (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS stress_runs (
+    stress_id TEXT PRIMARY KEY,
+    scenario_id TEXT NOT NULL,
+    result_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS adversarial_runs (
+    adversarial_id TEXT PRIMARY KEY,
+    result_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS telemetry_imports (
     import_id TEXT PRIMARY KEY,
     result_json TEXT NOT NULL,
@@ -135,7 +148,14 @@ CREATE TABLE IF NOT EXISTS ai_requests (
 """
 
 
-_WORKSPACE_TABLES = ("robots", "policy_profiles", "battery_runs", "telemetry_imports")
+_WORKSPACE_TABLES = (
+    "robots",
+    "policy_profiles",
+    "battery_runs",
+    "telemetry_imports",
+    "stress_runs",
+    "adversarial_runs",
+)
 
 
 def _migrate_workspace_columns(conn: sqlite3.Connection) -> None:
