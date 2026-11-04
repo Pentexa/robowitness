@@ -1,0 +1,193 @@
+name: Release
+
+# Continuous Delivery for RoboWitness.
+# Trigger: pushing a version tag (vX.Y.Z), or manually via workflow_dispatch.
+# Pipeline: version consistency gate -> full test gate -> GHCR images ->
+# GitHub Release. Images are published ONLY after tests pass; nothing is
+# published from an untagged commit.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 1.0.0 (a matching v<version> tag must exist)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+  RW_AI_MODE: offline
+  RW_ALLOW_LOCAL_POLICY: "off"
+  RW_CANDIDATE_LAW: shared
+  RW_SENSOR_MODEL: legacy
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository }}
+
+jobs:
+  verify:
+    name: Release gate · version + tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve and verify version consistency
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          python - "$VERSION" <<'PY'
+          import json, re, sys
+          from pathlib import Path
+          expected = sys.argv[1]
+          assert re.fullmatch(r"\d+\.\d+\.\d+", expected), f"not a semver version: {expected}"
+          pyproject = Path("backend/pyproject.toml").read_text(encoding="utf-8")
+          m = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, re.M)
+          assert m and m.group(1) == expected, f"pyproject version {m and m.group(1)} != {expected}"
+          package = json.loads(Path("apps/web/package.json").read_text(encoding="utf-8"))
+          assert package["version"] == expected, f"package.json version {package['version']} != {expected}"
+          print(f"version consistency OK: {expected} (pyproject + package.json)")
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Backend lint + full test suite
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          ruff format --check app tests
+          ruff check --select E,F app tests
+          pytest -q
+
+      - name: Frontend lint + typecheck + build
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_RW_API_URL: http://127.0.0.1:8000
+        run: |
+          npm ci --no-audit --no-fund
+          npm run lint
+          npm run typecheck
+          npm run build
+
+  publish-images:
+    name: Publish images to GHCR
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: verify
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    strategy:
+      matrix:
+        include:
+          - name: backend
+            file: Dockerfile.backend
+            image: robowitness-backend
+          - name: web
+            file: Dockerfile.web
+            image: robowitness-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_PREFIX }}-${{ matrix.name }}
+          tags: |
+            type=raw,value=${{ needs.verify.outputs.version }}
+            type=raw,value=latest
+            type=sha,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=RoboWitness ${{ matrix.name }}
+            org.opencontainers.image.version=${{ needs.verify.outputs.version }}
+
+      - name: Build and push ${{ matrix.name }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_RW_API_URL=http://localhost:8000
+          cache-from: type=gha,scope=release-${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=release-${{ matrix.name }}
+          provenance: true
+          sbom: true
+
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [verify, publish-images]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick release notes
+        run: |
+          VERSION="${{ needs.verify.outputs.version }}"
+          NOTES="docs/RELEASE_${VERSION}.md"
+          if [ -f "$NOTES" ]; then
+            cp "$NOTES" /tmp/release-notes.md
+            echo "using $NOTES"
+          else
+            echo "RoboWitness ${VERSION} — see docs/VERIFICATION_PROTOCOL.md for recorded outcomes." > /tmp/release-notes.md
+            echo "no $NOTES found; using generated fallback notes"
+          fi
+          {
+            echo ""
+            echo "## Container images"
+            echo ""
+            echo "- \`${{ env.IMAGE_PREFIX }}-backend:${VERSION}\`"
+            echo "- \`${{ env.IMAGE_PREFIX }}-web:${VERSION}\`"
+            echo ""
+            echo "Run with: \`docker compose up -d\` (compose file in this repository), or pull the images above."
+          } >> /tmp/release-notes.md
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.verify.outputs.version }}
+          name: RoboWitness v${{ needs.verify.outputs.version }}
+          body_path: /tmp/release-notes.md
+          generate_release_notes: true

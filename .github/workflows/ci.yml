@@ -1,0 +1,248 @@
+name: CI
+
+# Continuous Integration for RoboWitness.
+# Every job is reproducible from a bare clone: no secrets, no live Meta key,
+# no pre-existing artifacts/ are required. Live-provider paths are never
+# exercised here (tests force RW_AI_MODE=offline and blank credentials).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref (saves minutes on PR pushes).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+  # Deterministic, offline, default-law runs — identical to the frozen
+  # measurements documented in docs/VERIFICATION_PROTOCOL.md.
+  RW_AI_MODE: offline
+  RW_ALLOW_LOCAL_POLICY: "off"
+  RW_CANDIDATE_LAW: shared
+  RW_SENSOR_MODEL: legacy
+  NEXT_PUBLIC_RW_API_URL: http://127.0.0.1:8000
+
+jobs:
+  backend:
+    name: Backend · pytest + ruff
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/pyproject.toml', 'backend/requirements.lock') }}
+          restore-keys: |
+            pip-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+
+      - name: Install backend (with dev extras)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Ruff format check
+        run: ruff format --check app tests
+
+      - name: Ruff lint (E,F)
+        run: ruff check --select E,F app tests
+
+      - name: Pytest with coverage
+        run: >
+          pytest -q
+          --cov=app --cov-report=xml --cov-report=term
+          --junitxml=test-results.xml
+
+      - name: Upload backend test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: |
+            backend/coverage.xml
+            backend/test-results.xml
+          if-no-files-found: ignore
+          retention-days: 14
+
+  frontend:
+    name: Frontend · lint + typecheck + build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install web dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
+
+  e2e:
+    name: E2E · live stack + Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Cache pip downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/pyproject.toml', 'backend/requirements.lock') }}
+          restore-keys: |
+            pip-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+
+      - name: Install backend + web dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e "./backend[dev]"
+          npm ci --no-audit --no-fund --prefix apps/web
+
+      - name: Install Playwright Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Build web (production)
+        working-directory: apps/web
+        run: npm run build
+
+      - name: Start live stack (backend + worker + web)
+        run: |
+          mkdir -p artifacts ci-logs
+          (cd backend && nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > ../ci-logs/backend.log 2>&1 &)
+          (cd backend && nohup python -m app.jobs.worker > ../ci-logs/worker.log 2>&1 &)
+          (cd apps/web && nohup npm run start > ../../ci-logs/web.log 2>&1 &)
+
+      - name: Wait for the stack to become healthy
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fs http://127.0.0.1:8000/api/health > /tmp/health.json 2>/dev/null \
+               && grep -Eq '"worker_active": ?true' /tmp/health.json \
+               && curl -fs -o /dev/null http://127.0.0.1:3000; then
+              echo "stack healthy after ${i} tries"; cat /tmp/health.json; exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::stack did not become healthy in time"
+          tail -n 100 ci-logs/*.log || true
+          exit 1
+
+      - name: Live-stack HTTP journeys
+        run: python scripts/e2e_live_stack.py
+
+      - name: Playwright browser E2E
+        working-directory: apps/web
+        run: npm run test:e2e
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: |
+            apps/web/test-results/
+            ci-logs/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Stop live stack
+        if: always()
+        run: pkill -f "uvicorn app.main" || true; pkill -f "app.jobs.worker" || true; pkill -f "next start" || true
+
+  docker:
+    name: Docker · build + compose smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build images (compose)
+        run: docker compose build
+
+      - name: Compose smoke test
+        run: |
+          docker compose up -d --no-build
+          for i in $(seq 1 60); do
+            if curl -fs http://127.0.0.1:8000/api/health > /tmp/health.json 2>/dev/null \
+               && grep -Eq '"worker_active": ?true' /tmp/health.json \
+               && curl -fs -o /dev/null http://127.0.0.1:3000; then
+              echo "compose stack healthy after ${i} tries"; cat /tmp/health.json; exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::compose stack did not become healthy in time"
+          docker compose logs --tail 200 || true
+          exit 1
+
+      - name: Compose logs on failure
+        if: failure()
+        run: docker compose logs --tail 200 || true
+
+      - name: Tear down compose stack
+        if: always()
+        run: docker compose down -v || true
+
+  gate:
+    name: CI · required gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [backend, frontend, e2e, docker]
+    if: always()
+    steps:
+      - name: Fail if any required job failed
+        run: |
+          echo "backend=${{ needs.backend.result }} frontend=${{ needs.frontend.result }} e2e=${{ needs.e2e.result }} docker=${{ needs.docker.result }}"
+          if [ "${{ needs.backend.result }}" != "success" ] \
+             || [ "${{ needs.frontend.result }}" != "success" ] \
+             || [ "${{ needs.e2e.result }}" != "success" ] \
+             || [ "${{ needs.docker.result }}" != "success" ]; then
+            echo "::error::one or more required CI jobs did not succeed"
+            exit 1
+          fi
+          echo "all required CI jobs succeeded"

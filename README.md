@@ -35,6 +35,9 @@
 
 <br />
 
+[![CI](https://github.com/Pentexa/robowitness/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Pentexa/robowitness/actions/workflows/ci.yml)
+[![Release](https://github.com/Pentexa/robowitness/actions/workflows/release.yml/badge.svg)](https://github.com/Pentexa/robowitness/actions/workflows/release.yml)
+[![Security](https://github.com/Pentexa/robowitness/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Pentexa/robowitness/actions/workflows/security.yml)
 [![Tests — 194 Passed](https://img.shields.io/badge/tests-194_passed-brightgreen?style=flat-square&logo=pytest&logoColor=white)](#-measured-results)
 [![E2E — 18 Passed](https://img.shields.io/badge/e2e-18_passed-brightgreen?style=flat-square&logo=playwright&logoColor=white)](#-measured-results)
 [![Photo to Scenario — SAM 3.1](https://img.shields.io/badge/photo_to_scenario-SAM_3.1-C026D3?style=flat-square&logo=meta&logoColor=white)](#-robot--scenario-lab)
@@ -672,6 +675,7 @@ python scripts/run_final_evaluation.py
 | [`docs/EVIDENCE_FORMAT.md`](docs/EVIDENCE_FORMAT.md) | Evidence package structure and sealing rules |
 | [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md) | Path A/B/C demonstration scripts |
 | [`docs/RELEASE_1.0.0.md`](docs/RELEASE_1.0.0.md) | Release notes for v1.0.0 |
+| [`docs/CI_CD.md`](docs/CI_CD.md) | CI/CD pipelines: jobs, release flow, security scans, Dependabot, branch protection |
 
 <br />
 
