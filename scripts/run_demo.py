@@ -1,9 +1,9 @@
-"""Hackathon judge demo — the whole RoboWitness story in about a minute.
+"""RoboWitness end-to-end demo — the whole story in about a minute.
 
 Offline-safe (no Meta key needed; if RW_AI_MODE=live is configured, the live
 path is exercised through the same adapter the product uses).
 
-Story arc, all measured live in front of the judge:
+Story arc, all measured:
   1. An AI-era robot policy fails deterministically (baseline collision).
   2. The failure is investigated from measured telemetry (not vibes).
   3. Fixes were rejected for five frozen sets (17-18/20) — never faked.
@@ -11,7 +11,7 @@ Story arc, all measured live in front of the judge:
      its sealed evidence package is re-verified here, byte by byte.
   5. A mini report-card battery shows the product surface beyond the demo.
 
-Run:  python scripts/run_hackathon_demo.py
+Run:  python scripts/run_demo.py
 Exit code 0 only if every measured expectation holds.
 """
 import json
@@ -140,7 +140,7 @@ def main() -> int:
         )
 
     banner(f"Demo complete in {time.time() - started:.1f}s — every claim above was measured.")
-    print("Dashboard: http://localhost:3000 · Docs: docs/HACKATHON_SUBMISSION.md")
+    print("Dashboard: http://localhost:3000 · Docs: docs/USAGE.md")
     return 0
 
 

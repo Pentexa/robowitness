@@ -1,7 +1,7 @@
 """Ultra pack contract: baseline fails all five, the Meta-style patch passes.
 
 These measured expectations are the demo's backbone (see
-docs/HACKATHON_SUBMISSION.md): if a future law changes them, this test is
+scenarios/ultra/): if a future law changes them, this test is
 supposed to say so loudly instead of letting the demo quietly rot.
 """
 

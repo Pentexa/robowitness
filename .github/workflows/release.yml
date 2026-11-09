@@ -171,7 +171,7 @@ jobs:
             cp "$NOTES" /tmp/release-notes.md
             echo "using $NOTES"
           else
-            echo "RoboWitness ${VERSION} — see docs/VERIFICATION_PROTOCOL.md for recorded outcomes." > /tmp/release-notes.md
+            echo "RoboWitness ${VERSION} — see docs/VERIFICATION.md for recorded outcomes." > /tmp/release-notes.md
             echo "no $NOTES found; using generated fallback notes"
           fi
           {

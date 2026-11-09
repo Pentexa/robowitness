@@ -24,7 +24,7 @@ env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "20"
   # Deterministic, offline, default-law runs — identical to the frozen
-  # measurements documented in docs/VERIFICATION_PROTOCOL.md.
+  # measurements documented in docs/VERIFICATION.md.
   RW_AI_MODE: offline
   RW_ALLOW_LOCAL_POLICY: "off"
   RW_CANDIDATE_LAW: shared

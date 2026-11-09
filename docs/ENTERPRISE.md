@@ -1,152 +1,93 @@
-# RoboWitness Enterprise Kılavuzu
+# Enterprise Guide (Optional)
 
-Bu belge, yerel tek-kullanıcı modunun üzerindeki enterprise katmanı anlatır.
-Her özellik **isteğe bağlıdır**: hiçbiri açılmadan sistem eskisi gibi çalışır.
+Every feature here is opt-in. With nothing configured, the system works as a
+single-user open local mode.
 
-## 1. API anahtarı, rol ve çalışma alanı (workspace)
-
-`.env` içinde (bkz. `.env.example`):
+## Auth, Roles & Workspaces
 
 ```
-RW_API_KEYS=anahtar1:admin:depo-a;anahtar2:editor:depo-a;anahtar3:viewer:depo-a
+.env: RW_API_KEYS=key1:admin:ws-a;key2:editor:ws-a;key3:viewer:ws-a
 ```
 
-- Boş bırakılırsa: açık yerel mod (kimlik gerekmez, aktör `local`).
-- Doluysa: `/api/health` hariç tüm `/api` çağrıları `X-API-Key` başlığı ister.
-  Anahtarsız → 401, yanlış anahtar → 401, `viewer` ile yazma → 403.
-- Roller: `admin` (her şey + denetim kaydı) > `editor` (okuma+yazma) > `viewer` (okuma).
-- Çalışma alanı izolasyonu: kullanıcı robotları, politika profilleri, karneler ve
-  gerçek sürüş içe aktarımları anahtarın workspace'inde izole edilir. Anahtarsız
-  modda `X-Workspace-Id` başlığı aynı işlevi görür. Hazır kataloglar (robotlar,
-  profiller) tüm alanlarda paylaşılır.
-- Tarayıcı: üst çubuktaki "API key (if any)" ve "Workspace" alanları değerleri
-  `localStorage`'da saklar; anahtar koda ASLA yazılmaz.
+- Keys are empty → open local mode. Keys are set → all `/api` routes except
+  `/health` require `X-API-Key`. Roles: `admin > editor > viewer`.
+- User robots, policy profiles, batteries, and imports are isolated per
+  workspace; built-in catalogs are shared. Without keys, the
+  `X-Workspace-Id` header does the same.
+- JWT: `Authorization: Bearer <token>` with `RW_JWT_SECRET` (HS256) or
+  `RW_OIDC_JWKS_URL` (+ optional issuer/audience) for RS256/OIDC. Claims:
+  `sub` → actor, `role` → role, `workspace` → workspace.
 
-## 2. Denetim kaydı (audit) ve metrikler
+## Audit & Metrics
 
-- Her yazma isteği (POST/PUT/DELETE) `audit_logs` tablosuna aktör, rol, workspace,
-  yol ve durum koduyla yazılır. Okuma: `GET /api/audit?limit=50` (admin).
-- `GET /api/metrics`: workspace sayıları, son karne özeti, içe aktarma
-  geçme/kalma sayıları, koşu/doğrulama toplamları, iş durumları.
+- Every write is recorded (actor, role, workspace, path, status).
+  `GET /api/audit?limit=50` (admin), `GET /api/metrics`.
+- Prometheus exposition: `GET /api/prom` (public, like health).
 
-## 3. Karne karşılaştırma
+## Batteries, Maps & Imports
 
-`GET /api/batteries/compare?a=<id>&b=<id>` — senaryo başına
-PASS/FAIL değişimi, mesafe farkı ve özet deltası döner.
-Arayüzde (İngilizce): Report Card sekmesi → "Report Card Comparison (A → B)".
+- `GET /api/batteries/compare?a=<id>&b=<id>` — per-scenario
+  improved/worsened diff; `GET /api/batteries/trend` — pass-rate history;
+  `POST /api/batteries/fleet` — one battery across multiple robots
+  (incompatible robots skipped with reasons).
+- `POST /api/maps/scenario` — occupancy-grid text (`#` obstacle, `S` start,
+  `G` goal) + cell size → validated scenario (≤8 circle obstacles).
+- `POST /api/scenarios/from-image/detect` + `/from-image/scenario` — photo →
+  SAM 3.1 detections → runnable scenario (requires confirmed scale and
+  overhead view). Photos are never stored; only boxes + source SHA-256.
 
-## 4. Kendi ortamım: harita ve kamera içe aktarma
+## Schedules, Idempotency, Webhooks
 
-`POST /api/maps/scenario` — ızgara metni (`#` engel, `.` boş, `S` başlangıç,
-`G` hedef) + hücre boyutu → doğrulanmış senaryo. Her bağlantılı engel kümesi bir
-daire engele çevrilir (en çok 8; kırpılmalar uyarı olarak döner). Dünya boyutu
-6–20 m × 4–15 m sınırına uymalı. Arayüzde: Test sekmesi → "Scenario From My Map".
+- `POST /api/batteries/schedules` (≥5 min interval) — the worker enqueues due
+  batteries once.
+- `POST /api/runs` and `/api/batteries` honor `Idempotency-Key` (same request
+  returns the same job).
+- `RW_WEBHOOK_URL` + `RW_WEBHOOK_SECRET` — HMAC-SHA256-signed completion
+  notifications (`X-RoboWitness-Signature`).
+- Rate limiting per actor: `RW_RATE_LIMIT_PER_MIN` (429).
 
-`POST /api/scenarios/from-image/detect` + `POST /api/scenarios/from-image/scenario` —
-kamera/fotoğraftaki nesneleri gerçek SAM 3.1 ile tespit edip (ölçek + overhead
-onayı zorunlu) kaydedilebilir, çalıştırılabilir senaryoya çevirir
-(`GET /api/scenarios/from-image/saved`). Fotoğraflar sunucuda tutulmaz;
-yalnızca ölçülmüş kutular ve kaynak SHA-256 saklanır. Workspace izolasyonu
-ve denetim bu uçlara da uygulanır.
+## Backups & Retention
 
-## 5. CI kapısı
+- `POST /api/admin/backup` — consistent SQLite backup + SHA-256.
+- `POST /api/admin/retention` (`older_than_days`, dry-run by default) —
+  removes old battery/log/audit history; never touches sealed evidence.
+- `POST /api/admin/restore` — safety copy first, then restore.
+- `GET/POST /api/workspaces/export` / `/import` — full tenant JSON bundle.
 
-```powershell
-$env:RW_API_URL="http://127.0.0.1:8000"; $env:RW_API_KEY="..."
-python scripts/ci_battery_gate.py --robot robot-turtlebot3-waffle-pi `
+## CI Gate
+
+```bash
+python scripts/ci_battery_gate.py --robot robot-turtlebot3-waffle-pi \
   --policy-file policy.json --min-pass-rate 0.8 --max-collisions 0
 ```
 
-Çıkış kodları: 0 kapı geçti, 1 eşik aşıldı (nedenler yazılır), 2 altyapı hatası.
-Worker'ın çalışıyor olması gerekir (işler worker tarafından yürütülür).
-Eşik mantığının kendisi `app/verification/battery_gate.py` içindedir ve
-birim testiyle doğrulanır.
+Exit 0 = gate passed, 1 = thresholds missed, 2 = infrastructure error.
+Requires a running worker. Threshold logic lives in
+`app/verification/battery_gate.py` and is unit-tested.
 
-## 6. JWT / OIDC, yedek, trend, filo (ikinci enterprise turu)
+## Stress, Adversarial, Inspector, Reports
 
-- **JWT:** `Authorization: Bearer <token>` desteklenir. HS256 için
-  `RW_JWT_SECRET`; OIDC/RS256 için `RW_OIDC_JWKS_URL` (+ isteğe bağlı
-  `RW_OIDC_ISSUER`, `RW_OIDC_AUDIENCE`). Claim eşlemesi: `sub`→aktör,
-  `role`→rol (tanınmazsa viewer), `workspace`→çalışma alanı. Süresi dolmuş,
-  imzası bozuk veya gizli anahtarı yanlış token → 401. Tarayıcıda üst
-  çubuktaki "JWT" alanına yapıştırılır.
-- **Yedek/geri yükleme:** `GET /api/workspaces/export` (admin) alanın tüm
-  kiracı verisini JSON paket olarak verir; `POST /api/workspaces/import`
-  başka alana geri yükler (robot/profiller yeni kimlik alabilir; karne/log
-  geçmişi asla ezilmez, çakışanlar atlanıp raporlanır).
-- **Trend:** `GET /api/batteries/trend` geçme oranının zaman serisini verir;
-  Report Card sekmesinde çubuk listesi olarak görünür.
-- **Filo bataryası:** `POST /api/batteries/fleet` birden çok robot için tek
-  istekle batarya kuyruğa alır; uyumsuz/bilinmeyen robotlar nedenleriyle
-  atlanır. Report Card sekmesinde sıralı filo sonucu görünür.
-- **Sensör gerçekçiliği:** Artık bir engelin arkasındaki engel sensörde
-  görünmüyor (ışın tıkanması/occlusion). Tek engelli referans senaryo
-  bit-aynı kaldı; kütüphane karne sonuçları yeniden ölçülüp aynı bulundu.
+- `POST /api/stress-tests` — re-runs a scenario on a latency × noise grid
+  (≤40 cells); every cell is a real recorded run.
+- `POST /api/adversarial-tests` — AI proposes scenarios from measured
+  failures (default 5 rounds, hard cap 10); the oracle judges every run.
+  For live AI, `RW_AI_TIMEOUT_SECONDS=90` is recommended.
+- `POST /api/evidence/inspect` — path-traversal-safe ZIP inspection with
+  full SHA-256 re-verification.
+- `GET /api/verifications/{id}/report.html` — standalone single-file report.
+- Sensor models (`RW_SENSOR_MODEL`): `legacy` (default) or `beam`
+  (24-ray LiDAR-like casting). All frozen results were measured in legacy.
 
-## 6b. Platform katmanı (üçüncü enterprise turu)
+## Docker
 
-- **Veritabanı anahtarları:** `POST /api/admin/api-keys` anahtar üretir (yalnızca
-  özet saklanır, düz metin bir kez gösterilir), `GET` listeler, `DELETE` iptal
-  eder. İlk anahtar oluştuğu anda kimlik zorunlu olur; kilitlenmeyi önlemek
-  için ilk anahtar admin olmak zorundadır (422). Yönetim: **Admin** sekmesi.
-- **Idempotency:** `POST /api/runs` ve `POST /api/batteries`,
-  `Idempotency-Key` başlığıyla tekrarlanırsa aynı işi geri verir, çift koşu açmaz.
-- **Sertleştirme:** her yanıtta `X-Request-Id`, `nosniff`, `X-Frame-Options:
-  DENY`; `RW_RATE_LIMIT_PER_MIN` ile aktör başına hız sınırı (429).
-- **Webhook:** `RW_WEBHOOK_URL` + `RW_WEBHOOK_SECRET` ayarlıysa iş/karne
-  bitiminde HMAC-SHA256 imzalı (`X-RoboWitness-Signature`) bildirim gider;
-  başarısız teslimat işi düşürmez.
-- **Zamanlanmış batarya:** `POST /api/batteries/schedules` (en az 5 dk);
-  worker zamanı geleni bir kez kuyruğa alır. Yönetim sekmesinden kurulur.
-- **Yedek/retention:** `POST /api/admin/backup` tutarlı SQLite yedeği +
-  SHA-256 verir; `POST /api/admin/retention` (varsayılan kuru çalıştırma)
-  eski karne/log/denetim geçmişini siler — mühürlü kanıta dokunmaz.
-- **Prometheus:** `GET /api/prom` (kimliksiz, sağlık gibi) iş/koşu sayaçları.
-- **Worker eşzamanlılığı:** `RW_WORKER_CONCURRENCY=2` gibi; atomik claim
-  sayesinde aynı iş iki kez çalışmaz.
+```bash
+docker compose up --build   # backend + worker + web, artifacts in named volume
+```
 
-## 6c. Dağıtım ve sensör modu (dördüncü tur)
+## Honest Limits
 
-- **Docker:** `docker compose up --build` (backend + worker + web; artefaktlar
-  named volume'da). İmajlar bu makinede derlenip çalıştırılarak doğrulandı
-  (backend healthy, web 200). Docker Desktop bu makinede kararsızdı; iki kez
-  çöküp yeniden başlatıldı — imajlar yine de doğrulandı.
-- **Sensör modeli:** `RW_SENSOR_MODEL=beam` 24 ışınlı LiDAR benzeri modu açar
-  (kuantize kerteriz; ışın arasına düşen engel görülmez). Varsayılan `legacy`;
-  tüm donmuş sonuçlar legacy ile ölçülmüştür. Beam modunda kütüphane desenleri
-  aynı kaldı (LIB-005 mesafe 0.1492 vs legacy 0.152).
-- **Yedekten dönüş:** `POST /api/admin/restore` önce güvenlik kopyası alır,
-  sonra seçili yedeği SHA-256'sıyla geri yükler.
-
-## 6d. Stres, rakip testi, kanıt denetimi, taşınabilir rapor
-
-- **Stres testi:** `POST /api/stress-tests` seçili senaryoyu gecikme × gürültü
-  ızgarasında (en fazla 40 hücre) yeniden koşar; her hücre gerçek kayıtlı
-  koşumdur, sonuçlar `stress_runs` tablosunda workspace'e izole saklanır.
-- **Rakip testi:** `POST /api/adversarial-tests` Muse Spark'a önceki ölçülen
-  başarısızlıklardan beslenen senaryolar ürettirir (`RW_ADVERSARIAL_MAX_ITERATIONS`,
-  varsayılan 5, sert tavan 10; tur başına 1 çağrı, tekrar senaryo koşulmaz).
-  Kararı her zaman oracle verir; token kullanımı sonuçta raporlanır.
-  Canlı çağrılarda `RW_AI_TIMEOUT_SECONDS=90` önerilir: reasoning modeli
-  şema-bağlı JSON için ~30 sn kullanabilir (ölçüldü); 20 sn canlı üretimi
-  aralıklı `UNAVAILABLE` yapar.
-- **Kanıt denetimi:** `POST /api/evidence/inspect` yüklenen ZIP'i yol geçişi
-  korumalarıyla açar, paket tipini manifestten tanır, SHA-256'ları sıfırdan
-  doğrular (eksik/kurcalanmış dosya dosya raporlanır).
-- **Taşınabilir rapor:** `GET /api/verifications/{id}/report.html` tek dosya,
-  dış bağımlılıksız HTML üretir (kapılar, ölçülmüş karşılaştırma, telemetri
-  grafiği, kanıt hash'leri). Rapor mühürlü paketin yerine geçmez; ona
-  referans verir.
-
-## 7. Dürüst sınırlar
-
-- SQLite tek dosya: çok kullanıcılı yatay ölçek için tasarlanmadı; workspace
-  izolasyonu mantıksaldır, ayrı veritabanı değildir (taşınabilirlik için
-  export/import var, parçalama/sharding yok).
-- OIDC doğrulaması JWKS ile RS256'dır; IdP tarafı kurulumu (keşif/oturum
-  yenileme) istemciye aittir, RoboWitness oturum yönetmez.
-- Fizik hâlâ kinematik ve 2B'dir (tıkanma eklendi; isteğe bağlı 24-ışın
-  LiDAR-benzeri modu da var); karneler gerçek dünya güvenlik onayı değildir.
-- Ön kayıtlı MPC-lite adayı taze v6 setinde 20/20 ile
-  `VERIFIED_IN_SIMULATION` aldı ([doğrulama protokolü](VERIFICATION_PROTOCOL.md)).
-  Varsayılan aday yasası paylaşılan yasadır; MPC açıkça seçilir.
+- SQLite is a single file: logical workspace isolation, no sharding.
+- Physics stays kinematic and 2D (occlusion + optional 24-ray mode).
+- Report cards and HTML reports are not real-world safety approvals; a
+  verified verdict means verified in simulation, under the recorded
+  configuration.

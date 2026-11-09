@@ -1,7 +1,7 @@
 """Crowd pack contract: baseline fails all, champion (MPC-crowd) passes all.
 
 Frozen demo expectations — if a law or scenario changes them, this test
-fails loudly on purpose (see docs/HACKATHON_SUBMISSION.md).
+fails loudly on purpose (see scenarios/crowd/).
 """
 
 import json
