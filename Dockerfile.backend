@@ -1,5 +1,5 @@
 # RoboWitness backend + worker (aynı imaj, farklı komut)
-FROM python:3.11-slim
+FROM python:3.15-slim
 
 WORKDIR /app/backend
 COPY backend/pyproject.toml backend/requirements.lock* ./
